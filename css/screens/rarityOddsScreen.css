@@ -1,0 +1,183 @@
+
+/* css/screens/rarityOddsScreen.css */
+
+#rarity-odds {
+    align-items: center; 
+}
+
+#rarity-odds h2 {
+    /* Uses default .screen h2 style from typography.css */
+    margin-bottom: 25px; /* Adjusted for global title underline */
+}
+
+#odds-info-display-container,
+#odds-config-panel {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.odds-section, .odds-config-group {
+    background-color: var(--material-surface-2);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: var(--elevation-dp2);
+    border: 1px solid var(--material-border-dark);
+}
+
+.odds-section h3, .odds-config-group h5 {
+    color: var(--material-primary);
+    font-family: var(--title-font);
+    font-size: 1.3rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: center;
+    border-bottom: 1px solid var(--material-border-dark);
+    padding-bottom: 8px;
+}
+.odds-config-group h5 span { 
+    font-size: 0.8em;
+    font-weight: normal;
+    margin-left: 10px;
+    color: var(--material-text-secondary-dark);
+}
+
+#odds-config-unlock-section {
+    background-color: var(--material-surface-2);
+    padding: 10px 15px; 
+    border-radius: 8px;
+    box-shadow: var(--elevation-dp2);
+    border: 1px solid var(--material-border-dark);
+    max-width: 900px; 
+    width: 100%; 
+    margin: 15px auto 0 auto; 
+    display: flex; 
+    flex-direction: row; 
+    justify-content: center; 
+    align-items: center; 
+    gap: 10px;
+    box-sizing: border-box;
+}
+
+#odds-config-unlock-section label { 
+    color: var(--material-secondary);
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+#odds-config-password {
+    padding: 8px 10px;
+    background-color: var(--material-surface);
+    color: var(--material-on-surface);
+    border: 1px solid var(--material-border-dark);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    width: auto; 
+    min-width: 150px; 
+    max-width: 220px; 
+    box-sizing: border-box;
+}
+
+#odds-config-panel {
+    /* display: flex; is set by JS */
+    flex-direction: column;
+}
+.config-scroll-panel {
+    max-height: calc(100vh - 300px); 
+    overflow-y: auto;
+    padding-right: 10px; 
+    margin-bottom: 15px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+th, td {
+    border: 1px solid var(--material-border-dark);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: middle;
+}
+th {
+    background-color: var(--material-surface);
+    color: var(--material-secondary);
+    font-weight: 600;
+}
+td {
+    color: var(--material-on-surface);
+}
+tbody tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.config-input {
+    width: 90%;
+    max-width: 100px;
+    padding: 6px 8px;
+    background-color: var(--material-surface);
+    color: var(--material-on-surface);
+    border: 1px solid var(--material-border-dark);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    box-sizing: border-box;
+}
+.config-input[type="number"] {
+    -moz-appearance: textfield; 
+}
+.config-input::-webkit-outer-spin-button,
+.config-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.config-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--material-border-dark);
+    flex-wrap: wrap; 
+}
+.config-actions .game-button {
+    min-width: 150px;
+}
+/*
+#make-default-odds-btn {
+    /* Handled by .game-button.game-button-variant 
+}
+#reset-odds-btn {
+    /* Handled by .game-button.game-button-danger 
+}
+*/
+
+
+@media (max-width: 768px) {
+    .odds-section h3, .odds-config-group h5 { font-size: 1.1rem; }
+    table { font-size: 0.8rem; }
+    th, td { padding: 6px 8px; }
+    .config-input { width: 80%; max-width: 80px; font-size: 0.8rem;}
+    .config-actions { align-items: center; }
+    .config-actions .game-button { width: auto; flex-grow: 1; max-width: 250px; }
+    #odds-config-unlock-section { flex-wrap: wrap; padding: 10px; }
+    #odds-config-unlock-section label { width: 100%; text-align: center; margin-bottom: 5px; }
+    #odds-config-password { min-width: 120px; }
+}
+
+@media (max-width: 480px) {
+    .odds-section, .odds-config-group { padding: 10px; overflow-x: auto; }
+    #odds-info-display-container, #odds-config-panel { gap: 10px; }
+    table { font-size: 0.75rem; min-width: 400px; }
+    th, td { padding: 4px 6px; }
+    .config-input { width: 100%; max-width: 70px; font-size: 0.75rem;}
+    #odds-config-unlock-section { gap: 8px; }
+    #odds-config-password { font-size: 0.85rem; padding: 7px 9px; }
+    #odds-config-unlock-section .game-button { font-size: 0.8rem; padding: 7px 9px; }
+    .config-actions .game-button { width: 100%; max-width: none; }
+}

@@ -1,0 +1,108 @@
+/* css/mini-games/silhouette.css */
+
+/* .silhouette-quiz-centered-wrapper has been removed.
+   The parent container (.mini-game-main-content from miniGamesHost.js)
+   will handle centering of these elements as flex items. */
+
+.silhouette-image-container {
+    width: 180px;
+    height: 252px;
+    background-color: #111;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.silhouette-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: grayscale(100%) brightness(0.7) contrast(1.5) blur(2.5px); /* Updated filter */
+}
+
+.silhouette-question-text {
+    font-size: 1rem;
+    color: #3A3B3C;
+    margin-bottom: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+    text-align: center; /* Ensure text itself is centered if it wraps */
+}
+
+.silhouette-options-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px;
+    width: 100%;
+    max-width: 400px; /* Maintain max width for options block */
+    margin-bottom: 10px; /* Space before result/play again */
+    flex-shrink: 0;
+}
+
+.silhouette-options-container .game-button {
+    width: 100%; 
+    padding: 10px 12px;
+    font-size: 0.8rem; 
+    line-height: 1.2;
+    min-height: 38px; /* Ensure consistent button height */
+    white-space: normal; /* Allow text to wrap if necessary */
+    text-align: center;
+    justify-content: center;
+}
+
+/* Styles for gameResultElement (which gets .mini-game-result-text) */
+.silhouette-result-text { /* Use specific class if needed, or rely on .mini-game-result-text */
+    margin-top: 15px;
+    font-size: 1rem;
+    font-weight: 500;
+    width: 100%;
+    text-align: center;
+    min-height: 1.2em; /* Reserve space */
+    flex-shrink: 0;
+}
+
+/* Styles for play again button (which gets .play-again-button-class) */
+.play-again-button-class { /* General play again, if used by silhouette */
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    min-width: 160px;
+    flex-shrink: 0;
+}
+
+
+@media (max-width: 540px) {
+    /* Padding is now handled by parent #mini-game-area */
+    .silhouette-image-container {
+        width: 150px;
+        height: 210px;
+        margin-bottom: 12px;
+    }
+    .silhouette-question-text {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+    .silhouette-options-container {
+        grid-template-columns: 1fr; /* Stack options on very small screens */
+        max-width: 280px;
+        gap: 6px;
+    }
+    .silhouette-options-container .game-button {
+        font-size: 0.75rem;
+        padding: 8px 10px;
+    }
+    .silhouette-result-text {
+        font-size: 0.9rem;
+        margin-top: 12px;
+    }
+    .play-again-button-class {
+        font-size: 0.85rem;
+        padding: 8px 15px;
+        min-width: 140px;
+    }
+}

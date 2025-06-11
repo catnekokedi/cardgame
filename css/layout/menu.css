@@ -1,0 +1,133 @@
+
+
+#menu {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 6px 8px; 
+    background: linear-gradient(to bottom, #e0f2f7, #b3e0ff); /* Ensure light blue gradient */
+    border-bottom: 1px solid #a8c8d8; /* Slightly darker blue border */
+    box-shadow: var(--elevation-dp2);
+    gap: 6px; 
+    position: relative; 
+    height: 58px; 
+    box-sizing: border-box;
+}
+
+.menu-buttons-group { 
+    display: flex;
+    flex-wrap: nowrap; 
+    justify-content: center; 
+    align-items: center; 
+    gap: 4px; 
+    flex-grow: 1; 
+    overflow-x: auto; 
+    overflow-y: hidden;
+    padding: 2px 0; 
+    height: 100%; 
+}
+
+.menu-buttons-group::-webkit-scrollbar {
+    height: 4px;
+}
+.menu-buttons-group::-webkit-scrollbar-thumb {
+    background: var(--material-surface-2);
+    border-radius: 2px;
+}
+
+
+#toki-display.menu-nav-button { 
+    /* background-color: var(--material-surface-2); No longer needed, uses .desktop-icon-text */
+    /* border: 1px solid var(--material-border-dark); No longer needed */
+    flex-shrink: 0; 
+}
+#toki-display.menu-nav-button:hover { 
+    /* background-color: var(--material-surface); No longer needed */
+    /* border-color: var(--material-primary); No longer needed */
+}
+
+#menu .menu-nav-button {
+    flex-shrink: 0;
+}
+
+
+#menu .menu-nav-button.desktop-icon-text { 
+    display: flex;
+    flex-direction: column; 
+    align-items: center;
+    justify-content: center;
+    padding: 4px 6px; 
+    min-width: 60px;  
+    max-width: 90px;
+    height: 100%; 
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
+    border: 1px solid rgba(0, 0, 0, 0.1); /* Light subtle border */
+    box-sizing: border-box;
+    border-radius: 4px; 
+    transition: background-color 0.2s, border-color 0.2s;
+}
+#menu .menu-nav-button.desktop-icon-text:hover {
+    background-color: rgba(255, 255, 255, 0.9); /* Lighter on hover */
+    border-color: var(--material-primary); /* Primary color border on hover */
+}
+
+
+#menu .menu-nav-button .menu-icon { 
+    font-size: 1.3rem; 
+    line-height: 1;
+    margin-bottom: 2px; 
+    color: #4A4A4A; /* Dark grey icon */
+}
+
+#toki-display.menu-nav-button .menu-icon { 
+    color: var(--material-secondary); /* Retain purple for Toki icon */
+    font-size: 1.4rem; 
+}
+
+#menu .menu-nav-button .menu-text { 
+    font-size: 0.65rem; 
+    line-height: 1.1;
+    color: #3A3B3C; /* Dark grey text */
+    white-space: normal; 
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+    display: -webkit-box;
+    -webkit-line-clamp: 2; 
+    -webkit-box-orient: vertical;
+}
+
+#toki-display.desktop-icon-text span#toki-value.toki-balance-amount {
+    font-size: 0.7rem; 
+    line-height: 1.1; 
+    color: #3A3B3C; /* Dark grey text */
+    font-weight: 500; 
+    text-align: center;
+    display: block; 
+    width: 100%;
+    padding: 0; 
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+#loading-bar-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #cce7f0; /* Lighter shade from gradient */
+    z-index: 100; 
+    display: none; 
+    overflow: hidden; 
+}
+
+#loading-bar-progress {
+    width: 0%;
+    height: 100%;
+    background-image: linear-gradient(to right, #FF0000, #FFA500, #FFFF00, #008000, #0000FF, #4B0082, #EE82EE); /* Rainbow gradient */
+    transition: width 0.2s ease-out;
+}

@@ -1,0 +1,107 @@
+/* css/screens/achievements.css */
+
+#achievements .collection-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+    justify-content: center;
+    align-items: center;
+}
+
+#achievements .collection-controls select {
+    padding: 8px 12px;
+    background-color: #f8f9fa; /* Light background consistent with other selects */
+    color: #333; /* Dark text */
+    border-radius: 4px;
+    border: 1px solid #ced4da; /* Standard light border */
+    font-size: 0.85rem;
+    font-family: var(--button-font);
+}
+
+.achievement-set-header {
+    color: #3A3B3C; /* Dark grey for better contrast on light background */
+    font-family: var(--title-font);
+    font-size: 1.4rem;
+    text-align: center;
+    width: 100%;
+    /* margin-top and margin-bottom are set dynamically in JS */
+}
+
+#achievement-list {
+    padding: 0 10px;
+}
+
+#achievement-list .achievement-item {
+    background-color: rgba(255, 255, 255, 0.85); /* Light semi-transparent background */
+    padding: 10px 15px;
+    margin: 8px auto;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    font-size: 0.9rem;
+    box-shadow: var(--elevation-dp1);
+    border: 1px solid rgba(0,0,0,0.08); /* Lighter border */
+    width: 100%;
+    max-width: 500px;
+    box-sizing: border-box;
+}
+#achievement-list .achieved {
+    border-left: 4px solid var(--material-secondary);
+    background-color: rgba(225, 215, 245, 0.8); /* Lighter purple tint */
+}
+#achievement-list .not-achieved {
+    border-left: 4px solid var(--material-error);
+    background-color: rgba(255, 220, 225, 0.8); /* Lighter red tint */
+}
+#achievement-list .achievement-item .name {
+    font-weight: 600;
+    color: #3A3B3C; /* Dark text */
+    margin-bottom: 4px;
+}
+#achievement-list .achievement-item .status {
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    color: #555; /* Medium dark grey */
+}
+#achievement-list .achieved .status {
+    color: var(--material-secondary); /* Keep theme color, ensure contrast */
+}
+
+.progress-bar-container {
+    width: 100%;
+    background-color: #d0e0f0; /* Lighter background for progress bar container */
+    border-radius: 8px;
+    height: 16px;
+    margin-top: 6px;
+    overflow: hidden;
+    position: relative;
+}
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: var(--material-secondary); /* Keep purple for progress */
+    border-radius: 8px 0 0 8px;
+    transition: width 0.5s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7em;
+    color: var(--material-on-secondary); /* Ensure text on progress bar is readable */
+    font-weight: 500;
+}
+.progress-bar.full {
+    border-radius: 8px;
+}
+
+@media (max-width: 900px) {
+    #achievement-list .achievement-item { max-width: 80%; }
+}
+@media (max-width: 768px) {
+    #achievement-list .achievement-item { max-width: 90%; }
+}
+@media (max-width: 480px) {
+    #achievement-list .achievement-item { max-width: 95%; }
+}

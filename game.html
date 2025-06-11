@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Card Game</title>
+  <link rel="icon" type="image/png" href="gui/logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="customModal" class="custom-modal-overlay" style="display: none;">
+    <div class="custom-modal-content">
+      <p id="customModalMessage"></p>
+      <div id="customModalButtons" class="custom-modal-buttons">
+        </div>
+    </div>
+  </div>
+
+  <div id="pack-transition-overlay" style="display: none;">
+    <div id="pack-transition-animation"></div>
+    <p id="pack-transition-message"></p>
+  </div>
+
+  <div id="game-container">
+    <div id="menu">
+      <div class="menu-buttons-group"> 
+          <div id="toki-display" class="menu-nav-button" data-text="Toki">
+             
+          </div>
+          <button id="pack-selection-button" onclick="showScreen('pack-selection'); playSound('sfx_button_click.mp3');" class="game-button menu-nav-button" data-text="Open Packs">Open Packs</button>
+          <button id="collection-button" onclick="showScreen('collection'); playSound('sfx_button_click.mp3');" class="game-button menu-nav-button" data-text="Collection">Collection</button>
+          <button id="gallery-button" onclick="showScreen('gallery'); playSound('sfx_button_click.mp3');" class="game-button menu-nav-button" data-text="Gallery">Gallery</button>
+          <button id="games-screen-button" onclick="showScreen('games-screen'); playSound('sfx_button_click.mp3');" class="game-button menu-nav-button" data-text="Mini Games">Mini Games</button>
+          <button id="stats-button" onclick="showScreen('stats'); playSound('sfx_button_click.mp3');" class="game-button menu-nav-button" data-text="Stats">Stats</button>
+         
+      </div>
+      
+      <div id="loading-bar-container">
+        <div id="loading-bar-progress"></div>
+      </div>
+    </div>
+
+   
+    
+    <div id="main-screen-content-area">
+        <div id="stats" class="screen">
+          <h2>Game Statistics</h2>
+          <div class="stats-content-wrapper">
+            <p>Packs Opened: <span id="packs-opened">0</span></p>
+            <p>Total Unique Cards Owned: <span id="total-cards-owned">0</span></p>
+            <p>Current Toki: <span id="current-coins">$10,000</span></p>
+            <p>Total Toki Spent: <span id="money-spent">$0</span></p>
+            <p>Time Played: <span id="time-played">0h 0m 0s</span></p>
+    
+            <div class="stats-actions-grid">
+                <div class="stats-action-icon-group" title="Data Management">
+                    <button id="save-game-icon-button" class="stats-action-icon" onclick="backupGame(); playSound('sfx_button_click.mp3');" title="Save Game Data">💾</button>
+                    <input type="file" id="load-game-input" accept=".txt" onchange="loadGameFromFile(); playSound('sfx_button_click.mp3');" style="display:none;">
+                    <button id="load-game-icon-button" class="stats-action-icon" onclick="document.getElementById('load-game-input').click(); playSound('sfx_button_click.mp3');" title="Load Game Data">📤</button>
+                </div>
+                <div class="stats-action-icon-group" title="Set Version Toggle">
+                    <button id="toggle-set-version-button" class="stats-action-icon" onclick="stats.toggleActiveSetVersion(); playSound('sfx_set_version_toggle.mp3');" title="Toggle Card Set Version (V1/V2)">V1</button>
+                </div>
+                <div class="stats-action-icon-group" title="Odds & Probabilities">
+                     <button id="view-rarity-odds-icon-button" class="stats-action-icon" onclick="showScreen('rarity-odds'); playSound('sfx_button_click.mp3');" title="View Rarity & Grade Odds">❓</button>
+                </div>
+                <div class="stats-action-icon-group" title="Achievements">
+                     <button id="view-achievements-icon-button" class="stats-action-icon" onclick="showScreen('achievements'); playSound('sfx_button_click.mp3');" title="View Achievements">🏆</button>
+                </div>
+                <div class="stats-action-icon-group" title="Duplicates">
+                     <button id="view-duplicates-icon-button" class="stats-action-icon" onclick="showScreen('junk'); playSound('sfx_button_click.mp3');" title="View Duplicates">♻️</button>
+                </div>
+            </div>
+    
+            <div id="password-section" class="stats-section-item">
+                <h4>Enter Cheat Password</h4>
+                <div class="password-input-group">
+                    <input type="password" id="cheat-password-input" placeholder="Password">
+                    <button onclick="stats.checkCheatPassword(); playSound('sfx_button_click.mp3');" class="game-button">Unlock Cheats</button>
+                </div>
+            </div>
+    
+            <div id="debug-section-content" class="debug-section stats-section-item" style="display:none;">
+              <button class="debug-close-btn" onclick="stats.relockCheats(); playSound('sfx_button_click.mp3');" title="Close and Lock Cheats">&times;</button>
+              <h4>Cheats/Debug</h4>
+              <div class="debug-toggle-container">
+                <input type="checkbox" id="debug-mode-toggle" onchange="stats.toggleDebugMode(); playSound('sfx_button_click_subtle.mp3');">
+                <label for="debug-mode-toggle">Equal Rarity Odds</label>
+              </div>
+              <div class="debug-toggle-container">
+                <input type="checkbox" id="unlock-all-packs-toggle" onchange="stats.toggleUnlockAllPacks(); playSound('sfx_button_click_subtle.mp3');">
+                <label for="unlock-all-packs-toggle">Unlock All Booster Packs</label>
+              </div>
+              <div class="debug-toggle-container">
+                <input type="checkbox" id="anvil-50-percent-toggle" onchange="stats.toggleAnvilSuccessRateCheat(); playSound('sfx_button_click_subtle.mp3');">
+                <label for="anvil-50-percent-toggle">Anvil 50% Success Rate</label>
+              </div>
+               <div class="debug-toggle-container">
+                <input type="checkbox" id="grant-all-summon-tickets-toggle" onchange="stats.toggleGrantAllSummonTicketsCheat(); playSound('sfx_button_click_subtle.mp3');">
+                <label for="grant-all-summon-tickets-toggle">Grant 40 Summon Tickets</label>
+              </div>
+              <div class="debug-toggle-container">
+                <input type="checkbox" id="add-10000-toki-toggle" onchange="stats.toggleAdd10000Toki(); playSound('sfx_button_click_subtle.mp3');">
+                <label for="add-10000-toki-toggle">Add 10,000 Toki</label>
+              </div>
+            </div>
+            <div style="margin-top: 20px; text-align: center;" class="stats-section-item reset-game-section">
+              <button onclick="confirmReset(); playSound('sfx_button_click.mp3');" class="game-button game-button-danger">Reset Game</button>
+            </div>
+          </div>
+        </div>
+    
+        <div id="pack-selection" class="screen">
+          <h2>Select A Booster Pack</h2>
+          <div class="collection-controls">
+            <div id="pack-screen-set-selector-container" class="custom-select-container">
+                <button class="custom-select-display" id="pack-screen-set-selector-display" data-value="all">All Sets</button>
+                <div class="custom-select-panel" id="pack-screen-set-selector-panel" style="display: none;">
+                    <input type="text" class="custom-select-search" id="pack-screen-set-selector-search" placeholder="Search sets...">
+                    <ul class="custom-select-options" id="pack-screen-set-selector-options"></ul>
+                </div>
+            </div>
+          </div>
+          <div id="pack-list" class="pack-list"></div>
+          <div id="pack-selection-pagination" class="pagination-controls"></div> 
+          
+          <div id="pack-opening-desktop" class="pack-opening" style="display: none;"> 
+            <h2 id="pack-opening-title-desktop">Open Pack</h2>
+            <p id="pack-opening-description-desktop" class="pack-opening-description" style="display:none;"></p>
+            <div id="pack-cards-desktop" class="pack-cards-container-desktop">
+            </div>
+            <div class="pack-opening-controls-desktop">
+              <button id="reveal-all-desktop-button" onclick="openingpack.revealAllDesktop(); playSound('sfx_card_reveal_all.mp3');" class="game-button">Reveal All</button>
+              <button id="open-another-desktop-button" onclick="openingpack.openAnotherPackDesktop(); playSound('sfx_button_click.mp3');" class="game-button">Open Another Pack</button>
+              <button id="back-to-source-desktop-button" onclick="openingpack.backToSourceDesktop(); playSound('sfx_button_click.mp3');" class="game-button">Back to Selection</button>
+            </div>
+          </div>
+        </div>
+
+         <div id="card-detail-pack-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('pack'); playSound('sfx_modal_close.mp3'); }">
+            <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
+                <div class="detail-image-container-frameless">
+                    <img id="detail-image-pack" class="detail-image card" onclick="closeDetail('pack'); playSound('sfx_modal_close.mp3');">
+                </div>
+                <div class="detail-info-panel-frameless">
+                    <p id="detail-info-pack"></p>
+                    <div id="detail-owned-versions-pack" style="display:none;"></div>
+                    <button class="game-button add-to-collection-button" style="display:none;" onclick="playSound('sfx_button_click.mp3');">ADD TO COLLECTION</button>
+                    <button onclick="closeDetail('pack'); playSound('sfx_modal_close.mp3');" class="game-button close-button">Close</button>
+                </div>
+            </div>
+        </div>
+    
+        <div id="collection" class="screen">
+          <h2>Collection</h2>
+          <div class="collection-controls">
+            <div id="set-selector-container" class="custom-select-container">
+                <button class="custom-select-display" id="set-selector-display" data-value="all">All Sets</button>
+                <div class="custom-select-panel" id="set-selector-panel" style="display: none;">
+                    <input type="text" class="custom-select-search" id="set-selector-search" placeholder="Search sets...">
+                    <ul class="custom-select-options" id="set-selector-options"></ul>
+                </div>
+            </div>
+            <select id="rarity-selector" onchange="showSetCollection(1); playSound('sfx_button_click_subtle.mp3');">
+              <option value="all">All Rarities</option>
+            </select>
+          </div>
+          <div class="collection-stats-container">
+            <p class="collection-stats-text" id="total-completion-stats-p">Total Completion: <span id="total-completion">0%</span> (<span id="total-owned">0</span>/<span id="total-cards-in-db">0</span>)</p>
+            <p class="collection-stats-text" id="set-completion-stats" style="display:none;">Set Completion: <span id="set-completion">0%</span> (<span id="set-owned">0</span>/<span id="set-total-cards">0</span>)</p>
+            <p class="collection-stats-text" id="rarity-completion-stats" style="display:none;"><span id="rarity-completion-label">Rarity Completion:</span> <span id="rarity-completion-percentage">0%</span> (<span id="rarity-owned-count">0</span>/<span id="rarity-total-in-set">0</span>)</p>
+          </div>
+          <div id="collection-grid" class="collection-grid"></div>
+          <div id="collection-pagination" class="pagination-controls"></div>
+        </div>
+        <div id="card-detail-collection-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('collection'); playSound('sfx_modal_close.mp3'); }">
+            <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
+                <div class="detail-image-container-frameless">
+                    <img id="detail-image-collection" class="detail-image card" onclick="closeDetail('collection'); playSound('sfx_modal_close.mp3');">
+                </div>
+                <div id="detail-info-panel-collection" class="detail-info-panel-frameless">
+                    <p id="detail-info-collection"></p>
+                    <div id="detail-owned-versions-collection" style="display:none;"></div>
+                    <button id="exhibit-card-collection-button" style="display:none;" class="game-button game-button-variant exhibit-card-collection-button" onclick="playSound('sfx_button_click.mp3');">EXHIBIT</button>
+                    <button onclick="closeDetail('collection'); playSound('sfx_modal_close.mp3');" class="game-button close-button">Close</button>
+                </div>
+            </div>
+        </div>
+    
+        <div id="gallery" class="screen">
+          <h2>Gallery</h2>
+          <div class="collection-controls">
+            <div id="gallery-set-selector-container" class="custom-select-container">
+                <button class="custom-select-display" id="gallery-set-selector-display" data-value="all">All Sets</button>
+                <div class="custom-select-panel" id="gallery-set-selector-panel" style="display: none;">
+                    <input type="text" class="custom-select-search" id="gallery-set-selector-search" placeholder="Search sets...">
+                    <ul class="custom-select-options" id="gallery-set-selector-options"></ul>
+                </div>
+            </div>
+            <select id="gallery-rarity-selector" onchange="showGallery(1); playSound('sfx_button_click_subtle.mp3');">
+              <option value="all">All Rarities</option>
+            </select>
+            <select id="gallery-sort" onchange="showGallery(1); playSound('sfx_button_click_subtle.mp3');">
+              <option value="default">Default (Set, Card ID)</option>
+              <option value="price-desc">Value: High to Low</option>
+              <option value="price-asc">Value: Low to High</option>
+              <option value="count-desc">Count: High to Low</option>
+              <option value="count-asc">Count: Low to High</option>
+            </select>
+            <button id="go-to-offer-game-button" class="game-button" onclick="goToOfferGameFromGallery(); playSound('sfx_button_click.mp3');">OFFER</button>
+            <button id="go-to-anvil-game-button" class="game-button" onclick="goToAnvilGameFromGallery(); playSound('sfx_button_click.mp3');">ANVIL</button>
+          </div>
+          <div id="gallery-grid" class="gallery-grid"></div>
+          <div id="gallery-pagination" class="pagination-controls"></div>
+        </div>
+         <div id="card-detail-gallery-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('gallery'); playSound('sfx_modal_close.mp3'); }">
+            <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
+                 <div class="detail-image-container-frameless">
+                    <img id="detail-image-gallery" class="detail-image card" onclick="closeDetail('gallery'); playSound('sfx_modal_close.mp3');">
+                </div>
+                <div class="detail-info-panel-frameless">
+                    <p id="detail-info-gallery"></p>
+                    <div id="detail-owned-versions-gallery" style="display:none;"></div>
+                    <div class="gallery-action-buttons">
+                        <button id="add-to-offer-gallery-button" style="display:none;" class="game-button game-button-offer" onclick="playSound('sfx_offer_add_card.mp3');">ADD TO OFFER</button>
+                        <button id="add-to-anvil-gallery-button" style="display:none;" class="game-button game-button-anvil" onclick="playSound('sfx_anvil_add_card.mp3');">ADD TO ANVIL</button>
+                    </div>
+                    <button onclick="closeDetail('gallery'); playSound('sfx_modal_close.mp3');" class="game-button close-button">Close</button>
+                </div>
+            </div>
+        </div>
+        <div id="card-detail-offer-opponent-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('offer-opponent'); playSound('sfx_modal_close.mp3'); }">
+            <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
+                <div class="detail-image-container-frameless">
+                    <img id="detail-image-offer-opponent" class="detail-image card" onclick="closeDetail('offer-opponent'); playSound('sfx_modal_close.mp3');">
+                </div>
+                <div class="detail-info-panel-frameless">
+                    <p id="detail-info-offer-opponent"></p>
+                    <div id="detail-owned-versions-offer-opponent" style="display:none;"></div>
+                    <button onclick="closeDetail('offer-opponent'); playSound('sfx_modal_close.mp3');" class="game-button close-button">Close</button>
+                </div>
+            </div>
+        </div>
+        <div id="card-detail-anvil-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('anvil'); playSound('sfx_modal_close.mp3'); }">
+            <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
+                <div class="detail-image-container-frameless">
+                    <img id="detail-image-anvil" class="detail-image card" onclick="closeDetail('anvil'); playSound('sfx_modal_close.mp3');">
+                </div>
+                <div class="detail-info-panel-frameless">
+                    <p id="detail-info-anvil"></p>
+                    <div id="detail-owned-versions-anvil" style="display:none;"></div>
+                    <button onclick="closeDetail('anvil'); playSound('sfx_modal_close.mp3');" class="game-button close-button">Close</button>
+                </div>
+            </div>
+        </div>
+    
+    
+        <div id="junk" class="screen">
+          <h2>Duplicates (Excess Copies)</h2>
+          <div class="text-center mb-4">
+            <button onclick="sellDuplicates(); playSound('sfx_button_click.mp3');" class="game-button">Sell All Duplicates</button>
+          </div>
+          <p id="junk-message" class="text-center"></p>
+          <div id="duplicate-list" class="mt-4"></div>
+          <div id="duplicate-pagination" class="pagination-controls"></div>
+        </div>
+    
+        <div id="games-screen" class="screen">
+            <h2 style="display:block;">Mini Games</h2>
+            <div id="game-selection" class="game-selection">
+                <div class="game-option" id="anvil-game-option" onclick="loadMiniGame(SCREENS.TRADE_UP_GAME); playSound('sfx_minigame_start.mp3');"> <h3>Anvil Game</h3>
+                    <p>Stage cards from your Gallery. If you stage 5 cards of the same non-Shiny rarity, the Anvil Pack activates! Click it to consume those 5 cards and receive one random card of the next higher rarity from any set. The result card will be revealed in the Pack Opening screen.</p>
+                </div>
+                <div class="game-option" id="direct-offer-game-option" onclick="loadMiniGame(SCREENS.DIRECT_OFFER_GAME); playSound('sfx_minigame_start.mp3');"> <h3>Direct Offer</h3>
+                    <p>Make an offer to trade cards. Offer up to 5 cards. Get up to 5 opponent offers. Each request locks one of your current offer cards against theirs. Failed trades (after all requests or if you Make Offer early and fail) result in YOUR LOCKED OFFERED CARDS BEING LOST!</p>
+                </div>
+                <div class="game-option" id="prediction-game-option" onclick="loadMiniGame(SCREENS.PREDICTION_GAME); playSound('sfx_minigame_start.mp3');">
+                    <h3 class="prediction-title-menu">Prediction Game</h3>
+                    <p>A test of working memory. Numbers on cards will flash. Click them in order. Each level adds a new number/card. 3 strikes and you're out!</p>
+                </div>
+                <div class="game-option" id="hol-game-option" onclick="loadMiniGame(SCREENS.HIGHER_OR_LOWER); playSound('sfx_minigame_start.mp3');">
+                    <h3>Higher or Lower</h3>
+                    <p>Will the next card's value be higher or lower?</p>
+                </div>
+                <div class="game-option" id="silhouette-quiz-game-option" onclick="loadMiniGame(SCREENS.SILHOUETTE_QUIZ); playSound('sfx_minigame_start.mp3');">
+                    <h3>Silhouette Quiz</h3>
+                    <p>Can you guess the card from its silhouette?</p>
+                </div>
+                <div class="game-option" id="summon-game-option" onclick="loadMiniGame(SCREENS.SUMMON_GAME); playSound('sfx_minigame_start.mp3');">
+                    <h3>Summon Game</h3>
+                    <p>Use Summon Tickets to summon cards of a specific rarity. The higher the rarity, the better the chance for that rarity or one below it.</p>
+                </div>
+                <div class="game-option" id="idle-exhibition-game-option" onclick="loadMiniGame(SCREENS.IDLE_EXHIBITION); playSound('sfx_minigame_start.mp3');">
+                    <h3>Idle Exhibition</h3>
+                    <p>Display your cards and earn passive income. Upgrade your exhibition for better rewards and security!</p>
+                </div>
+                <div class="game-option" id="fishing-game-option" onclick="loadMiniGame(SCREENS.FISHING_GAME); playSound('sfx_minigame_start.mp3');">
+                    <h3>🎣 Fish in Sea</h3>
+                    <p>Cast your line and reel in rare cards and valuable tickets! Upgrade your gear for better catches.</p>
+                </div>
+            </div>
+            <div id="mini-game-area" class="mini-game-container" style="display:none;">
+                
+                <div id="prediction-game-wrapper" style="display:none; width:100%; height:100%; flex-direction:column;">
+                    <div id="prediction-status-area">
+                        <span id="prediction-level-display">Level: 1</span>
+                        <span id="prediction-strikes-display">Strikes: 0/3</span>
+                    </div>
+                    <div id="prediction-message-area">Begin!</div>
+                    <div id="prediction-card-grid"></div>
+                    <div id="prediction-controls">
+                        <button id="prediction-start-button" class="game-button">Start Game</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="idle-exhibition-screen" class="screen mini-game-screen" style="display:none;">
+        </div>
+        <div id="ie-upgrade-modal" class="custom-modal-overlay" style="display: none;">
+            <div class="custom-modal-content ie-upgrade-modal-content">
+                <div class="ie-upgrade-modal-header">
+                    <h3>Exhibition Upgrades</h3>
+                    <button id="ie-close-upgrades-panel-button" class="game-button" onclick="playSound('sfx_modal_close.mp3');">&times;</button>
+                </div>
+                <div id="ie-upgrade-panel-content" class="ie-upgrade-panel-content-scrollable">
+                </div>
+            </div>
+        </div>
+    
+        <div id="summon-game-screen" class="screen" style="display:none;">
+            <div class="summon-game-header"> 
+                <h2 class="summon-screen-title">Summon Game</h2>
+                <button onclick="showScreen('games-screen'); playSound('sfx_button_click.mp3');" class="game-button summon-back-button">Mini Games Menu</button>
+            </div>
+            <div id="summon-config-row" class="summon-panel">
+                <div class="summon-control-group">
+                    <label for="summon-rarity-select">Pack Rarity:</label>
+                    <select id="summon-rarity-select"></select>
+                </div>
+                <div class="summon-control-group">
+                    <label for="summon-quantity-input">Quantity (1-8):</label>
+                    <input type="number" id="summon-quantity-input" min="1" max="8" value="1">
+                </div>
+            </div>
+            <div class="summon-main-content-area">
+                <div id="summon-ticket-balances" class="summon-panel">
+                    <h4 class="summon-tickets-title"><span class="ticket-icon-title">🎟️</span> Tickets</h4>
+                    <div id="summon-ticket-list-items">
+                    </div>
+                </div>
+                <div id="summon-pack-display-area" class="summon-panel">
+                    <div id="summon-pack-slot" title="Select rarity and quantity to activate">
+                        <img src="gui/anvil_covers/anvilpack.png" alt="Summon Pack" id="summon-pack-image">
+                    </div>
+                    <p id="summon-pack-status-text" class="text-xs text-center mt-1">Select pack type and quantity.</p>
+                </div>
+            </div>
+            <p class="text-center mt-4 text-sm">Use your Summon Tickets to get specific rarity cards! The higher the rarity, the better the chance for that rarity or one below it (based on Anvil odds).</p>
+        </div>
+    
+    
+        <div id="achievements" class="screen">
+          <h2>Achievements</h2>
+          <div class="collection-controls">
+            <div id="achievement-set-selector-container" class="custom-select-container">
+                <button class="custom-select-display" id="achievement-set-selector-display" data-value="all">All V1 Sets Progress</button>
+                <div class="custom-select-panel" id="achievement-set-selector-panel" style="display: none;">
+                    <input type="text" class="custom-select-search" id="achievement-set-selector-search" placeholder="Search sets...">
+                    <ul class="custom-select-options" id="achievement-set-selector-options"></ul>
+                </div>
+            </div>
+          </div>
+          <div id="achievement-list"></div>
+        </div>
+    
+        <div id="rarity-odds" class="screen">
+            <h2>Rarity & Grade Odds</h2>
+            <div id="odds-info-display-container">
+                <div class="odds-section">
+                    <h3>Grade Distribution</h3>
+                    <table id="grade-info-table">
+                        <thead><tr><th>Grade</th><th>Probability (%)</th><th>Min Price Mult.</th><th>Max Price Mult.</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="odds-section">
+                    <h3>Rarity Settings (Pack Odds & Prices)</h3>
+                    <table id="rarity-prob-info-table">
+                        <thead><tr><th>Rarity</th><th>Pack Probability (%)</th><th>Min Price ($)</th><th>Max Price ($)</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+    
+            <div id="odds-config-unlock-section" class="odds-config-section">
+                <label for="odds-config-password">Set Custom Odds & Prices:</label>
+                <input type="password" id="odds-config-password" placeholder="Password">
+                <button id="unlock-odds-config-btn" class="game-button" onclick="playSound('sfx_button_click.mp3');">Unlock Settings</button>
+            </div>
+    
+            <div id="odds-config-panel" class="odds-config-section" style="display:none;">
+                <h4>Configure Odds & Prices</h4>
+                <div class="config-scroll-panel">
+                    <div class="odds-config-group">
+                        <h5>Grade Distribution <span id="grade-prob-sum-config">(Sum: 100%)</span></h5>
+                        <table id="grade-config-table">
+                            <thead><tr><th>Grade</th><th>Prob. (%)</th><th>Min Mult.</th><th>Max Mult.</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="odds-config-group">
+                        <h5>Rarity Settings (Pack Odds & Prices) <span id="rarity-prob-sum-config">(Sum: 100%)</span></h5>
+                        <table id="rarity-prob-config-table">
+                            <thead><tr><th>Rarity</th><th>Pack Prob. (%)</th><th>Min Price ($)</th><th>Max Price ($)</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="config-actions">
+                    <button id="save-odds-btn" class="game-button" onclick="playSound('sfx_button_click.mp3');">Save Settings</button>
+                    <button id="make-default-odds-btn" class="game-button game-button-variant" onclick="playSound('sfx_button_click.mp3');">Make Default</button>
+                    <button id="reset-odds-btn" class="game-button game-button-danger" onclick="playSound('sfx_button_click.mp3');">Reset to Default</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="fish-in-sea-screen" class="screen mini-game-screen" style="display:none;">
+             <!-- Content for Fishing Game will be dynamically injected by fishingUi.init() -->
+        </div>
+        <div id="card-detail-fishingbasket-modal" class="fishing-game-modal-overlay" style="display: none;">
+            <div class="fishing-game-modal-content card-detail-fishingbasket-content">
+                <div class="fishing-game-modal-header">
+                    <h3>Item Details</h3>
+                    <button class="game-button fishing-basket-detail-close-button">&times;</button>
+                </div>
+                <div class="fishing-game-modal-scrollable-content fishing-basket-detail-scrollable">
+                    <div class="detail-image-container-frameless" id="fishing-basket-detail-image-container">
+                        <img id="detail-image-fishingbasket" class="detail-image card">
+                    </div>
+                    <div class="detail-info-panel-frameless" id="fishing-basket-detail-info-panel">
+                        <p id="detail-info-fishingbasket"></p>
+                        <div id="detail-owned-versions-fishingbasket" style="display:none;"></div>
+                        <button class="game-button fishing-basket-detail-collect-button">Collect This Item</button>
+                        <button class="game-button game-button-danger fishing-basket-detail-sell-button">Sell This Item</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+
+  </div> 
+
+  <script src="js/core/config.js" defer></script>
+  <script src="js/core/state.js" defer></script>
+  <script src="js/core/utils.js" defer></script>
+  <script src="js/core/time-rewards.js" defer></script> 
+  
+  <script src="js/data/card-definitions.js" defer></script>
+  <script src="js/data/card-rarity-definitions.js" defer></script>
+  <script src="js/data/summon-ticket-definitions.js" defer></script>
+  
+  <script src="js/core/rarity-grade-manager.js" defer></script>
+  <script src="js/core/summon-ticket-manager.js" defer></script>
+  <script src="js/core/card-utils.js" defer></script>
+  <script src="js/core/saveload.js" defer></script>
+
+  <script src="js/ui/components/filters.js" defer></script>
+  <script src="js/ui/components/cardDetailModal.js" defer></script>
+  <script src="js/ui/components/transitions.js" defer></script>
+  
+  <script src="js/ui/screens/achievements.js" defer></script>
+  <script src="js/ui/screens/collection.js" defer></script>
+  <script src="js/ui/screens/duplicates.js" defer></script>
+  <script src="js/ui/screens/gallery.js" defer></script>
+  <script src="js/ui/screens/packOpening.js" defer></script>
+  <script src="js/ui/screens/packSelection.js" defer></script>
+  <script src="js/ui/screens/rarityOddsScreen.js" defer></script>
+  <script src="js/ui/screens/stats.js" defer></script>
+  
+  <script src="js/mini-games/summongame.js" defer></script> 
+  <script src="js/mini-games/anvilgame.js" defer></script>
+  <script src="js/mini-games/offergame.js" defer></script>
+  <script src="js/mini-games/predictiongame.js" defer></script>
+  <script src="js/mini-games/highorlowgame.js" defer></script>
+  <script src="js/mini-games/silhouettegame.js" defer></script>
+  
+  <!-- Fish in Sea Scripts -->
+  <script src="js/mini-games/fish-in-sea/fish-in-sea-config.js" defer></script>
+  <script src="js/mini-games/fish-in-sea/fish-in-sea-state.js" defer></script>
+  <script src="js/mini-games/fish-in-sea/watering-can.js" defer></script>
+  <script src="js/mini-games/fish-in-sea/tree-mechanics.js" defer></script>
+  <script src="js/mini-games/fish-in-sea/rock-mechanics.js" defer></script>
+  <script src="js/mini-games/fish-in-sea/fish-in-sea-mechanics.js" defer></script>
+  <!-- New Fishing UI Modules -->
+  <script src="js/mini-games/fish-in-sea/ui/fishing-tree-ui.js" defer></script>
+  <script src="js/mini-games/fish-in-sea/ui/fishing-watering-can-ui.js" defer></script>
+  <script src="js/mini-games/fish-in-sea/ui/fishing-rocks-ui.js" defer></script>
+  <!-- Main Fishing UI Orchestrator (after specific UI modules) -->
+  <script src="js/mini-games/fish-in-sea/ui/fishing-ui.js" defer></script>
+  <!-- Fishing Modal UI Logic -->
+  <script src="js/mini-games/fish-in-sea/ui/fishing-basket-modal.js" defer></script>
+  <script src="js/mini-games/fish-in-sea/ui/fishing-rod-modal.js" defer></script>
+  <script src="js/mini-games/fish-in-sea/ui/fishing-bait-modal.js" defer></script>
+  <script src="js/mini-games/fish-in-sea/ui/fishing-shop-modal.js" defer></script>
+  <!-- Main Fishing Game Logic -->
+  <script src="js/mini-games/fish-in-sea/fish-in-sea-main.js" defer></script>
+  <!-- End Fish in Sea Scripts -->
+  
+  <script src="js/idle-exhibition/ie-economic-balance.js" defer></script>
+  <script src="js/idle-exhibition/ie-config.js" defer></script>
+  <script src="js/idle-exhibition/ie-state.js" defer></script>
+  <script src="js/idle-exhibition/ie-ui.js" defer></script>
+  <script src="js/idle-exhibition/ie-main.js" defer></script>
+
+  <script src="js/ui/miniGamesHost.js" defer></script>
+  <script src="js/audio/audio-manager.js" defer></script>
+  
+  <script src="js/core/main.js" defer></script> 
+
+</body>
+</html>

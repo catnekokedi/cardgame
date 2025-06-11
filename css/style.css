@@ -1,0 +1,43 @@
+/* Main CSS File - Imports all other stylesheets */
+
+/* Base Styles */
+@import url("base/variables.css");
+@import url("base/typography.css");
+@import url("base/layout.css");
+
+/* Components */
+@import url("components/buttons.css");
+@import url("components/cards-global.css");
+@import url("components/card-detail-modal.css");
+@import url("components/modals.css");
+@import url("components/pagination.css");
+@import url("components/transitions.css");
+@import url("components/custom-select.css"); 
+
+/* Layout Sections */
+@import url("layout/menu.css");
+
+/* Screens */
+@import url("screens/stats.css");
+@import url("screens/packSelection.css");
+@import url("screens/packOpening.css");
+@import url("screens/collection.css");
+@import url("screens/gallery.css");
+@import url("screens/duplicates.css");
+@import url("screens/achievements.css");
+@import url("screens/rarityOddsScreen.css");
+@import url("screens/miniGamesMenu.css");
+
+
+/* Mini-Games */
+@import url("mini-games/summongame.css");
+@import url("mini-games/anvil.css");
+@import url("mini-games/offer.css");
+@import url("mini-games/prediction.css");
+@import url("mini-games/highOrLow.css");
+@import url("mini-games/silhouette.css");
+@import url("mini-games/idle-exhibition.css");
+@import url("mini-games/fishing-game.css"); /* For common fishing game styles */
+@import url("mini-games/fishing-tree.css"); /* Specific tree styles */
+@import url("mini-games/fishing-watering-can.css"); /* Specific watering can styles */
+@import url("mini-games/fishing-rocks.css"); /* Specific rock styles */

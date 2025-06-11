@@ -1,0 +1,379 @@
+
+#pack-transition-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex; /* Initially 'none', JS will change to 'flex' */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000; /* Above other modals */
+    opacity: 0; /* Initially transparent */
+    transition: opacity 0.3s ease-in-out;
+    font-family: var(--button-font);
+    color: var(--material-on-background);
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden; /* Prevent scrollbars from ::after elements */
+}
+
+#pack-transition-message {
+    font-size: 1.3rem;
+    font-weight: 500;
+    margin-top: 25px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    position: relative; /* Ensure message is above ::after effects */
+    z-index: 2;
+}
+
+#pack-transition-animation {
+    width: 120px; /* Increased size for more elaborate ::before symbols */
+    height: 120px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Default/Base Transition Theme */
+.transition-theme-default #pack-transition-animation::before,
+.transition-theme-base #pack-transition-animation::before {
+    content: '';
+    display: block;
+    width: 80px;
+    height: 80px;
+    border: 6px solid var(--material-primary-variant);
+    border-top-color: var(--material-primary);
+    border-radius: 50%;
+    animation: transition-spinner 1s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -43px; /* (80+6*2)/2 */
+    margin-left: -43px;
+}
+
+@keyframes transition-spinner {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes transition-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.2); opacity: 1; }
+}
+
+/* --- Enhanced Rarity Themes --- */
+
+/* Rare Theme */
+@keyframes rare-bg-pulse {
+    0%   { background-position: 0% 50%; background-size: 300% 300%; }
+    50%  { background-position: 100% 50%; background-size: 350% 350%; }
+    100% { background-position: 0% 50%; background-size: 300% 300%; }
+}
+@keyframes rare-after-diamonds {
+    0%   { transform: rotate(0deg) scale(1); opacity: 0.1; }
+    50%  { transform: rotate(180deg) scale(1.2); opacity: 0.25; }
+    100% { transform: rotate(360deg) scale(1); opacity: 0.1; }
+}
+.transition-theme-rare {
+    background: radial-gradient(ellipse at center, hsl(210, 50%, 25%), hsl(210, 60%, 15%));
+    animation: rare-bg-pulse 20s infinite linear;
+}
+.transition-theme-rare #pack-transition-message { color: #d0e0ff; }
+.transition-theme-rare #pack-transition-animation::before {
+    content: '◆';
+    font-size: 80px; /* Increased size */
+    color: var(--rare-color);
+    text-shadow: 0 0 10px var(--rare-color), 0 0 20px white, 0 0 5px rgba(0,0,0,0.5); /* Added glow */
+    animation: transition-pulse 1.8s ease-in-out infinite;
+}
+.transition-theme-rare #pack-transition-animation::after {
+    content: '';
+    position: absolute;
+    width: 200%; height: 200%;
+    top: -50%; left: -50%;
+    background-image: 
+        radial-gradient(var(--rare-color) 5%, transparent 6%),
+        radial-gradient(var(--rare-color) 5%, transparent 6%);
+    background-size: 80px 80px, 100px 100px;
+    background-position: 0 0, 40px 40px;
+    background-repeat: repeat;
+    opacity: 0.1;
+    animation: rare-after-diamonds 15s linear infinite;
+    z-index: -1;
+}
+
+
+/* Foil Theme */
+@keyframes foil-bg-shine {
+    0%   { background-position: -100% 0; }
+    100% { background-position: 100% 0; }
+}
+@keyframes foil-lines-scroll {
+    0%   { background-position: 0 0; }
+    100% { background-position: 0 50px; } /* Adjust 50px for line density/speed */
+}
+.transition-theme-foil {
+    background: linear-gradient(135deg, hsl(30, 35%, 25%), hsl(25, 45%, 15%));
+}
+.transition-theme-foil::before { /* For background shine */
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,220,180,0.2), transparent);
+    animation: foil-bg-shine 3s infinite linear;
+    z-index: 0;
+}
+.transition-theme-foil #pack-transition-message { color: #ffe8d1; position:relative; z-index:1; }
+.transition-theme-foil #pack-transition-animation::before {
+    content: '■';
+    font-size: 75px;
+    color: var(--foil-color);
+    text-shadow: 1px 1px 0px #A1887F, -1px -1px 0px #4E342E, /* Basic 3D */
+                 0 0 15px var(--foil-color), 0 0 25px #D7CCC8;
+    animation: transition-pulse 1.9s ease-in-out infinite;
+    position:relative; z-index:1;
+}
+.transition-theme-foil #pack-transition-animation::after {
+    content: '';
+    position: absolute;
+    width: 100%; height: 100%;
+    top: 0; left: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 4px,
+        rgba(255, 230, 200, 0.25) 4px, /* Brighter lines */
+        rgba(255, 230, 200, 0.25) 5px
+    );
+    background-size: 100% 10px; /* Adjust 10px for line spacing */
+    opacity: 0.7;
+    animation: foil-lines-scroll 1s linear infinite;
+    z-index: 0;
+}
+
+/* Holo Theme */
+@keyframes holo-bg-shift {
+    0%   { background-position: 0% 0%; }
+    50%  { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
+}
+@keyframes holo-particles {
+    0% { transform: translateY(0px) scale(1); opacity: 0; }
+    20% { opacity: 0.7; }
+    50% { transform: translateY(-10px) scale(1.1); opacity: 0.4; }
+    80% { opacity: 0.6; }
+    100% { transform: translateY(10px) scale(0.9); opacity: 0; }
+}
+.transition-theme-holo {
+    background: radial-gradient(ellipse at center, hsl(50, 70%, 30%), hsl(280, 50%, 15%));
+    animation: holo-bg-shift 15s infinite ease-in-out;
+    background-size: 200% 200%;
+}
+.transition-theme-holo #pack-transition-message { color: #fff5cc; text-shadow: 0 0 10px var(--holo-color); }
+.transition-theme-holo #pack-transition-animation::before {
+    content: '✦';
+    font-size: 80px;
+    color: var(--holo-color);
+    text-shadow: 0 0 18px var(--holo-color), 0 0 35px white, 0 0 50px #ffccff; /* Enhanced glow */
+    animation: transition-pulse 1.3s infinite ease-in-out;
+}
+.transition-theme-holo #pack-transition-animation::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background-image:
+        radial-gradient(circle at 20% 30%, #ffadad 2px, transparent 3px), /* Reddish */
+        radial-gradient(circle at 80% 40%, #add8e6 2px, transparent 3px), /* Light Blue */
+        radial-gradient(circle at 50% 70%, #90ee90 2px, transparent 3px), /* Light Green */
+        radial-gradient(circle at 30% 80%, #ffd700 1px, transparent 2px), /* Gold */
+        radial-gradient(circle at 70% 10%, #dda0dd 2px, transparent 3px); /* Plum */
+    background-size: 50px 50px, 60px 60px, 70px 70px, 80px 80px, 90px 90px;
+    background-repeat: repeat;
+    opacity: 0;
+    animation: holo-particles 2s infinite alternate;
+    z-index: -1;
+}
+
+
+/* Star Theme */
+@keyframes star-bg-radiate {
+    0%   { transform: scale(1); opacity: 0.5; }
+    50%  { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 0.5; }
+}
+@keyframes star-twinkle {
+  0%, 100% { box-shadow: 0 0 5px #fff, 0 0 10px var(--star-color), 50px 30px 7px #fff, 50px 30px 12px var(--star-color), -40px -50px 4px #fff, -40px -50px 9px var(--star-color); opacity: 0.7; }
+  50% { box-shadow: 0 0 8px #fff, 0 0 15px var(--star-color), 50px 30px 10px #fff, 50px 30px 18px var(--star-color), -40px -50px 7px #fff, -40px -50px 14px var(--star-color); opacity: 1; }
+}
+.transition-theme-star {
+    background: radial-gradient(ellipse at center, hsl(35, 75%, 40%), hsl(45, 65%, 25%));
+}
+.transition-theme-star::before { /* Radiating beams */
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: conic-gradient(
+        from 0deg at 50% 50%,
+        transparent 0deg, rgba(255,200,100,0.1) 30deg, transparent 60deg,
+        transparent 90deg, rgba(255,220,150,0.15) 120deg, transparent 150deg,
+        transparent 180deg, rgba(255,180,80,0.1) 210deg, transparent 240deg,
+        transparent 270deg, rgba(255,210,120,0.12) 300deg, transparent 330deg
+    );
+    animation: star-bg-radiate 5s infinite ease-out, transition-spinner 20s linear infinite; /* Combine spin */
+    z-index: 0;
+}
+.transition-theme-star #pack-transition-message { color: #fff5e0; position:relative; z-index:1; }
+.transition-theme-star #pack-transition-animation::before {
+    content: '★';
+    font-size: 80px;
+    color: var(--star-color);
+    text-shadow: 0 0 15px var(--star-color), 0 0 30px white, 0 0 40px #FFD700;
+    animation: transition-pulse 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite; /* More dynamic pulse */
+    position:relative; z-index:1;
+}
+.transition-theme-star #pack-transition-animation::after {
+    content: '';
+    position: absolute;
+    width: 150px; height: 150px; /* Larger area for shadows */
+    animation: star-twinkle 2s infinite steps(1, end);
+    z-index: 0;
+}
+
+/* Rainy Theme */
+.transition-theme-rainy {
+    background: linear-gradient(170deg, hsl(230, 50%, 20%), hsl(210, 60%, 30%), hsl(230, 45%, 25%));
+}
+.transition-theme-rainy #pack-transition-message { color: #e0e0ff; }
+.transition-theme-rainy #pack-transition-animation { /* Container for JS-generated drops and CSS symbol */
+    width: 100%; height: 100%;
+    position: absolute; top: 0; left: 0; overflow: hidden;
+}
+.transition-theme-rainy #pack-transition-animation::before { /* CSS Symbol */
+    content: '💧';
+    font-size: 70px;
+    color: var(--rainy-color-1);
+    text-shadow: 0 0 10px var(--rainy-color-2), 0 0 20px white;
+    animation: transition-pulse 2s ease-in-out infinite;
+    position: absolute; /* Center it within the animation container */
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1; /* Above JS drops if they are also absolute positioned */
+}
+.transition-theme-rainy .rain-drop {
+    position: absolute;
+    bottom: 100%;
+    width: 2px;
+    height: 60px;
+    background: linear-gradient(transparent, rgba(173, 216, 230, 0.7));
+    animation: rain-fall 1s linear infinite;
+    border-radius: 0 0 2px 2px;
+    z-index: 0; /* Below CSS symbol */
+}
+@keyframes rain-fall { to { transform: translateY(100vh); } }
+
+
+/* Gold Theme */
+@keyframes gold-bg-shimmer {
+    0% { background-position: -200% -200%; }
+    100% { background-position: 200% 200%; }
+}
+@keyframes gold-coin-shine {
+    0%, 100% { clip-path: polygon(0 0, 0 0, 0 100%, 0% 100%); }
+    50% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+}
+@keyframes gold-dust-fall {
+  0% { background-position: 0 0, 20px 20px, 40px 40px; opacity: 0; }
+  20% { opacity: 0.8; }
+  100% { background-position: 0 200px, 20px 220px, 40px 240px; opacity: 0; }
+}
+.transition-theme-gold {
+    background: radial-gradient(ellipse at center, hsl(45, 80%, 30%), hsl(40, 70%, 15%));
+    position: relative;
+}
+.transition-theme-gold::before { /* Background shimmer lines */
+    content: "";
+    position: absolute;
+    top:0; left:0; right:0; bottom:0;
+    background-image: linear-gradient(45deg, rgba(255,215,0,0.1) 25%, transparent 25%, transparent 50%, rgba(255,215,0,0.1) 50%, rgba(255,215,0,0.1) 75%, transparent 75%, transparent),
+                      linear-gradient(-45deg, rgba(255,223,183,0.05) 25%, transparent 25%, transparent 50%, rgba(255,223,183,0.05) 50%, rgba(255,223,183,0.05) 75%, transparent 75%, transparent);
+    background-size: 60px 60px;
+    animation: gold-bg-shimmer 10s linear infinite;
+    z-index: 0;
+}
+.transition-theme-gold #pack-transition-message { color: #fffacd; position:relative; z-index:1;}
+.transition-theme-gold #pack-transition-animation::before {
+    content: '◉';
+    font-size: 80px;
+    color: var(--gold-color);
+    text-shadow: 0 0 15px var(--gold-color), 0 0 30px #FFEB3B, 0 0 5px #B8860B;
+    animation: transition-pulse 1.5s ease-in-out infinite, gold-coin-shine 3s ease-in-out infinite alternate;
+    position:relative; z-index:1;
+}
+.transition-theme-gold #pack-transition-animation::after { /* Gold Dust */
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background-image: 
+        radial-gradient(#FFD700 1px, transparent 1.2px),
+        radial-gradient(#F0E68C 0.8px, transparent 1px),
+        radial-gradient(#DAA520 1.5px, transparent 1.8px);
+    background-size: 30px 30px, 50px 50px, 70px 70px;
+    background-repeat: repeat;
+    animation: gold-dust-fall 4s linear infinite;
+    z-index: 0;
+}
+
+
+/* Shiny Theme */
+@keyframes shiny-bg-prism {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes shiny-symbol-glow {
+    0%, 100% { text-shadow: 0 0 20px var(--shiny-color), 0 0 35px white, 0 0 50px #e0e0ff, 0 0 70px #d1fff8; transform: scale(1); }
+    50% { text-shadow: 0 0 30px var(--shiny-color), 0 0 50px white, 0 0 70px #e0e0ff, 0 0 100px #d1fff8, 0 0 5px #fff; transform: scale(1.1); }
+}
+@keyframes shiny-glints {
+  0%   { box-shadow: 50px 20px 5px rgba(255,255,255,0.8), -30px -40px 7px rgba(200,200,255,0.7), 10px -60px 4px rgba(220,255,255,0.9); opacity: 0; transform: rotate(0deg); }
+  25%  { opacity: 0.6; }
+  50%  { box-shadow: -40px 50px 6px rgba(230,230,255,0.9), 60px -10px 8px rgba(210,220,255,0.8), -15px 30px 5px rgba(240,240,255,0.95); opacity: 1; transform: rotate(15deg); }
+  75%  { opacity: 0.5; }
+  100% { box-shadow: 20px -30px 7px rgba(245,245,255,0.85), -55px 15px 5px rgba(225,225,255,0.75), 35px 55px 6px rgba(215,235,255,0.9); opacity: 0; transform: rotate(-15deg); }
+}
+.transition-theme-shiny {
+    background: linear-gradient(135deg, 
+        hsl(0, 0%, 80%) 0%,   /* Silver */
+        hsl(220, 30%, 60%) 20%, /* Bluish silver */
+        hsl(180, 40%, 70%) 40%, /* Cyanish */
+        hsl(300, 50%, 75%) 60%, /* Purplish */
+        hsl(60, 60%, 80%) 80%,  /* Yellowish white */
+        hsl(0, 0%, 90%) 100%  /* Bright Silver */
+    );
+    animation: shiny-bg-prism 12s infinite ease-in-out alternate;
+    background-size: 400% 400%;
+}
+.transition-theme-shiny #pack-transition-message { color: #1a237e; text-shadow: 0 0 8px white; }
+.transition-theme-shiny #pack-transition-animation::before {
+    content: '💎';
+    font-size: 70px;
+    color: #fff; /* Base color for the diamond symbol */
+    animation: shiny-symbol-glow 2s ease-in-out infinite;
+}
+.transition-theme-shiny #pack-transition-animation::after {
+    content: '';
+    position: absolute;
+    width: 200px; height: 200px; /* Area for glints */
+    animation: shiny-glints 1.8s infinite linear; /* Steps for sharp changes */
+    z-index: -1;
+}
+
+/* Make sure transitions for overlay opacity are smooth */
+#pack-transition-overlay {
+    transition: opacity 0.3s ease-in-out;
+}
+    

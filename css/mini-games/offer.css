@@ -1,0 +1,191 @@
+/* css/mini-games/offer.css */
+
+.direct-offer-game-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    /* height: 100%; Removed */
+    overflow: hidden;
+    gap: 10px;
+    /* flex-grow: 1; Removed */
+    justify-content: center; /* Vertically center its content (active-trade-section and instructions) */
+    align-items: center; /* Horizontally center its children */
+}
+.active-trade-section, #direct-offer-reveal-area {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    align-items: center; /* Horizontally center #main-offer-interface and .direct-offer-actions */
+    width: 100%; /* Ensure children like active-trade-section can take width */
+}
+#direct-offer-reveal-area {
+    padding:8px;
+    border: 1px dashed var(--material-secondary);
+    border-radius: 8px;
+    background-color: rgba(187, 134, 252, 0.1);
+    text-align:center;
+    width: 100%;
+    max-width: 698px; /* Match #main-offer-interface width for consistency. ((60*5 + 5*4 + 4*2 + 8*2) * 2) + 10 = 344*2+10 = 698 */
+}
+#direct-offer-reveal-area h4 { color: var(--material-secondary); font-size: 1.1rem; flex-shrink: 0; margin-bottom: 8px;}
+#direct-offer-result-message { flex-shrink: 0; margin-bottom: 10px; font-size: 0.9rem; font-weight: 500;}
+
+
+.direct-offer-interface {
+    display: flex;
+    justify-content: center; /* Center the two offer pools */
+    width: 100%;
+    gap: 10px;
+    margin-bottom: 10px;
+    min-height: 0;
+    /* max-width will be determined by children if they have fixed widths */
+}
+.offer-pool {
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 8px;
+    border-radius: 8px;
+    /* flex: 1; Removed to allow fixed width */
+    width: calc( (60px * 5) + (5px * 4) + (4px * 2) + (8px * 2) ); /* 5 cards (60px each) + 4 card gaps (5px each) + inner pool-cards padding (4px each side) + outer offer-pool padding (8px each side) = 300 + 20 + 8 + 16 = 344px */
+    min-width: 344px; /* Explicitly set minimum width based on 5 cards */
+    max-width: 344px; /* Explicitly set maximum width based on 5 cards */
+    flex-grow: 0; /* Ensure no growing beyond calculated width */
+    flex-shrink: 0; /* Ensure no shrinking beyond calculated width */
+    background-color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    flex-direction: column;
+    min-height: 180px;
+    box-shadow: var(--elevation-dp1);
+    /* max-height: 280px; Let content define height */
+}
+.offer-pool h4, .offer-pool h5 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #3A3B3C;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    font-family: var(--button-font);
+}
+#direct-offer-revealed-player-container h5,
+#direct-offer-revealed-opponent-container h5 {
+    color: var(--material-on-surface);
+    opacity: 0.8;
+}
+.offer-pool-cards {
+    display: flex;
+    flex-wrap: nowrap; /* Prevent wrapping to ensure horizontal layout */
+    align-items: center; /* Vertically center cards */
+    justify-content: center; /* Horizontally center cards within the fixed width area */
+    gap: 5px;
+    flex-grow: 1;
+    overflow-x: auto; /* Allow horizontal scroll if somehow more than 5 cards are forced */
+    overflow-y: hidden;
+    padding: 4px;
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    min-height: 100px; /* Minimum height for the card display area */
+    /* max-height: 180px; Let content define height */
+}
+
+.offer-pool .card {
+    width: 60px;
+    height: 84px;
+    position: relative;
+    flex-shrink: 0; /* Prevent cards from shrinking */
+    border: 1px solid rgba(0,0,0,0.1);
+}
+.offer-pool .card.locked-in-offer {
+    filter: grayscale(60%) opacity(0.7);
+    cursor: not-allowed !important;
+    border: 2px dashed var(--material-error);
+}
+.offer-pool .card.locked-in-offer::after {
+    content: '🔒';
+    position: absolute;
+    top: 2px; left: 2px;
+    background-color: rgba(0,0,0,0.75);
+    color: white; border-radius: 50%;
+    width: 16px; height: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; z-index: 10;
+    border: 1px solid rgba(255,255,255,0.5);
+}
+.offer-pool .card.player-removable-offer:not(.locked-in-offer):hover {
+    border-color: var(--material-primary);
+    box-shadow: 0 0 6px var(--material-primary);
+}
+.offer-pool .card.opponent-clickable-offer:hover {
+    border-color: var(--material-secondary);
+    box-shadow: 0 0 6px var(--material-secondary);
+}
+
+
+.direct-offer-actions {
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    flex-shrink: 0;
+}
+.direct-offer-actions .game-button {
+    font-size: 0.85rem;
+    padding: 8px 15px;
+}
+
+.direct-offer-instructions {
+    flex-shrink: 0;
+    margin-top: auto; /* Pushes to bottom if .direct-offer-game-content-wrapper has extra space */
+    padding-bottom: 5px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #444;
+}
+
+#trade-offer-image-display {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999; opacity: 1;
+    transition: opacity 0.3s ease-out;
+}
+#trade-offer-image-display img {
+    max-width: 60%; max-height: 60%;
+    object-fit: contain; border-radius: 10px;
+    box-shadow: 0 0 15px rgba(255,255,255,0.25);
+}
+#trade-offer-image-display p {
+    color: white; font-size: 1.8em; font-family: var(--title-font);
+    text-shadow: 0 0 5px black;
+}
+
+@media (max-width: 700px) { /* Adjust breakpoint for when offer pools might stack */
+    .direct-offer-interface {
+        flex-direction: column;
+        align-items: center; /* Center pools when stacked */
+        /* max-width: 350px; Max width for a single pool stack, now determined by offer-pool width */
+    }
+    .offer-pool {
+        width: 344px; /* Maintain fixed width even when stacked, if screen allows */
+        /* If screen is narrower than 344px, it will overflow its parent or be clipped by viewport,
+           unless parent .direct-offer-interface also gets a max-width or the offer-pool itself
+           gets a max-width: 100% for very small screens. For now, fixed width is kept.
+        */
+    }
+}
+
+@media (max-width: 540px) {
+    .offer-pool {
+         /* Keep width: 344px; if it should not shrink. If it should, use width: 100% and adjust min-width if needed. */
+        min-height: 130px;
+        /* max-height: 220px; Removed */
+    }
+    .offer-pool .card { width: 50px; height: 70px; }
+    .offer-pool-cards { max-height: 150px; }
+    .offer-pool h4, .offer-pool h5 {font-size: 0.9rem;}
+    .direct-offer-actions .game-button {font-size: 0.8rem; padding: 7px 12px;}
+    .direct-offer-instructions {font-size: 0.75rem;}
+    #direct-offer-reveal-area h4 {font-size: 1rem;}
+    #direct-offer-result-message {font-size: 0.85rem;}
+}

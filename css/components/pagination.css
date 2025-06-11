@@ -1,0 +1,21 @@
+
+.pagination-controls { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    margin-top: 15px; 
+    margin-bottom: 8px; 
+}
+.pagination-controls button.game-button.pagination-button { /* Increased specificity */
+    margin: 0 4px; 
+}
+.pagination-controls button.game-button.pagination-button.current-page {
+    background-color: var(--material-primary-variant);
+    /* Add other styles for current page button if needed */
+}
+.pagination-controls span { 
+    margin: 0 8px; 
+    font-size: 0.85em; 
+    color: var(--material-text-secondary-dark); 
+}
+    

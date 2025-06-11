@@ -1,0 +1,160 @@
+
+/* css/components/card-detail-modal.css */
+/* Merged from css/globalbigcardview.css and modal styles from old style.css */
+
+#card-detail-gallery-modal, 
+#card-detail-collection-modal, 
+#card-detail-pack-modal, 
+#card-detail-offer-opponent-modal, 
+#card-detail-anvil-modal { 
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    background: rgba(0, 0, 0, 0.7); 
+    display: none; /* Managed by JS */
+    align-items: center; 
+    justify-content: center; 
+    z-index: 1000; 
+    padding: 10px; 
+    box-sizing: border-box; 
+    cursor: pointer; 
+}
+
+.card-detail-modal-content-frameless { 
+    display: flex; 
+    flex-direction: row; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 20px; 
+    max-width: 90vw; 
+    max-height: 90vh; 
+    width: auto; 
+    background: transparent; 
+    box-shadow: none; 
+    padding: 0; 
+    cursor: default; 
+}
+
+.detail-image-container-frameless {
+    width: auto; height: auto;
+    max-width: clamp(320px, 45vw, 450px); 
+    max-height: calc(90vh - 40px);
+    display: flex; justify-content: center; align-items: center;
+    position: relative; overflow: visible;
+    border-radius: 10px;
+    perspective: 1200px; 
+}
+
+.detail-image-container-frameless .detail-image.card {
+    /* Base state - already defined in cards-global.css, ensure it has transition */
+    transition: box-shadow 0.25s ease-out; /* Keep shadow transition, JS handles transform */
+}
+
+/* This CSS hover will be overridden by JS applying inline styles for transform. */
+.detail-image-container-frameless:hover .detail-image.card {
+    transform: scale(1.03) translateY(-4px); /* Fallback or base enhancement */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.25), 0 6px 6px rgba(0,0,0,0.20); 
+}
+
+.detail-image { 
+    display: block; max-width: 100%; max-height: 100%;
+    width: auto; height: auto; object-fit: contain;
+    cursor: pointer; border-radius: 10px;
+    /* transition: transform 0.25s ease-out, box-shadow 0.2s ease-out; */ /* JS now handles transform transition */
+    transition: box-shadow 0.2s ease-out; /* Keep shadow transition */
+    position: relative; z-index: 0;
+    box-shadow: var(--elevation-dp4);
+    border: 1px solid var(--material-border-dark);
+}
+
+.detail-info-panel-frameless { 
+    width: 300px; 
+    padding: 20px; 
+    background-color: var(--material-surface); 
+    border-radius: 8px; 
+    overflow-y: auto; 
+    max-height: calc(90vh - 40px); 
+    font-size: 0.95em; 
+    box-sizing: border-box; 
+    box-shadow: var(--elevation-dp2); 
+    color: var(--material-on-surface); 
+    border: 1px solid var(--material-border-dark); 
+}
+.detail-info-panel-frameless p { margin-bottom: 12px; line-height: 1.6; }
+.detail-info-panel-frameless strong { color: var(--material-primary); font-weight: 600; }
+.detail-info-panel-frameless .game-button { width: 100%; margin-top: 8px; }
+
+.detail-info-panel-frameless #detail-owned-versions-pack,
+.detail-info-panel-frameless #detail-owned-versions-collection,
+.detail-info-panel-frameless #detail-owned-versions-gallery,
+.detail-info-panel-frameless #detail-owned-versions-anvil,
+.detail-info-panel-frameless #detail-owned-versions-offer-opponent {
+    margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--material-border-dark);
+    font-size: 0.85em; line-height: 1.5;
+}
+.detail-info-panel-frameless #detail-owned-versions-pack p,
+.detail-info-panel-frameless #detail-owned-versions-collection p,
+.detail-info-panel-frameless #detail-owned-versions-gallery p,
+.detail-info-panel-frameless #detail-owned-versions-anvil p,
+.detail-info-panel-frameless #detail-owned-versions-offer-opponent p {
+    margin-bottom: 4px;
+}
+
+.detail-info-panel-frameless .close-button { 
+    background-color: var(--material-surface-2); 
+    color: var(--material-on-surface);
+    border: 1px solid var(--material-border-dark);
+}
+.detail-info-panel-frameless .close-button:hover {
+    background-color: var(--material-surface-2);
+    filter: brightness(1.2);
+}
+
+.gallery-action-buttons {
+    display: flex;
+    gap: 8px; 
+    margin-top: 8px;
+    margin-bottom: 4px; 
+}
+.gallery-action-buttons .game-button {
+    flex: 1; 
+}
+/*
+#add-to-offer-gallery-button,
+#add-to-anvil-gallery-button { 
+    /* Background color now handled by .game-button-variant-secondary 
+}
+*/
+
+/* Responsive adjustments for card detail modals */
+@media (max-width: 768px) {
+    .card-detail-modal-content-frameless { 
+        flex-direction: column; 
+        max-width: 95vw; 
+        max-height: 95vh; 
+        overflow-y: auto; 
+        gap: 10px; 
+    }
+    .detail-image-container-frameless { 
+        max-width: 70vw; 
+        max-height: 45vh; 
+    }
+    .detail-info-panel-frameless { 
+        width: 90vw; 
+        max-height: 40vh; 
+        margin-top: 10px; 
+        font-size: 0.9rem; 
+        padding: 15px; 
+    }
+}
+@media (max-width: 480px) {
+    .detail-image-container-frameless { 
+        max-width: 85vw; 
+        max-height: 40vh; 
+    }
+    .detail-info-panel-frameless { 
+        font-size: 0.8rem; 
+        width: 90vw; 
+        padding: 12px; 
+    }
+}

@@ -1,0 +1,198 @@
+/* css/mini-games/anvil.css */
+
+/* Removed .mini-game-top-nav styles as header is handled by miniGamesHost.js */
+
+#anvil-controls-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin: 5px auto 10px auto; /* Adjusted margin for better centering */
+    padding: 0; 
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+#anvil-staging-filter-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: rgba(255, 255, 255, 0.7); 
+    padding: 8px 12px;
+    border-radius: 6px;
+    box-shadow: var(--elevation-dp1);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+#anvil-staging-filter-container label {
+    font-size: 0.85rem; 
+    color: #555; 
+    font-weight: 500;
+}
+#anvil-staging-filter-rarity {
+    padding: 7px 9px; 
+    background-color: #fff; 
+    color: #333;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 0.85rem; 
+    font-family: var(--button-font);
+    min-width: 140px; 
+}
+
+#anvil-main-area {
+    display: flex;
+    gap: 12px; 
+    width: 100%;
+    align-items: stretch; /* Ensures children (staging and pack) take equal height */
+    padding: 10px;
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 0.3); 
+    border-radius: 8px;
+    flex-grow: 1; 
+    min-height: 0; 
+    flex-direction: row; /* Default for larger screens */
+    /* Vertical centering of this block is handled by its parent .mini-game-main-content */
+}
+
+#anvil-staging-area-container {
+    flex: 1; 
+    background-color: rgba(255, 255, 255, 0.7); 
+    padding: 10px; 
+    border-radius: 6px; 
+    box-shadow: var(--elevation-dp2); 
+    border: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    min-height: 200px; 
+    /* max-height: 380px; Removed to allow equal stretching with pack container */
+}
+#anvil-staging-area-container h4 { 
+    text-align: center;
+    color: #3A3B3C; 
+    margin-top: 0;
+    margin-bottom: 8px; 
+    font-size: 1rem; 
+    font-family: var(--title-font);
+    flex-shrink: 0;
+}
+#anvil-staging-area { 
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); 
+    gap: 5px; 
+    padding: 5px; 
+    background-color: rgba(255, 255, 255, 0.4); 
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 4px;
+    flex-grow: 1; 
+    overflow-y: auto; 
+    max-width: 100%; 
+    margin-left: auto; 
+    margin-right: auto; 
+    align-content: center; /* Vertically center the block of cards */
+    justify-items: center; /* Horizontally center cards in their cells */
+}
+#anvil-staging-area .card { 
+    width: 50px; 
+    height: 70px; 
+}
+#anvil-staging-area .card:hover {
+    border-color: var(--material-primary); 
+    box-shadow: 0 0 6px var(--material-primary);
+}
+#anvil-staging-area-status {
+    text-align: center;
+    font-size: 0.75rem; 
+    color: #555; 
+    margin-top: 6px; 
+    flex-shrink: 0;
+}
+
+#anvil-pack-container { 
+    flex: 1; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; 
+    gap: 6px; 
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.7); 
+    border-radius: 6px;
+    box-shadow: var(--elevation-dp2);
+    border: 1px solid rgba(0,0,0,0.05);
+    min-height: 200px; /* Ensures it has a base height, will stretch with staging area */
+}
+#anvil-pack-slot { 
+    width: 100px; 
+    height: 150px; 
+    background-color: rgba(220, 230, 240, 0.5); 
+    border: 2px dashed rgba(58, 59, 60, 0.3); 
+    border-radius: 8px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: not-allowed; 
+    transition: border-color 0.3s, box-shadow 0.3s, filter 0.3s, transform 0.3s;
+    filter: grayscale(80%) opacity(0.6); 
+    padding: 5px; 
+    box-sizing: border-box;
+    position: relative; 
+}
+#anvil-pack-slot img#anvil-pack-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 6px; 
+    transition: transform 0.3s;
+}
+#anvil-pack-slot.active {
+    cursor: pointer;
+    border-color: var(--material-primary-variant);
+    filter: grayscale(0%) opacity(1);
+    box-shadow: 0 0 10px var(--material-primary), 0 0 20px var(--material-primary-variant); 
+    transform: scale(1.05);
+    animation: anvilPackPulse 1.8s infinite ease-in-out; 
+}
+#anvil-pack-slot.active:hover {
+    border-color: var(--material-primary);
+    box-shadow: 0 0 15px var(--material-primary), 0 0 30px var(--material-primary-variant); 
+    transform: scale(1.1);
+}
+#anvil-pack-slot.active:hover img#anvil-pack-image {
+    transform: scale(1.05);
+}
+@keyframes anvilPackPulse {
+    0% { box-shadow: 0 0 10px var(--material-primary), 0 0 20px var(--material-primary-variant); }
+    50% { box-shadow: 0 0 15px var(--material-primary), 0 0 30px var(--material-primary-variant), 0 0 5px #fff; }
+    100% { box-shadow: 0 0 10px var(--material-primary), 0 0 20px var(--material-primary-variant); }
+}
+#anvil-pack-status-text {
+    font-weight: 500;
+    line-height: 1.3;
+    color: #3A3B3C; 
+    font-size: 0.8rem; 
+}
+#anvil-main-area + p.text-center { /* Instructions text */
+    color: #444; 
+    font-size: 0.8rem;
+    padding: 0 5px;
+    flex-shrink: 0; /* Prevent instructions from being squished */
+}
+
+
+@media (max-width: 540px) { 
+    #anvil-main-area { flex-direction: column; align-items: stretch; gap: 10px; padding: 8px; }
+    #anvil-staging-area-container { width: 100%; max-width: none; min-height: 150px; /* max-height: 180px; Removed */ } 
+    #anvil-pack-container { width: 100%; max-width: none; min-height: 150px; } 
+    #anvil-controls-container { gap: 8px; padding: 0; margin-bottom: 8px;}
+    #anvil-staging-area { 
+      grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); 
+      max-width: 100%; 
+      min-height: 80px; 
+    } 
+    #anvil-pack-slot { width: 90px; height: 135px;}
+    #anvil-staging-filter-container { flex-direction: column; gap: 5px; margin-bottom: 8px; padding: 6px;}
+    #anvil-staging-filter-container label { font-size: 0.8rem;}
+    #anvil-staging-filter-rarity {min-width: 120px; font-size: 0.8rem; padding: 6px 8px;}
+    #anvil-staging-area-container h4 {font-size: 0.9rem;}
+    #anvil-main-area + p.text-center { font-size: 0.75rem; }
+}

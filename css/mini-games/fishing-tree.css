@@ -1,0 +1,137 @@
+
+/* css/mini-games/fishing-tree.css */
+
+#fishing-tree-container {
+    position: relative; /* Changed from absolute, will be positioned by flex in land-area */
+    width: 130px; 
+    height: 150px; 
+    /* left: 30%; transform: translateX(-50%); /* Centered-ish in land panel */
+    /* bottom: 5%; /* Sits on the grass of land panel */
+    margin-bottom: 10px; /* Space from bottom of land panel */
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#fishing-tree-container.drag-over-active { 
+    outline: 3px dashed var(--material-primary);
+    outline-offset: 2px;
+    border-radius: 5px;
+}
+
+#fishing-tree-svg {
+    width: 100%;
+    height: 100%;
+    max-height: 100%; 
+    display: block;
+    margin-bottom: 2px; 
+}
+
+#fishing-tree-moisture-bar-container {
+    width: 80px; 
+    height: 8px; 
+    background-color: #A0522D; 
+    border: 1px solid #5C3317;
+    border-radius: 3px; 
+    overflow: hidden;
+    margin-top: 0;
+    position: relative;
+    z-index: 3;
+    box-shadow: inset 0 0.5px 0.5px rgba(0,0,0,0.1);
+}
+#fishing-tree-moisture-bar {
+    height: 100%;
+    width: 0%;
+    background-color: #5F9EA0; 
+    border-radius: 2px; 
+    transition: width 0.25s ease-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem; 
+    color: white;
+    text-shadow: 0 0 1px rgba(0,0,0,0.6);
+    line-height: 1;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+#fishing-fruit-slots-container {
+    position: absolute;
+    width: 100%; 
+    height: 60%; 
+    top: 10%;    
+    left: 0;
+    pointer-events: none; 
+}
+.fishing-fruit-slot {
+    position: absolute;
+    width: 20px;  
+    height: 28px; 
+    background-color: transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    pointer-events: all; 
+    transform-style: preserve-3d;
+}
+.fishing-fruit-slot .fruit-card-container-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.fishing-fruit-slot svg,
+.fishing-fruit-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 2px;
+    position: absolute;
+    top: 0; left: 0;
+    backface-visibility: hidden;
+    transition: opacity 0.25s, transform 0.25s;
+}
+.fishing-fruit-slot .fruit-card-back {
+    transform: rotateY(0deg);
+}
+.fishing-fruit-slot .fruit-card-front {
+    transform: rotateY(180deg);
+}
+.fishing-fruit-slot.growing-visible .fruit-card-back {
+    opacity: 1;
+    transform: scale(1);
+}
+.fishing-fruit-slot.mature .fruit-card-container-inner {
+    transform: rotateY(180deg);
+}
+.fishing-fruit-slot.empty-slot .fruit-card-back,
+.fishing-fruit-slot.empty-slot .fruit-card-front {
+    display: none;
+}
+
+.fishing-fruit-slot[data-slot-index="0"] { top: 15%; left: 48%; transform: translateX(-50%) scale(0.9); } 
+.fishing-fruit-slot[data-slot-index="1"] { top: 30%; left: 25%; transform: scale(0.9); } 
+.fishing-fruit-slot[data-slot-index="2"] { top: 30%; left: 65%; transform: scale(0.9); } 
+.fishing-fruit-slot[data-slot-index="3"] { top: 55%; left: 15%; transform: scale(0.9); } 
+.fishing-fruit-slot[data-slot-index="4"] { top: 55%; left: 75%; transform: scale(0.9); } 
+.fishing-fruit-slot[data-slot-index="5"] { top: 50%; left: 48%; transform: translateX(-50%) scale(0.9); } 
+.fishing-fruit-slot[data-slot-index="6"] { top: 75%; left: 35%; transform: scale(0.9); } 
+.fishing-fruit-slot[data-slot-index="7"] { top: 75%; left: 55%; transform: scale(0.9); } 
+
+
+.fishing-fruit-slot:hover:not(.empty-slot) { transform: scale(1.1) translateZ(4px); } 
+
+@media (max-width: 700px) {
+    #fishing-tree-container { width: 110px; height: 125px; /* bottom: 5%; left: 25%; */ } 
+    #fishing-tree-svg { max-height: 100%; }
+    #fishing-tree-moisture-bar-container { width: 70px; height: 7px; }
+    .fishing-fruit-slot { width: 18px; height: 25px; }
+}
+@media (max-width: 480px) {
+    #fishing-tree-container { width: 90px; height: 100px; /* bottom: 5%; left: 20%; */ } 
+    #fishing-tree-svg { max-height: 100%; }
+    #fishing-tree-moisture-bar-container { width: 60px; height: 6px; }
+    .fishing-fruit-slot { width: 16px; height: 22px;} 
+}

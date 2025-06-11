@@ -1,0 +1,85 @@
+body {
+  background: linear-gradient(to bottom, #e0f2f7, #b3e0ff); /* Changed from var(--material-bg) */
+  color: var(--material-on-background);
+  font-family: 'Roboto', Arial, sans-serif;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.text-center { text-align: center; }
+.text-xs {font-size: 0.75rem;}
+.text-sm {font-size: 0.875rem;}
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mt-4 { margin-top: 10px; } 
+.mb-4 { margin-bottom: 10px; } 
+.space-x-4 > * + * { margin-left: 8px; }
+.space-x-4 { display: flex; justify-content: center; margin-top: 8px; }
+
+/* Global Themed Title Style */
+.screen > h2, 
+#games-screen > h2, /* For MiniGamesMenu main title */
+.summon-screen-title, /* For Summon Game main title (if template is still used standalone) */
+#pack-opening-desktop h2#pack-opening-title-desktop /* Ensure pack opening title is included */
+ { 
+    font-size: 1.8rem; 
+    text-align: center; 
+    font-weight: 700; 
+    color: #3A3B3C; /* Dark text */
+    font-family: var(--title-font);
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+    padding-top: 5px; 
+    margin-bottom: 15px; /* Adjusted margin, underline removed */
+    padding-bottom: 0; 
+}
+
+/* Rainbow underline REMOVED from main screen titles */
+/*
+.screen > h2::after,
+#games-screen > h2::after,
+.summon-screen-title::after, 
+#pack-opening-desktop h2#pack-opening-title-desktop::after {
+    content: '';
+    display: block;
+    width: 50%;
+    max-width: 200px;
+    height: 4px;
+    background: linear-gradient(to right, #FF0000, #FFA500, #FFFF00, #008000, #0000FF, #4B0082, #EE82EE);
+    margin: 8px auto 0 auto; 
+    border-radius: 2px;
+}
+*/
+
+/* Specific title style for mini-games (loaded by miniGamesHost.js) */
+.mini-game-header-bar h3.mini-game-title {
+    font-size: 1.1rem; /* UPDATED from 1.5rem */
+    text-align: center; 
+    font-weight: 700; 
+    color: #3A3B3C; 
+    font-family: var(--title-font);
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+    padding-top: 0; 
+    margin-bottom: 0; 
+    padding-bottom: 0; 
+    width: 100%; 
+    margin: 0; /* Added previously */
+    /* line-height: 1; Removed to allow natural line height */
+}
+
+
+/* Rarity Text Colors */
+.rarity-text-base { color: var(--base-color); font-weight: bold; }
+.rarity-text-rare { color: var(--rare-color); font-weight: bold; }
+.rarity-text-foil { color: var(--foil-color); font-weight: bold; }
+.rarity-text-holo { color: var(--holo-color); font-weight: bold; }
+.rarity-text-star { color: var(--star-color); font-weight: bold; }
+.rarity-text-rainy { color: var(--rainy-color-1); font-weight: bold; }
+.rarity-text-gold { color: var(--gold-color); font-weight: bold; }
+.rarity-text-shiny { color: var(--shiny-color); font-weight: bold; }
+
+.loading-indicator { font-style: italic; color: var(--material-text-secondary-dark); margin-top: 5px; }

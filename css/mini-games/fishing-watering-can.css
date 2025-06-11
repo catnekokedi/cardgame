@@ -1,0 +1,31 @@
+/* css/mini-games/fishing-watering-can.css */
+
+#fishing-water-panel.drag-over-active, /* Applied to the old water panel, now #fishing-water-surface */
+#fishing-water-surface.drag-over-active { /* Ensure it works on new water surface div */
+    outline: 3px dashed var(--material-primary);
+    outline-offset: -3px; /* Offset inside to avoid growing the element */
+    box-shadow: inset 0 0 10px rgba(3,218,198,0.3);
+}
+
+#fishing-tree-container.drag-over-active { 
+    outline: 3px dashed var(--material-primary);
+    outline-offset: 2px;
+    border-radius: 5px;
+}
+
+.fishing-ui-icon#fishing-tool-watering-can.dragging { 
+    cursor: grabbing !important; 
+    opacity: 0.6; 
+    transform: scale(1.1); 
+    border: 1.5px dashed var(--material-primary); 
+}
+.fishing-ui-icon#fishing-tool-watering-can.full { 
+    background-color: #90caf9; /* Light blue when full */
+    border-color: #64b5f6; /* Darker light blue border */
+    color: #13314a; /* Darker text for contrast */
+} 
+.fishing-ui-icon#fishing-tool-watering-can.empty { 
+    background-color: #e0e0e0; /* Grey when empty */
+    color: #888; 
+    border-color: #bdbdbd; 
+}

@@ -1,0 +1,116 @@
+
+
+#game-container {
+  width: 100%;
+  max-width: 1600px; /* Adjusted from 1366px, can be further tweaked if needed */
+  height: 100vh;
+  max-height: 780px;
+  margin: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--material-surface); /* Dark background for the main game box */
+  border-radius: 8px;
+  box-shadow: var(--elevation-dp8);
+  box-sizing: border-box;
+  border: 1px solid var(--material-border-dark);
+}
+
+#main-screen-content-area {
+    flex-grow: 1; 
+    overflow-y: auto; 
+    display: flex; 
+    flex-direction: column; 
+    min-height: 0; 
+    background: linear-gradient(to bottom, #e0f2f7, #b3e0ff); /* Ensure light blue gradient */
+}
+
+.screen { 
+    padding: 10px; 
+    flex-grow: 1; 
+    overflow-y: auto; 
+    display: none; 
+    flex-direction: column; 
+    background-color: transparent; /* Screens are transparent to show #main-screen-content-area's bg */
+    padding-top: 15px; 
+}
+
+
+.mini-game-container { /* Styles for #mini-game-area, used as a wrapper */
+    /* Max width and centering will be applied to #mini-game-area directly in miniGamesMenu.css */
+    /* This class can be used for common internal padding if needed */
+    padding: 0; /* Padding will be on #mini-game-area */
+    /* background-color: var(--material-surface-2); /* Old dark background */
+    border-radius: 8px; 
+    margin: 0; /* Margin will be on #mini-game-area */
+    /* box-shadow: var(--elevation-dp2); /* Shadow will be on #mini-game-area */
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+.mini-game-container > h3.mini-game-title { 
+    text-align: center; 
+    width: 100%; 
+    margin-bottom: 8px; 
+    font-family: var(--title-font);
+    font-size: 1.5rem; 
+    /* Theme applied globally in typography.css */
+}
+
+.mini-game-layout { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    align-items: center; 
+    width: 100%; 
+    padding: 0px 5px 5px 5px; 
+    /* max-height: calc(100vh - 180px); /* Potentially problematic with fixed #game-container height */
+    height: 100%; /* Ensure it tries to fill parent */
+    overflow-y: auto; 
+    box-sizing: border-box;
+}
+
+.mini-game-card-display { 
+    flex: 0 0 auto; 
+    display:flex; 
+    flex-direction:column; 
+    justify-content: center; 
+    align-items:center; 
+    padding: 5px; 
+    box-sizing: border-box; 
+    width: 100%; 
+}
+.mini-game-question-area { 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    text-align: center; 
+    width: 100%; 
+    padding-bottom: 10px; 
+}
+
+.mini-game-result-text { 
+    margin-top: 10px;
+    font-weight: 500;
+}
+
+
+/* Media Queries for general layout */
+@media (max-width: 768px) { /* General tablet and smaller */
+    #game-container { 
+        height: 100vh; 
+        max-height: none; 
+        border-radius: 0; 
+        margin: 0; 
+        border: none; /* Remove border for full screen */
+    }
+    .screen h2 { font-size: 1.5rem; }
+    .mini-game-layout { flex-direction: column; align-items: center; } 
+    .mini-game-card-display { margin-bottom: 10px; width: auto; }
+    .mini-game-question-area { text-align: center; align-items:center; padding-left: 0;} 
+}
+/* Further responsive adjustments can be added here as needed */

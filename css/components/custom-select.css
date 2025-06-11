@@ -1,0 +1,104 @@
+
+/* css/components/custom-select.css */
+
+.custom-select-container {
+    position: relative;
+    display: inline-block;
+    min-width: 180px; /* Adjust as needed */
+    font-family: var(--button-font);
+}
+
+.custom-select-display {
+    background-color: #f8f9fa;
+    color: #333;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 8px 28px 8px 12px; /* Space for arrow */
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    user-select: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.custom-select-display:hover {
+    border-color: #adb5bd;
+}
+
+.custom-select-display::after {
+    content: '▼'; /* Downward arrow */
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7em;
+    color: #555;
+    pointer-events: none; /* So it doesn't interfere with button click */
+}
+
+.custom-select-panel {
+    position: absolute;
+    top: 100%; /* Position below the display button */
+    left: 0;
+    width: 100%;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-top: none; /* Avoid double border with display button */
+    border-radius: 0 0 4px 4px;
+    z-index: 1050; /* Ensure it's above other content */
+    max-height: 250px;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+}
+
+.custom-select-search {
+    width: calc(100% - 16px); /* Full width minus padding */
+    padding: 8px;
+    margin: 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-sizing: border-box;
+    font-size: 0.8rem;
+}
+.custom-select-search:focus {
+    outline: none;
+    border-color: var(--material-primary);
+}
+
+.custom-select-options {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 5px 0; /* Add some bottom margin */
+}
+
+.custom-select-options li {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    color: #333;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid #f0f0f0;
+}
+.custom-select-options li:last-child {
+    border-bottom: none;
+}
+
+.custom-select-options li:hover {
+    background-color: #e9ecef;
+    color: #000;
+}
+
+.custom-select-options li.selected-option { /* If you want to highlight selected one in list */
+    background-color: var(--material-primary-variant);
+    color: var(--material-on-primary);
+}

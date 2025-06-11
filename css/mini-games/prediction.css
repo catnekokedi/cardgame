@@ -1,0 +1,186 @@
+/* css/mini-games/prediction.css */
+
+#prediction-game-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    gap: 8px;
+    flex-grow: 1; /* Make the wrapper grow */
+    min-height: 0; /* For flex children */
+    max-width: 580px; /* Constrain width for better fit, was 600px */
+    margin: 0 auto; /* Center the wrapper if parent is wider */
+}
+
+/* Removed .mini-game-header-bar styles as it's handled by miniGamesMenu.css */
+
+#prediction-status-area {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #555;
+    padding: 5px;
+    background-color: rgba(255,255,255,0.6);
+    border-radius: 4px;
+    flex-shrink: 0;
+    box-sizing: border-box; /* Added */
+}
+#prediction-level-display { color: var(--material-primary); }
+#prediction-strikes-display { color: var(--material-error); }
+
+#prediction-message-area {
+    width: 100%;
+    text-align: center;
+    min-height: 2em;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: #3A3B3C;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 4px;
+    box-shadow: var(--elevation-dp1);
+    flex-shrink: 0;
+    box-sizing: border-box; /* Added */
+}
+
+#prediction-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 5px;
+    width: 100%;
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    box-shadow: var(--elevation-dp2);
+    flex-grow: 1;
+    overflow-y: auto;
+    align-content: flex-start;
+    min-height: 150px; /* Adjusted: was 120px, ensures space for cards */
+    box-sizing: border-box; /* Added */
+}
+
+.prediction-card {
+    width: 100%;
+    aspect-ratio: 5 / 7;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.6);
+}
+
+#prediction-card-grid.player-recall .prediction-card:not(.face-up) {
+    background-color: rgba(200, 220, 240, 0.9);
+}
+#prediction-card-grid.player-recall .prediction-card:not(.face-up):hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 8px var(--material-primary);
+    border-color: var(--material-primary);
+}
+
+#prediction-card-grid.game-over .prediction-card {
+    cursor: default;
+    opacity: 0.7;
+}
+
+.prediction-card img {
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.prediction-card-number {
+    display: none;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.5);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.prediction-card.face-up img,
+.prediction-card.face-up .prediction-card-number {
+    display: block;
+}
+.prediction-card.face-up .prediction-card-number {
+     display: flex;
+}
+
+.prediction-card.face-down {
+    background-color: rgba(200, 220, 240, 0.9);
+}
+.prediction-card.face-down img,
+.prediction-card.face-down .prediction-card-number {
+    display: none;
+}
+.prediction-card.face-down::before {
+    content: "";
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    border: 2px dashed rgba(58, 59, 60, 0.3);
+    border-radius: 3px;
+    opacity: 0.5;
+}
+
+#prediction-controls {
+    margin-top: 10px;
+    text-align: center;
+    min-height: 36px;
+    flex-shrink: 0;
+    width: 100%; /* Ensure controls take width of wrapper */
+    box-sizing: border-box; /* Added for consistency, though no padding here currently */
+}
+
+.prediction-game-final-result {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 10px; /* Space before Play Again button */
+    /* Color is set by JS */
+}
+
+#prediction-controls .game-button {
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    display: inline-block; /* Ensure it doesn't take full width unless intended */
+    margin-top: 5px; /* Add some space if result text and button are both visible */
+}
+
+@media (max-width: 540px) {
+    #prediction-game-wrapper {
+      padding: 8px;
+      max-width: 100%; /* Allow full width on small screens */
+    }
+    /* .mini-game-header-bar related styles are now global or in miniGamesMenu.css */
+    #prediction-card-grid {
+        grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+        gap: 4px; padding: 6px;
+        min-height: 100px;
+    }
+    .prediction-card-number { font-size: 1.2rem; }
+    #prediction-status-area, #prediction-message-area { font-size: 0.8rem; margin-bottom: 6px; padding: 6px;}
+    #prediction-controls .game-button { padding: 7px 15px; font-size: 0.85rem; }
+    .prediction-game-final-result { font-size: 0.9rem; }
+}

@@ -1,0 +1,176 @@
+
+#stats .stats-content-wrapper { /* New wrapper for stats content for better flex control */
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Gap between main stat <p> tags and the actions grid */
+}
+
+.stats-actions-grid {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    gap: 15px;
+    margin: 15px auto;
+    width: 90%;
+    max-width: 500px;
+    background-color: rgba(255, 255, 255, 0.7); /* Light semi-transparent white */
+    padding: 12px 15px;
+    border-radius: 8px;
+    box-shadow: var(--elevation-dp1); /* Softer shadow */
+    border: 1px solid rgba(0,0,0,0.05); /* Lighter border */
+    box-sizing: border-box;
+}
+
+.stats-action-icon-group {
+    display: flex;
+    gap: 10px; /* Space between icons if a group has multiple (e.g., Data Management) */
+    align-items: center;
+    justify-content: center;
+}
+
+
+#stats > .stats-content-wrapper > p { /* Applied to direct p children for main stats */
+    background-color: rgba(255, 255, 255, 0.85); /* Light semi-transparent background */
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin: 0 auto 8px auto; /* Centered, with bottom margin */
+    box-shadow: var(--elevation-dp1);
+    width: 90%;
+    max-width: 500px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(0,0,0,0.08); /* Lighter border */
+    color: #3A3B3C; /* Dark text for labels */
+}
+
+#stats span { /* Spans within #stats, typically for values */
+    font-weight: 600;
+    color: var(--material-primary); /* Teal for values */
+    margin-left: 12px;
+}
+
+/* Styles for new icon buttons and their containers */
+.stats-action-icon {
+    background-color: #FFFFFF; /* Solid white background */
+    color: var(--material-primary); /* Teal icon color */
+    border: 1px solid #D0D0D0; /* Light grey border */
+    border-radius: 50%; /* Make them circular */
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem; /* Icon size */
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, transform 0.1s;
+    padding: 0;
+    box-shadow: var(--elevation-dp1);
+}
+.stats-action-icon:hover {
+    background-color: #f0f0f0; /* Light grey on hover */
+    border-color: var(--material-primary-variant); /* Darker teal border */
+    transform: scale(1.1);
+}
+.stats-action-icon:active {
+    transform: scale(1.0);
+}
+
+/* Styles for #password-section and #debug-section-content that use .stats-section-item for width/margin */
+#password-section.stats-section-item,
+#debug-section-content.stats-section-item,
+.reset-game-section.stats-section-item {
+    background-color: rgba(255, 255, 255, 0.85); /* Light semi-transparent */
+    padding: 12px 15px;
+    border-radius: 8px;
+    box-shadow: var(--elevation-dp1);
+    border: 1px solid rgba(0,0,0,0.08); /* Lighter border */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90%;
+    max-width: 500px;
+    margin: 15px auto;
+}
+#password-section.stats-section-item { margin-bottom: 15px; }
+#debug-section-content.stats-section-item { margin-bottom: 15px; }
+.reset-game-section.stats-section-item { margin-top: 15px; margin-bottom: 0; }
+
+
+#password-section h4,
+#debug-section-content h4 {
+    color: var(--material-secondary); /* Purple/accent color */
+    font-family: var(--title-font);
+    font-size: 1.15rem; /* Slightly larger than before */
+    text-align: center;
+    width: 100%;
+    margin-bottom: 12px;
+    padding-bottom: 8px; /* Increased padding */
+    border-bottom: 1px solid #ddd; /* Light grey underline */
+}
+
+.password-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 350px;
+    margin: 5px auto 0 auto;
+}
+#password-section input#cheat-password-input {
+    background-color: #FFFFFF; /* Solid white */
+    color: #333333; /* Dark text */
+    border: 1px solid #cccccc; /* Standard light grey border */
+    padding: 8px 10px;
+    border-radius: 4px;
+    flex-grow: 1;
+    margin-bottom: 0;
+    box-sizing: border-box;
+}
+#password-section .password-input-group button.game-button {
+    flex-shrink: 0;
+    width: auto;
+    padding: 8px 12px;
+    /* General .game-button styles from buttons.css will apply */
+}
+
+
+#debug-section-content {
+    position: relative; /* For positioning the close button */
+    align-items: flex-start; /* Content inside debug is left-aligned */
+    gap: 8px;
+}
+
+.debug-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    color: #3A3B3C; /* Dark text for labels */
+}
+.debug-close-btn {
+    position: absolute;
+    top: 8px; /* Adjusted for slightly larger header padding */
+    right: 8px;
+    background: transparent;
+    color: #777777; /* Medium grey */
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    padding: 0 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.debug-close-btn:hover {
+    color: var(--material-error);
+}
+
+.reset-game-section {
+    padding: 15px;
+    justify-content: center;
+}
+.reset-game-section .game-button {
+    min-width: 150px;
+    /* .game-button-danger styles from buttons.css will apply */
+}

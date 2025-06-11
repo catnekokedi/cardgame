@@ -1,0 +1,154 @@
+
+
+/* Base style for all game buttons, including menu buttons */
+.game-button {
+    padding: 10px 25px; /* Adjusted padding for pill shape */
+    background-color: #e0e0e0; /* Light grey background */
+    color: #333; /* Dark text */
+    border: 1px solid #ccc; /* Light border */
+    border-radius: 50px; /* Pill shape */
+    cursor: pointer;
+    font-size: 0.9rem; /* Adjusted font size */
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1); /* Softer shadow */
+    font-family: var(--button-font);
+    outline: none;
+    display: inline-flex; 
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.35; 
+    min-width: 120px; /* Adjusted min-width */
+    box-sizing: border-box;
+}
+
+/* General hover for .game-button and menu buttons not having specific icon+text styling */
+.game-button:hover:not(:disabled),
+#menu .menu-nav-button:not(.desktop-icon-text):not(.mobile-icon-only):hover:not(:disabled) {
+    background-color: #d5d5d5; /* Slightly darker grey on hover */
+    box-shadow: 0 3px 5px rgba(0,0,0,0.15); 
+    transform: translateY(-1px); /* Subtle lift */
+}
+
+.game-button:disabled,
+#menu .menu-nav-button:disabled { 
+    background-color: #f0f0f0 !important; 
+    color: #aaa !important; 
+    border-color: #e0e0e0 !important;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    transform: translateY(0) !important;
+}
+
+/* Danger Button Variation */
+.game-button.game-button-danger {
+    background-color: var(--material-error);
+    color: var(--material-on-primary); /* Assuming black or white text on error red */
+    border-color: var(--material-error);
+}
+.game-button.game-button-danger:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--material-error) 85%, black);
+    border-color: color-mix(in srgb, var(--material-error) 85%, black);
+}
+
+/* Primary Variant Button (e.g., for "Make Default") */
+.game-button.game-button-variant {
+    background-color: var(--material-primary-variant);
+    color: var(--material-on-primary);
+    border-color: var(--material-primary-variant);
+}
+.game-button.game-button-variant:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--material-primary-variant) 85%, black);
+    border-color: color-mix(in srgb, var(--material-primary-variant) 85%, black);
+}
+
+/* Secondary Variant Button (e.g., for Gallery purple buttons) */
+.game-button.game-button-variant-secondary {
+    background-color: var(--material-secondary);
+    color: var(--material-on-secondary);
+    border-color: var(--material-secondary);
+}
+.game-button.game-button-variant-secondary:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--material-secondary) 90%, #000);
+    border-color: color-mix(in srgb, var(--material-secondary) 90%, #000);
+}
+
+/* New Offer Button Variation for Gallery */
+.game-button.game-button-offer {
+    background-color: #26A69A; /* Teal 500 */
+    color: #FFFFFF;
+    border-color: #00796B; /* Teal 700 */
+    padding: 7px 18px; /* Reduced padding */
+    font-size: 0.8rem; /* Reduced font size */
+    min-width: 90px; /* Overriding base min-width */
+}
+.game-button.game-button-offer:hover:not(:disabled) {
+    background-color: #00897B; /* Teal 600 */
+    border-color: #00695C; /* Teal 800 */
+}
+
+/* New Anvil Button Variation for Gallery */
+.game-button.game-button-anvil {
+    background-color: #FF8F00; /* Amber 700 */
+    color: #FFFFFF;
+    border-color: #EF6C00; /* Orange 800 */
+    padding: 7px 18px; /* Reduced padding */
+    font-size: 0.8rem; /* Reduced font size */
+    min-width: 90px; /* Overriding base min-width */
+}
+.game-button.game-button-anvil:hover:not(:disabled) {
+    background-color: #FF6F00; /* Orange 900 */
+    border-color: #E65100; /* Deep Orange 900 */
+}
+
+
+.mini-game-question-area .game-button, 
+.mini-game-question-area .play-again-button-class { 
+    display:block; 
+    margin: 6px auto; 
+    width: 100%; 
+    max-width: 200px;
+}
+
+.play-again-button-class {
+    margin-top: 15px !important; 
+}
+
+#mini-game-content-active .mini-game-question-area .play-again-button-class {
+    /* This will inherit .game-button.game-button-variant-secondary if class is added, or default .game-button */
+}
+#mini-game-content-active .mini-game-question-area .play-again-button-class:hover {
+    /* Hover handled by base .game-button or variant class hover */
+}
+
+/* Media Queries for general game buttons (not menu specific ones) */
+@media (max-width: 768px) {
+    .game-button { 
+        font-size: 0.8rem; 
+        padding: 8px 20px; 
+        min-width: 100px; 
+    }
+    .game-button.game-button-offer,
+    .game-button.game-button-anvil {
+        padding: 6px 15px;
+        font-size: 0.75rem;
+        min-width: 80px;
+    }
+}
+@media (max-width: 480px) {
+    .game-button { 
+        font-size: 0.75rem; 
+        min-width: 80px; 
+        padding: 7px 15px; 
+    }
+    .game-button.game-button-offer,
+    .game-button.game-button-anvil {
+        padding: 5px 12px;
+        font-size: 0.7rem;
+        min-width: 70px;
+    }
+}

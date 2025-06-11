@@ -1,0 +1,144 @@
+/* css/screens/packSelection.css */
+
+#pack-selection > h2 {
+    /* Uses default .screen h2 style from base/typography.css or base/layout.css */
+}
+
+/* Added styles for the filter container */
+#pack-selection .collection-controls {
+    display: flex;
+    justify-content: center; /* Horizontally center the filter */
+    align-items: center;
+    margin-bottom: 15px; /* Space above the pack list */
+    /* gap: 8px; /* In case more controls are added later */
+    /* flex-wrap: wrap; */
+}
+
+
+.pack-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    padding: 0 5px;
+    max-width: 1040px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.pack-container {
+    position: relative;
+    width: 120px; 
+    height: 168px; 
+    cursor: pointer;
+    border-radius: 8px; 
+    background-color: transparent; 
+    border: none; 
+    box-shadow: none; 
+    padding: 0; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; 
+}
+
+.pack-container:hover:not(.locked-pack) .pack-image {
+    transform: scale(1.05) translateY(-3px);
+    animation: boosterPackPulse 1.5s infinite ease-in-out;
+}
+
+.pack-container.locked-pack {
+    cursor: not-allowed;
+    filter: grayscale(80%) opacity(0.6);
+}
+.pack-container.locked-pack .pack-image { 
+    transform: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+}
+
+.pack-image {
+    height: 120px; 
+    width: auto;     
+    max-width: 100%; 
+    object-fit: contain;
+    border-radius: 6px;
+    margin-bottom: 3px;
+    order: 2;
+    transition: transform 0.2s ease-out, box-shadow 0.3s ease-out;
+    position: relative;
+    z-index: 1; 
+}
+
+@keyframes boosterPackPulse {
+    0%, 100% {
+        box-shadow: 0 0 3px color-mix(in srgb, var(--material-primary) 60%, transparent),
+                    0 0 6px color-mix(in srgb, var(--material-primary) 40%, transparent);
+    }
+    50% {
+        box-shadow: 0 0 5px color-mix(in srgb, var(--material-primary) 80%, transparent),
+                    0 0 9px color-mix(in srgb, var(--material-primary) 60%, transparent),
+                    0 0 1px color-mix(in srgb, var(--material-primary) 30%, #fff);
+    }
+}
+
+.pack-info-text {
+    font-size: 0.75em;
+    /* color: var(--material-text-secondary-dark); Replaced by specific color for .pack-name */
+    text-align: center;
+    font-family: var(--button-font);
+    line-height: 1.2;
+    width: 100%;
+    position: relative; 
+    z-index: 2; 
+}
+.pack-name {
+    order: 1;
+    margin-bottom: 3px;
+    font-weight: 500;
+    color: #3A3B3C; /* Updated for readability on light background */
+}
+.pack-price {
+    order: 3;
+    margin-top: 3px;
+    font-weight: bold;
+    color: var(--material-secondary);
+    font-size: 1em;
+}
+.pack-locked-text {
+    font-size: 0.85em;
+    color: var(--material-error);
+    font-weight: bold;
+}
+
+@media (max-width: 1080px) { } /* No specific override needed here as auto-fill handles it */
+
+@media (max-width: 768px) {
+    .pack-list {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 8px;
+        max-width: 100%;
+        padding: 0 8px; 
+    }
+    .pack-container {
+        width: 110px;
+        height: 154px; 
+    }
+    .pack-image {
+        height: 100px; 
+    }
+}
+
+@media (max-width: 480px) {
+    .pack-list {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        gap: 6px;
+        padding: 0 5px;
+    }
+    .pack-container {
+        width: 90px;
+        height: 135px; 
+    }
+    .pack-image {
+        height: 90px; 
+    }
+}
