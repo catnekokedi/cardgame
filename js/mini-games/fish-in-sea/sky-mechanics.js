@@ -126,26 +126,61 @@ window.skyMechanics = { // Ensure it's explicitly on window
         // Placeholder: Add a generic "feather" card or a chance for a summon ticket
 
         const rewardType = Math.random() < 0.7 ? "card" : "ticket"; // 70% chance for card, 30% for ticket
+        let generatedCardData = null;
 
         if (rewardType === "card") {
-            const cardData = {
-                id: `feather_${bird.type}`, // More consistent ID
-                set: 'fish_in_sea_sky', // New set for sky items
-                name: `${bird.type.charAt(0).toUpperCase() + bird.type.slice(1)} Feather`,
-                type: "material",
-                rarity: (bird.type === 'type2' ? 'uncommon' : 'common'), // Example rarity based on bird type
-                price: (bird.type === 'type2' ? 10 : 5), // Example price
-                imagePath: `gui/fishing_game/feather_${bird.type}.png`, // e.g. feather_type1.png
-                source: "bird_click"
-            };
+            // Attempt to generate a real collectible card
+            if (typeof getActiveSetDefinitions === 'function' && typeof getFixedGradeAndPrice === 'function' && typeof getCardImagePath === 'function') {
+                const activeSets = getActiveSetDefinitions();
+                if (activeSets.length > 0) {
+                    const randomSetDef = activeSets[Math.floor(Math.random() * activeSets.length)];
+                    if (randomSetDef.count > 0) {
+                        const cardIdNum = Math.floor(Math.random() * randomSetDef.count) + 1;
+                        const fixedProps = getFixedGradeAndPrice(randomSetDef.abbr, cardIdNum);
+                        // Basic bias: type2 birds (faster, rarer) might drop slightly better things or have higher chance
+                        // For now, let's just say type2 bird can drop up to foil, type1 up to rare
+                        const maxRarityDropLevel = (bird.type === 'type2' ? 2 : 1); // 0=base, 1=rare, 2=foil
+
+                        if ((stringToRarityInt[fixedProps.rarityKey] || 0) <= maxRarityDropLevel) {
+                             generatedCardData = {
+                                set: randomSetDef.abbr,
+                                id: cardIdNum,
+                                name: `${randomSetDef.name} Card #${cardIdNum} (from Bird)`,
+                                rarity: fixedProps.rarityKey,
+                                price: fixedProps.price,
+                                imagePath: getCardImagePath(randomSetDef.abbr, cardIdNum),
+                                type: 'collectible_card',
+                                source: "bird_click"
+                            };
+                        } else {
+                            // console.log(`Bird card drop rarity ${fixedProps.rarityKey} too high for bird type ${bird.type}, trying fallback.`);
+                        }
+                    }
+                }
+            }
+
+            // Fallback to feather if collectible card generation failed or rarity was too high
+            if (!generatedCardData) {
+                generatedCardData = {
+                    id: `feather_${bird.type}`,
+                    set: 'fish_in_sea_sky',
+                    name: `${bird.type.charAt(0).toUpperCase() + bird.type.slice(1)} Feather`,
+                    type: "material",
+                    rarity: (bird.type === 'type2' ? 'uncommon' : 'common'),
+                    price: (bird.type === 'type2' ? 10 : 5),
+                    imagePath: `gui/fishing_game/feather_${bird.type}.png`,
+                    source: "bird_click_feather_fallback"
+                };
+            }
+
             if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
-                window.fishingBasket.addCardToBasket(cardData, 1);
-                if (typeof showCustomModal === 'function') showCustomModal(`You found a ${cardData.name}!`, "success");
+                window.fishingBasket.addCardToBasket(generatedCardData, 1);
+                if (typeof showCustomModal === 'function') showCustomModal(`A bird dropped a ${generatedCardData.name}!`, "success");
             } else {
-                console.warn("fishingBasket.addCardToBasket function not found. Feather card not added.");
+                console.warn("fishingBasket.addCardToBasket function not found. Card from bird not added.");
             }
         } else { // Ticket reward
-            const ticketType = "common_summon_ticket"; // Example, could be rarer
+            const ticketType = (bird.type === 'type2' && Math.random() < 0.3) ? "rare_summon_ticket" : "common_summon_ticket"; // type2 bird has a chance for rare ticket
             if (typeof gainSummonTicket === 'function') {
                 gainSummonTicket(ticketType.replace('_summon_ticket',''), 1); // Assuming gainSummonTicket handles key correctly
                 if (typeof showCustomModal === 'function') showCustomModal(`A bird dropped a ${ticketType.replace(/_/g, ' ')}!`, "success");

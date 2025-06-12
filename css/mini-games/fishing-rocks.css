@@ -1,39 +1,6 @@
 /* css/mini-games/fishing-rocks.css */
 
-#pickaxe-icon {
-    position: absolute;
-    right: 80px; /* Position next to watering can icon, adjust as needed */
-    top: 20px;
-    width: 50px;
-    height: 50px;
-    cursor: pointer;
-    z-index: 1050;
-    transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
-    filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
-    /* Fallback styling if image src is broken */
-    background-color: #d2b48c; /* Tan background */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #8b4513;
-}
-#pickaxe-icon::before {
-    content: "⛏️"; /* Pickaxe emoji or text */
-    font-size: 24px;
-    color: #333;
-}
-
-#pickaxe-icon:hover {
-    transform: scale(1.1);
-}
-
-#pickaxe-icon.selected {
-    /* Example: Add a border or glow when selected */
-    /* filter: drop-shadow(2px 2px 3px rgba(241, 183, 27, 0.7)) brightness(1.1); */
-    box-shadow: 0 0 10px 3px gold;
-    border-radius: 50%; /* If the icon is circular, this helps with the glow */
-}
-
+/* Styles for #pickaxe-icon and .pickaxe-active cursor are REMOVED */
 
 #fishing-rocks-container {
     position: absolute;
@@ -171,27 +138,20 @@
     align-items: center;
 }
 
-/* Pickaxe cursor active on the fishing game screen */
-#fish-in-sea-screen.pickaxe-active {
-    cursor: url('../../gui/fishing_game/pickaxe_cursor.png'), auto; /* Apply to whole game screen */
-}
+/* Pickaxe cursor logic REMOVED from here, will be part of hover effect on rock itself if desired */
 
-/* Ensure specific interactive elements retain their normal cursors even when pickaxe is active */
-#fish-in-sea-screen.pickaxe-active .fishing-ui-icon, /* General class for UI icons if one exists */
-#fish-in-sea-screen.pickaxe-active #pickaxe-icon,
-#fish-in-sea-screen.pickaxe-active #watering-can-icon,
-#fish-in-sea-screen.pickaxe-active #fishing-basket-icon,
-#fish-in-sea-screen.pickaxe-active .tree-card-slot,
-#fish-in-sea-screen.pickaxe-active button,
-#fish-in-sea-screen.pickaxe-active select,
-#fish-in-sea-screen.pickaxe-active .custom-modal-close {
-    cursor: pointer; /* Or 'default' if not interactive */
+.rock-hover-pickaxe {
+    display: none; /* Hidden by default, shown on rock hover via JS */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 28px; /* Size of the pickaxe emoji */
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 0 5px black;
+    pointer-events: none; /* So it doesn't interfere with clicking the rock itself */
+    z-index: 5; /* Ensure it's above rock texture but below HP bar potentially */
 }
-
-/* Rocks will inherit the pickaxe cursor from the screen if not overridden.
-   If an active rock should have a specific interaction cursor with the pickaxe, it can be defined here.
-   Otherwise, it will correctly use the pickaxe cursor. */
-#fish-in-sea-screen.pickaxe-active .rock-instance:not(.rock-empty-slot):not(.rock-respawning) {
-    /* cursor: url('../../gui/fishing_game/pickaxe_hit_cursor.png'), auto; /* Optional: different cursor for hitting */
-    /* Inherits from #fish-in-sea-screen.pickaxe-active, which is good */
+.rock-hover-pickaxe::before {
+    content: "⛏️"; /* Pickaxe emoji */
 }

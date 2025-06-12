@@ -185,7 +185,7 @@ function renderSummonGameScreen(containerElement) {
         const canSummon = ticketsOwned >= ticketsNeeded;
 
         packSlotEl.classList.toggle('active', canSummon);
-        packSlotEl.classList.toggle('summon-pack-unavailable', !canSummon); // Add this class
+        // packSlotEl.classList.toggle('summon-pack-unavailable', !canSummon); // Reverted this line
         packSlotEl.style.cursor = canSummon ? 'pointer' : 'not-allowed';
 
         if (canSummon) {

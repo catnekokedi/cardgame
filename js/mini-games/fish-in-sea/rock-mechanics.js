@@ -2,7 +2,7 @@
 
 const MAX_ROCKS = 3;
 let rockSlots = new Array(MAX_ROCKS).fill(null);
-let pickaxeSelected = false;
+// let pickaxeSelected = false; // Removed global pickaxe state
 
 // Cooldown between hits on the same rock
 const ROCK_HIT_COOLDOWN = 500; // 0.5 seconds
@@ -25,7 +25,7 @@ const rockRarities = Object.keys(rockDefinitions);
  */
 function initializeRocks() {
     rockSlots = new Array(MAX_ROCKS).fill(null);
-    pickaxeSelected = false;
+    // pickaxeSelected = false; // Removed
     rockLastHitTime = new Array(MAX_ROCKS).fill(0);
 
     for (let i = 0; i < MAX_ROCKS; i++) {
@@ -83,39 +83,17 @@ function spawnNewRock(slotIndex, initialDelay = 0) {
     console.log(`New ${randomRarity} rock spawned in slot ${slotIndex}.`);
 }
 
-
-/**
- * Called when the pickaxe icon is clicked. Sets state and cursor.
- */
-function selectPickaxeTool() {
-    pickaxeSelected = true;
-    if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.updatePickaxeCursor === 'function') {
-        fishingRocksUi.updatePickaxeCursor(true);
-    }
-    // TODO: Deselect other tools (e.g., watering can if it had a selected state)
-    console.log("Pickaxe selected.");
-}
-
-/**
- * Resets pickaxe selection and mouse cursor.
- */
-function deselectPickaxeTool() {
-    pickaxeSelected = false;
-    if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.updatePickaxeCursor === 'function') {
-        fishingRocksUi.updatePickaxeCursor(false);
-    }
-    console.log("Pickaxe deselected.");
-}
+// selectPickaxeTool and deselectPickaxeTool functions REMOVED
 
 /**
  * Handles hitting a rock.
  * @param {number} rockSlotIndex The index of the rock slot.
  */
 function hitRock(rockSlotIndex) {
-    if (!pickaxeSelected) {
-        if(typeof showCustomModal === 'function') showCustomModal("Select the pickaxe tool first!", "info");
-        return;
-    }
+    // if (!pickaxeSelected) { // Removed check for global pickaxe state
+    //     if(typeof showCustomModal === 'function') showCustomModal("Select the pickaxe tool first!", "info");
+    //     return;
+    // }
     const rock = rockSlots[rockSlotIndex];
     if (!rock || rock.isRespawning) {
         console.log("No active rock in this slot or rock is respawning.");
@@ -278,7 +256,7 @@ function getRockDataForSave() {
             };
             return null;
         }),
-        // pickaxeSelected: pickaxeSelected // Transient state, usually not saved
+        // pickaxeSelected: pickaxeSelected // Removed
     };
 }
 
@@ -307,7 +285,7 @@ function loadRockData(data) {
         return; // Exit early after initializing
     }
 
-    deselectPickaxeTool(); // Ensure tools are reset on load
+    // deselectPickaxeTool(); // Removed, as tool state is removed
 
     if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.renderRocks === 'function') {
         fishingRocksUi.renderRocks(getRockSlotsData());

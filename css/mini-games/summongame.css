@@ -38,10 +38,13 @@
     /* border-color: #777; */
 }
 
+/* Temporarily commented out for debugging Step 16 */
+/*
 #summon-pack-slot.summon-pack-unavailable #summon-pack-image {
     opacity: 0.6;
-    filter: grayscale(80%) saturate(50%) brightness(0.9); /* Desaturate and slightly darken */
+    filter: grayscale(80%) saturate(50%) brightness(0.9);
 }
+*/
 
 /* The JS already sets cursor: not-allowed on packSlotEl if !canSummon */
 

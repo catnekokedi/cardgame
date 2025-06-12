@@ -1,7 +1,7 @@
 // js/mini-games/fish-in-sea/ui/fishing-rocks-ui.js
 
 const fishingRocksUi = {
-    pickaxeIconElement: null,
+    // pickaxeIconElement: null, // Removed
     rocksContainerElement: null,
 
     /**
@@ -9,9 +9,10 @@ const fishingRocksUi = {
      * Should be called when the fishing game screen is set up.
      */
     initializeRockUI: function() {
-        this.pickaxeIconElement = document.getElementById('pickaxe-icon');
+        // this.pickaxeIconElement = document.getElementById('pickaxe-icon'); // Removed
         this.rocksContainerElement = document.getElementById('fishing-rocks-container');
 
+        /* Removed event listener for global pickaxe icon
         if (!this.pickaxeIconElement) {
             console.error("Pickaxe icon element (#pickaxe-icon) not found in HTML.");
         } else {
@@ -23,6 +24,7 @@ const fishingRocksUi = {
                 }
             });
         }
+        */
 
         if (!this.rocksContainerElement) {
             console.error("Fishing rocks container (#fishing-rocks-container) not found in HTML.");
@@ -61,6 +63,15 @@ const fishingRocksUi = {
             const rockDiv = document.createElement('div');
             rockDiv.classList.add('rock-instance');
             rockDiv.dataset.slotIndex = index;
+
+            // Create and append hover pickaxe icon (initially hidden)
+            const hoverIcon = document.createElement('div');
+            hoverIcon.className = 'rock-hover-pickaxe';
+            // hoverIcon.textContent = '⛏️'; // Emoji can be set here or via CSS content
+            rockDiv.appendChild(hoverIcon); // Append to rockDiv so it's part of it
+
+            rockDiv.onmouseenter = () => { hoverIcon.style.display = 'flex'; };
+            rockDiv.onmouseleave = () => { hoverIcon.style.display = 'none'; };
 
             if (rockData && !rockData.isRespawning) {
                 rockDiv.classList.add(`rock-rarity-${rockData.rarity || 'common'}`);
@@ -116,21 +127,9 @@ const fishingRocksUi = {
      * Updates the main game cursor and pickaxe icon style.
      * @param {boolean} isSelected - True if pickaxe is selected.
      */
-    updatePickaxeCursor: function(isSelected) {
-        const gameScreen = document.getElementById('fish-in-sea-screen'); // More specific target
-
-        if (isSelected) {
-            if (gameScreen) gameScreen.classList.add('pickaxe-active');
-            else document.body.classList.add('pickaxe-active'); // Fallback to body
-
-            if (this.pickaxeIconElement) this.pickaxeIconElement.classList.add('selected');
-        } else {
-            if (gameScreen) gameScreen.classList.remove('pickaxe-active');
-            else document.body.classList.remove('pickaxe-active');
-
-            if (this.pickaxeIconElement) this.pickaxeIconElement.classList.remove('selected');
-        }
-    }
+    // updatePickaxeCursor function removed as global cursor change is no longer used.
+    // Hover effects will be handled by CSS on individual rocks if needed,
+    // or a small pickaxe icon will appear on the rock itself.
 };
 
 window.fishingRocksUi = fishingRocksUi;
