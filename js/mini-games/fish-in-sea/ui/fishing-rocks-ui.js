@@ -64,12 +64,14 @@ const fishingRocksUi = {
 
             if (rockData && !rockData.isRespawning) {
                 rockDiv.classList.add(`rock-rarity-${rockData.rarity || 'common'}`);
+                rockDiv.dataset.rockType = `${rockData.rarity || 'common'} Rock`; // For CSS ::before content
 
                 const definition = rockData.definition || rockDefinitions[rockData.rarity];
                 if (!definition) {
                     console.error(`Rock definition missing for rarity: ${rockData.rarity}`);
                     rockDiv.classList.add('rock-error');
-                    rockDiv.textContent = 'Error';
+                    // rockDiv.textContent = 'Error'; // Text content now handled by ::before
+                    rockDiv.dataset.rockType = 'Error';
                     this.rocksContainerElement.appendChild(rockDiv);
                     return; // continue to next rock
                 }

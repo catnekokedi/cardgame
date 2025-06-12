@@ -2,33 +2,64 @@
 
 #fishing-tree-container {
     position: absolute;
-    left: 20px; /* Adjust as needed */
-    top: 50%;
-    transform: translateY(-50%);
-    width: 200px; /* Adjust based on tree image/design */
-    height: 400px; /* Adjust based on tree image/design */
-    background-image: url('../../gui/fishing_game/tree_placeholder.png'); /* Placeholder tree background */
+    left: 1%; /* Small margin from edge */
+    width: 38%; /* Fit within 40% land area */
+    top: 26%;  /* Below sky (25% height) + small margin */
+    height: 60%; /* Take up most of the remaining vertical space */
+    /* transform: translateY(-50%); /* Remove this if top is set directly */
+    background-image: url('../../gui/fishing_game/tree_placeholder.png');
+    background-color: #8B4513;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    /* border: 1px solid #8B4513; /* Brown border for placeholder */
-    display: flex; /* Using flex to help position slots, might change to absolute positioning for slots */
-    flex-wrap: wrap;
-    justify-content: space-around;
+    display: grid; /* Changed to grid */
+    grid-template-columns: repeat(4, 1fr); /* 4 columns */
+    grid-template-rows: repeat(2, auto);    /* 2 rows, auto height for content */
+    gap: 8px; /* Gap between grid items */
+    padding: 20px; /* Padding around the grid within the container */
+    box-sizing: border-box;
     align-items: center;
-    padding: 10px;
+    justify-items: center;
 }
+#fishing-tree-container::before {
+    content: 'Tree Area';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255,255,255,0.3);
+    font-size: 1.5em;
+    font-weight: bold;
+    z-index: 0; /* Above background color, below cards */
+    /* Text will only be visible if background-image fails AND background-color is the brown fallback.
+       This is more of a decorative/debug text. */
+}
+/* If a background image IS set (even if it fails to load), the ::before text remains transparent.
+   If NO background-image is set by inline style or other CSS, AND the placeholder class is on, show text.
+   This is still tricky. Simplest: assume JS would add a 'no-image' class if loading failed.
+   For CSS-only, the brown background is the main fallback. The text is a bonus.
+   The ::before is always there, just transparent unless a specific class is added or image is truly 'none'.
+*/
+/* Let's ensure the text is only visible if no background image is successfully loaded.
+   This is hard in pure CSS. The current setup will show brown if image fails.
+   The text 'Tree Area' will be styled but likely hidden by the (broken) image attempt.
+   A simple fix: make the text display if the background is the fallback color.
+   However, CSS cannot directly check if a background-image URL loaded successfully.
+   So, we'll just ensure the ::before content doesn't disrupt the layout.
+   The background color #8B4513 will be the primary indicator of a missing image.
+*/
+
 
 .tree-card-slot {
-    width: 60px; /* Adjust based on card size */
-    height: 80px; /* Adjust based on card size */
-    border: 1px solid #ccc;
-    background-color: #f0f0f0; /* Default empty slot color */
+    width: 55px; /* Smaller card slot width */
+    height: 77px; /* Smaller card slot height (maintaining ~7:5 ratio) */
+    border: 1px solid #8b4513; /* More thematic border */
+    background-color: rgba(0,0,0,0.1); /* Default empty slot color - slightly transparent */
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 5px; /* Adjust spacing */
-    background-size: contain;
+    /* margin: 5px; /* Removed, using grid gap now */
+    background-size: cover; /* Changed to cover to fill slot better */
     background-repeat: no-repeat;
     background-position: center;
     cursor: pointer;
@@ -52,16 +83,16 @@
 
 #tree-moisture-display {
     position: absolute;
-    left: 20px; /* Align with tree container */
-    top: calc(50% + 210px); /* Position below the tree container (adjust 210px based on tree height) */
-    /* transform: translateY(-100%); /* This was causing it to overlap with bottom of tree */
-    transform: translateY(10px); /* Small offset from the bottom of the tree area */
+    left: 1%; /* Align with tree container's new left */
+    /* top: calc(26% + 60% + 5px); /* Position below the tree container: top + height + margin */
+    bottom: 2%; /* Alternative: position from bottom of screen */
+    /* transform: translateY(10px); /* May not be needed if using bottom */
     background-color: rgba(0, 0, 0, 0.7);
     color: white;
     padding: 5px 10px;
     border-radius: 5px;
     font-size: 0.9em;
-    z-index: 10; /* Ensure it's above the tree container if they overlap */
+    z-index: 10;
 }
 
 /* Example of how slots might be absolutely positioned on a tree image */

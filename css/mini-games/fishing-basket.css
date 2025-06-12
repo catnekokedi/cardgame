@@ -11,7 +11,19 @@
     z-index: 1050; /* Consistent with other tool icons */
     transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
     filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+    /* Fallback styling if image src is broken */
+    background-color: #ddd; /* Light grey background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #aaa;
 }
+#fishing-basket-icon::before {
+    content: "🧺"; /* Basket emoji or text */
+    font-size: 24px; /* Adjust size of emoji/text */
+    color: #333;
+}
+
 
 #fishing-basket-icon:hover {
     transform: scale(1.1);

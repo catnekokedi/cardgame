@@ -7,6 +7,9 @@
   <link rel="icon" type="image/png" href="gui/logo.png">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components/global-item-display.css">
+  <link rel="stylesheet" href="css/mini-games/fishing-sky.css">
+  <link rel="stylesheet" href="css/mini-games/fishing-basket.css">
 </head>
 <body>
   <div id="customModal" class="custom-modal-overlay" style="display: none;">
@@ -449,9 +452,7 @@
             <!-- End Sky Area -->
 
             <!-- Core Fishing Game Area -->
-            <div id="fishing-cat-boat"><img src="gui/fishing_game/cat_on_boat.png" alt="Cat on Boat"></div>
-            <div id="fishing-line" style="display:none;"></div> <!-- Styled by CSS, controlled by JS -->
-            <div id="fishing-float" style="display:none;"><img src="gui/fishing_game/float.png" alt="Float"></div>
+            <!-- Note: Cat, Boat, Line, Float are expected to be part of the existing SVG/Canvas setup, not these divs -->
             <div id="fishing-sea-container">
                 <!-- Fish will be dynamically added here by fishing-game-ui.js -->
             </div>
@@ -565,6 +566,7 @@
   <script src="js/ui/components/filters.js" defer></script>
   <script src="js/ui/components/cardDetailModal.js" defer></script>
   <script src="js/ui/components/transitions.js" defer></script>
+  <script src="js/ui/components/global-item-display.js" defer></script>
   
   <script src="js/ui/screens/achievements.js" defer></script>
   <script src="js/ui/screens/collection.js" defer></script>

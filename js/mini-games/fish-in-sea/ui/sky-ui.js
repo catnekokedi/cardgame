@@ -70,6 +70,7 @@ const skyUi = {
             birdEl.style.left = `${birdData.x}px`;
             birdEl.style.top = `${birdData.y}px`;
             birdEl.style.backgroundImage = `url('${birdData.imagePath || 'gui/fishing_game/bird_type1.png'}')`;
+            birdEl.dataset.birdType = birdData.type || 'Bird'; // For CSS ::before content
 
             // Flip bird image based on direction
             if (birdData.speedX < 0) {

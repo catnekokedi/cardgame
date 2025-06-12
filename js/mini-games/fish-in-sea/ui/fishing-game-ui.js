@@ -1,40 +1,25 @@
 // js/mini-games/fish-in-sea/ui/fishing-game-ui.js
 
-const fishingGameUi = {
+const fishingGameUi = { // Renamed to avoid conflict if an old fishingGameUi existed. Or could be fishingSeaUi.
     seaContainerElement: null,
-    catBoatElement: null,
-    floatElement: null,
-    fishingLineElement: null, // For the line itself
+    // catBoatElement, floatElement, fishingLineElement are removed as they are handled by the existing fishingUi.js (SVG/Canvas based)
 
     /**
-     * Initializes UI elements related to the fishing game view.
-     * Creates or gets references to DOM elements for fish, cat on boat, float, etc.
+     * Initializes UI elements related to the NEW fishing game view parts (mainly the sea container for fish).
      */
     initializeFishingUIElements: function() {
         this.seaContainerElement = document.getElementById('fishing-sea-container');
-        this.catBoatElement = document.getElementById('fishing-cat-boat');
-        this.floatElement = document.getElementById('fishing-float');
-
-        if (!this.seaContainerElement) console.error("#fishing-sea-container not found.");
-        if (!this.catBoatElement) console.error("#fishing-cat-boat not found.");
-        if (!this.floatElement) console.error("#fishing-float not found.");
-
-        // Create a fishing line element if it doesn't exist, or get a reference
-        this.fishingLineElement = document.getElementById('fishing-line');
-        if (!this.fishingLineElement && this.seaContainerElement) { // Create if not found, append to sea container or specific parent
-            this.fishingLineElement = document.createElement('div');
-            this.fishingLineElement.id = 'fishing-line';
-            // this.seaContainerElement.appendChild(this.fishingLineElement); // Or append to a more suitable parent
-            // The line should probably be absolutely positioned relative to the game screen or cat.
-            // For now, ensure it's in the DOM if created by script.
-            const gameScreen = document.getElementById('fish-in-sea-screen');
-            if(gameScreen) gameScreen.appendChild(this.fishingLineElement); else document.body.appendChild(this.fishingLineElement);
-
+        if (!this.seaContainerElement) {
+            console.error("#fishing-sea-container not found. Fish will not be visible.");
         }
 
-        this.renderFishingRod(false, {x:0,y:0}); // Initially hide rod and float
+        // Initial render of fish if mechanics are ready
+        if (typeof fishingMechanics !== 'undefined' && typeof fishingMechanics.activeFish !== 'undefined') {
+            this.renderFish(fishingMechanics.activeFish);
+        }
 
-        console.log("Fishing Game UI elements initialized.");
+
+        console.log("New Fishing Game UI elements (sea container) initialized.");
     },
 
     /**
@@ -60,7 +45,7 @@ const fishingGameUi = {
             fishEl.style.left = `${fish.x}px`;
             fishEl.style.top = `${fish.y}px`;
             // Placeholder image, actual image could depend on fish.rarity or type
-            fishEl.style.backgroundImage = `url('${fish.imagePath || 'gui/fishing_game/fish_card_placeholder.png'}')`;
+            fishEl.style.backgroundImage = `url('${fish.imagePath || 'gui/fishing_game/fish.png'}')`; // Fallback to fish.png
             // Add class for rarity if needed: fishEl.className = `fish-card-in-sea fish-rarity-${fish.rarity}`;
         });
 
@@ -75,71 +60,13 @@ const fishingGameUi = {
      * @param {boolean} isCast - Is the rod currently cast?
      * @param {object} hookPosition - {x, y} position for the hook/float.
      */
-    renderFishingRod: function(isCast, hookPosition) {
-        if (!this.floatElement || !this.fishingLineElement) return;
-
-        if (isCast) {
-            this.floatElement.style.display = 'block';
-            this.floatElement.style.left = `${hookPosition.x}px`;
-            this.floatElement.style.top = `${hookPosition.y}px`;
-
-            this.fishingLineElement.style.display = 'block';
-            // Line drawing: from rod tip to float. Rod tip needs to be known.
-            // Assuming cat/boat is at a fixed position for simplicity.
-            const rodTip = { x: (this.catBoatElement?.offsetLeft || hookPosition.x - 20) + (this.catBoatElement?.offsetWidth || 0) /1.5 , y: (this.catBoatElement?.offsetTop || hookPosition.y - 100) + (this.catBoatElement?.offsetHeight || 0)/3 }; // Approximate
-
-            const dx = hookPosition.x - rodTip.x;
-            const dy = hookPosition.y - rodTip.y;
-            const length = Math.sqrt(dx * dx + dy * dy);
-            const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
-            this.fishingLineElement.style.width = `${length}px`;
-            this.fishingLineElement.style.transform = `rotate(${angle}deg)`;
-            this.fishingLineElement.style.left = `${rodTip.x}px`;
-            this.fishingLineElement.style.top = `${rodTip.y}px`; // Midpoint of line height for rotation
-        } else {
-            this.floatElement.style.display = 'none';
-            this.fishingLineElement.style.display = 'none';
-        }
-    },
-
-    /**
-     * Shows or hides a bite indicator on the float.
-     * @param {boolean} isActive - True if a bite is active.
-     */
-    showBiteIndicator: function(isActive) {
-        if (!this.floatElement) return;
-        if (isActive) {
-            this.floatElement.classList.add('bite');
-            // Update float image if using different images
-            const floatImg = this.floatElement.querySelector('img');
-            if (floatImg) floatImg.src = 'gui/fishing_game/float_bite.png';
-        } else {
-            this.floatElement.classList.remove('bite');
-            const floatImg = this.floatElement.querySelector('img');
-            if (floatImg) floatImg.src = 'gui/fishing_game/float.png';
-        }
-    },
-
-    /**
-     * Provides visual feedback for the reeling state.
-     * @param {boolean} isReeling - True if the player is currently reeling.
-     */
-    updateReelingState: function(isReeling) {
-        // Example: could add a class to the cat/boat or player character
-        if (this.catBoatElement) {
-            if (isReeling) {
-                this.catBoatElement.classList.add('reeling');
-            } else {
-                this.catBoatElement.classList.remove('reeling');
-            }
-        }
-        // If the line or rod needs to animate during reeling, that logic would go here.
-        console.log(`UI Reeling State: ${isReeling}`);
-    }
+    // renderFishingRod, showBiteIndicator, updateReelingState are removed.
+    // These functionalities are assumed to be handled by the existing fishingUi.js,
+    // which controls the SVG cat/rod, canvas line, and #fishing-bobber.
+    // Calls to these will be redirected in fishingMechanics.js to fishingUi methods.
 };
 
 // Make it globally available
-window.fishingGameUi = fishingGameUi;
+window.fishingGameUi = fishingGameUi; // Or a more distinct name like fishingSeaUi to avoid clashes
 
-console.log("fishing-game-ui.js loaded and attached to window.");
+console.log("fishing-game-ui.js (for fish rendering) loaded and attached to window.");

@@ -10,6 +10,17 @@
     z-index: 1050; /* Ensure it's above other game elements but potentially below modals */
     transition: transform 0.2s ease-in-out;
     filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+    /* Fallback styling if image src is broken */
+    background-color: #add8e6; /* Light blue background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #5f9ea0;
+}
+#watering-can-icon::before {
+    content: "💧"; /* Water droplet emoji or text */
+    font-size: 24px;
+    color: #333;
 }
 
 #watering-can-icon:hover {

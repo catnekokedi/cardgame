@@ -106,17 +106,20 @@ function renderFishingShopItems(tabType = 'fish') { // Renamed from renderShopIt
     }
     exchangeInfoArea.appendChild(progressDiv);
 
-    const itemsToDisplay = fishingGameState.basket.filter(item => item.type === itemFilterType && !item.locked); // Exclude locked items
+    const currentBasketItems = (typeof fishingBasket !== 'undefined' && Array.isArray(fishingBasket.basketContents)) ? fishingBasket.basketContents : [];
+    const itemsToDisplay = currentBasketItems.filter(item => item.cardData.type === itemFilterType && !item.isLocked);
+
     if (itemsToDisplay.length === 0) {
         itemsGrid.innerHTML = `<p class="text-center text-xs text-gray-500" style="grid-column: 1 / -1;">No unlocked ${tabType.replace('_',' ')} items in basket for exchange.</p>`;
         return;
     }
     itemsToDisplay.forEach(item => {
         const cardDiv = document.createElement('div');
-        cardDiv.className = `card ${item.details.rarityKey || 'base'}`;
+        // Assuming cardData has rarity, set, id for styling and image path
+        cardDiv.className = `card ${item.cardData.rarity || 'base'}`;
         const img = document.createElement('img');
-        img.src = getCardImagePath(item.details.set, item.details.cardId);
-        img.alt = `${item.details.set}C${item.details.cardId}`;
+        img.src = getCardImagePath(item.cardData.set, item.cardData.id, item.cardData.imagePath); // Use imagePath from cardData if available
+        img.alt = `${item.cardData.name || (item.cardData.set + "C" + item.cardData.id)}`;
         img.onerror = function() { this.src = 'https://placehold.co/100x140/cccccc/000000?text=Error'; this.onerror = null; };
         cardDiv.appendChild(img);
         itemsGrid.appendChild(cardDiv);
@@ -126,30 +129,50 @@ function renderFishingShopItems(tabType = 'fish') { // Renamed from renderShopIt
 function handleFishingShopExchangeAll() { // Renamed from handleShopExchangeAll
     const activeTabType = fishingGameState.ui.shopModal.querySelector('.fishing-shop-tabs button.active')?.dataset.tabType || 'fish';
     let exchangeRatesConfig;
-    let itemFilterType;
+    let itemFilterType; // This will be the value of cardData.type
 
     switch (activeTabType) {
-        case 'fruit': exchangeRatesConfig = FISHING_CONFIG.FRUIT_EXCHANGE_RATES; itemFilterType = 'fruit_card'; break;
-        case 'minerals': exchangeRatesConfig = FISHING_CONFIG.MINERAL_EXCHANGE_RATES; itemFilterType = 'mineral_card'; break;
-        default: exchangeRatesConfig = FISHING_CONFIG.CARD_EXCHANGE_RATES; itemFilterType = 'card'; break;
+        case 'fruit': exchangeRatesConfig = FISHING_CONFIG.FRUIT_EXCHANGE_RATES; itemFilterType = 'fruit'; break; // e.g. if cardData.type = 'fruit'
+        case 'minerals': exchangeRatesConfig = FISHING_CONFIG.MINERAL_EXCHANGE_RATES; itemFilterType = 'mineral'; break;
+        default: exchangeRatesConfig = FISHING_CONFIG.CARD_EXCHANGE_RATES; itemFilterType = 'fish'; break; // Assuming caught fish cards have type 'fish'
     }
 
     let itemsExchangedCount = 0;
     const ticketsAwardedSummary = {};
-    const itemsKeptInBasket = [];
+    const itemsToKeep = []; // Build a new list of items to keep
 
+    const currentBasketItems = (typeof fishingBasket !== 'undefined' && Array.isArray(fishingBasket.basketContents)) ? fishingBasket.basketContents : [];
+
+    // Segregate items that are not eligible for this tab's exchange or are locked
+    currentBasketItems.forEach(item => {
+        if (item.cardData.type !== itemFilterType || item.isLocked) {
+            itemsToKeep.push(item);
+        }
+    });
+
+    // Process eligible items
     Object.keys(exchangeRatesConfig).forEach(itemRarityKey => {
-        const itemsOfThisRarityInBasket = fishingGameState.basket.filter(item => 
-            item.type === itemFilterType && item.details.rarityKey === itemRarityKey && !item.locked // Exclude locked items
+        // Filter for current rarity among eligible (unlocked, correct type) items
+        const itemsOfThisRarityForExchange = currentBasketItems.filter(item =>
+            item.cardData.type === itemFilterType && item.cardData.rarity === itemRarityKey && !item.isLocked
         );
         
-        let consumedFromBasketCount = 0;
+        let consumedFromBasketCount = 0; // How many of itemsOfThisRarityForExchange are consumed
 
         Object.keys(exchangeRatesConfig[itemRarityKey]).forEach(targetTicketType => {
-            const { ticketType, count, itemsConsumedCount } = fishingMechanics.processShopExchange(
-                activeTabType, // Pass category
+            const itemsAvailableForThisRule = itemsOfThisRarityForExchange.slice(consumedFromBasketCount);
+            if(itemsAvailableForThisRule.length === 0) return; // No more items of this rarity to process
+
+            // processShopExchange expects an array of card objects, but fishingMechanics.processShopExchange might be expecting the old format.
+            // For now, let's adapt by passing the count of items.
+            // This part needs careful review of how fishingMechanics.processShopExchange actually works with the new basket structure.
+            // Assuming processShopExchange is updated or can handle item counts + types.
+            // For simplicity here, we'll simulate its logic based on item quantities.
+
+            const { ticketType, count, itemsConsumedCount: actualItemsConsumedForThisRule } = fishingMechanics.processShopExchange(
+                activeTabType,
                 itemRarityKey, 
-                itemsOfThisRarityInBasket.slice(consumedFromBasketCount), 
+                itemsAvailableForThisRule, // Pass the actual items
                 exchangeRatesConfig, 
                 targetTicketType
             );
@@ -157,23 +180,27 @@ function handleFishingShopExchangeAll() { // Renamed from handleShopExchangeAll
             if (count > 0) {
                 ticketsAwardedSummary[ticketType] = (ticketsAwardedSummary[ticketType] || 0) + count;
             }
-            consumedFromBasketCount += itemsConsumedCount; 
+            consumedFromBasketCount += actualItemsConsumedForThisRule;
         });
         
-        // Add back to itemsKeptInBasket only those NOT consumed
-        const nonConsumedItemsOfThisRarity = itemsOfThisRarityInBasket.slice(consumedFromBasketCount);
-        nonConsumedItemsOfThisRarity.forEach(item => itemsKeptInBasket.push(item));
-        itemsExchangedCount += consumedFromBasketCount; 
-    });
-
-    // Add back items of other types or locked items
-    fishingGameState.basket.forEach(item => {
-        if (item.type !== itemFilterType || item.locked) {
-            itemsKeptInBasket.push(item);
-        }
+        // Add unconsumed items of this rarity back to itemsToKeep
+        const nonConsumedItemsOfThisRarity = itemsOfThisRarityForExchange.slice(consumedFromBasketCount);
+        nonConsumedItemsOfThisRarity.forEach(item => itemsToKeep.push(item));
+        itemsExchangedCount += consumedFromBasketCount;
     });
     
-    fishingGameState.basket = itemsKeptInBasket;
+    // Update the main basket
+    if (typeof fishingBasket !== 'undefined') {
+        fishingBasket.basketContents = itemsToKeep;
+        // Trigger UI update for the main basket display
+        if (typeof fishingBasketUi !== 'undefined' && typeof fishingBasketUi.renderBasket === 'function') {
+            fishingBasketUi.renderBasket(fishingBasket.getBasketContentsForDisplay(fishingBasketUi.currentFilters));
+        }
+        if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateBasketCount === 'function') {
+            fishingUi.updateBasketCount(fishingBasket.getTotalItemCount());
+        }
+    }
+
 
     let summaryMessage = "";
     if (Object.keys(ticketsAwardedSummary).length > 0) {

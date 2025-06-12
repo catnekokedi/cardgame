@@ -10,6 +10,17 @@
     z-index: 1050;
     transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
     filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+    /* Fallback styling if image src is broken */
+    background-color: #d2b48c; /* Tan background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #8b4513;
+}
+#pickaxe-icon::before {
+    content: "⛏️"; /* Pickaxe emoji or text */
+    font-size: 24px;
+    color: #333;
 }
 
 #pickaxe-icon:hover {
@@ -26,19 +37,18 @@
 
 #fishing-rocks-container {
     position: absolute;
-    bottom: 20px;
-    left: 20px; /* Changed from center to align with tree */
-    /* max-width: 300px; */ /* Allow it to take more space if needed */
-    width: auto; /* Let flexbox determine width based on content */
-    min-width: 280px; /* Ensure it's wide enough for 3 rocks + gap */
-    height: 120px; /* Increased height for HP bar visibility */
+    bottom: 2%; /* Position at the bottom of the land area */
+    left: 1%;   /* Align with tree container's left */
+    width: 38%; /* Fit within 40% land area */
+    height: auto; /* Auto height based on content, or a fixed small height e.g. 100px */
+    min-height: 100px; /* Ensure some space for rocks */
     display: flex;
-    justify-content: flex-start; /* Align rocks to the left */
-    align-items: center; 
-    padding: 10px;
-    gap: 15px; /* Space between rocks */
-    /* background-color: rgba(0,0,0,0.05); /* Light background for differentiation */
-    /* border-radius: 5px; */
+    justify-content: space-around; /* Distribute rocks horizontally */
+    align-items: flex-end; /* Align rocks to the bottom of this container */
+    padding: 10px 5px 5px 5px; /* Padding, less at bottom */
+    gap: 10px;
+    box-sizing: border-box;
+    /* background-color: rgba(0,0,0,0.05); */
 }
 
 .rock-instance {
@@ -50,7 +60,25 @@
     position: relative;
     transition: transform 0.1s ease-out;
     /* Default cursor will be overridden by .pickaxe-active on parent if pickaxe selected */
+    text-align: center;
+    line-height: 1.2; /* For text if image fails */
+    font-size: 10px;
+    color: white;
+    word-break: break-word;
 }
+.rock-instance::before { /* For displaying text if image fails */
+    content: attr(data-rock-type); /* Set by JS */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none; /* Hidden by default, shown if no background image */
+}
+.rock-instance:not([style*="background-image"])::before {
+    display: block;
+}
+
+
 .rock-instance:not(.rock-empty-slot):not(.rock-respawning):hover {
     transform: scale(1.05); /* Hover effect only on actual rocks */
     cursor: pointer; /* Show pointer on hover for clickable rocks */

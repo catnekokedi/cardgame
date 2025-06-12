@@ -459,15 +459,18 @@
 
 #fishing-sea-container {
     position: absolute;
-    /* Assuming it's within #fishing-water-area or similar positioned parent */
-    /* Or, define its own position if it's a top-level element in fish-in-sea-screen */
-    top: 35%; /* Example: Start below the sky part of #fishing-water-area */
-    left: 0;
-    width: 100%; /* Takes full width of its parent (e.g., #fishing-water-area) */
-    height: 65%; /* Takes the remaining height */
-    /* background-color: rgba(0, 100, 200, 0.3); /* Light blue, for testing */
-    overflow: hidden; /* Fish should not go outside this */
-    z-index: 2; /* Above water background, below UI elements like bobber if needed */
+    /* This container holds the dynamically moving fish.
+       It should be positioned within the conceptual "water area" (right 60% of screen).
+       The actual water background might be on #fishing-water-area or #fish-in-sea-screen itself.
+    */
+    position: absolute;
+    left: 40%; /* Start after the 40% land area */
+    top: 25%;  /* Start below the 25% sky area */
+    width: 60%; /* Take the remaining 60% width */
+    height: 75%; /* Take the remaining 75% height */
+    background-color: rgba(20, 120, 220, 0.1); /* Slight blue tint for visibility if water bg is elsewhere */
+    overflow: hidden;
+    z-index: 2;
 }
 
 .fish-card-in-sea {

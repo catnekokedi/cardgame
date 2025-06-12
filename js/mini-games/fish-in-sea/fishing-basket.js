@@ -53,8 +53,12 @@ const fishingBasket = {
         if (typeof fishingBasketUi !== 'undefined' && typeof fishingBasketUi.renderBasket === 'function') {
             fishingBasketUi.renderBasket(this.getBasketContentsForDisplay());
         }
-         if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateBasketCount === 'function') {
+        if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateBasketCount === 'function') {
             fishingUi.updateBasketCount(this.getTotalItemCount());
+        }
+        // Show the collected item display
+        if (typeof showTemporaryCollectedItem === 'function') {
+            showTemporaryCollectedItem(cardData);
         }
     },
 

@@ -1,0 +1,44 @@
+/* css/components/global-item-display.css */
+
+#temp-collected-item-display {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8); /* Initial state for entry animation */
+    z-index: 2500; /* Very high to be on top of everything */
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+    pointer-events: none; /* Don't block interactions below when hidden */
+}
+
+#temp-collected-item-display.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+}
+
+#temp-collected-item-display img {
+    width: auto;
+    max-width: 200px; /* Adjust as needed */
+    height: auto;
+    max-height: 280px; /* Adjust as needed */
+    object-fit: contain;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+#temp-collected-item-display p {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
