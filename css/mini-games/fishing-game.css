@@ -453,3 +453,84 @@
     #fishing-basket-modal .fishing-basket-controls { flex-direction: column; align-items: stretch; }
     #card-detail-fishingbasket-modal .detail-image-container-frameless { max-width: 70vw; }
 }
+
+
+/* === New Styles for Core Fishing Mechanics (Fish Movement, Float, etc.) === */
+
+#fishing-sea-container {
+    position: absolute;
+    /* Assuming it's within #fishing-water-area or similar positioned parent */
+    /* Or, define its own position if it's a top-level element in fish-in-sea-screen */
+    top: 35%; /* Example: Start below the sky part of #fishing-water-area */
+    left: 0;
+    width: 100%; /* Takes full width of its parent (e.g., #fishing-water-area) */
+    height: 65%; /* Takes the remaining height */
+    /* background-color: rgba(0, 100, 200, 0.3); /* Light blue, for testing */
+    overflow: hidden; /* Fish should not go outside this */
+    z-index: 2; /* Above water background, below UI elements like bobber if needed */
+}
+
+.fish-card-in-sea {
+    position: absolute; /* Positioned by JS using left/top */
+    width: 50px; /* Adjust as needed */
+    height: 30px; /* Adjust as needed */
+    background-image: url('../../gui/fishing_game/fish_card_placeholder.png'); /* Placeholder */
+    background-size: contain;
+    background-repeat: no-repeat;
+    /* transition: transform 0.5s linear; /* For smooth rotation if fish changes direction */
+    z-index: 3; /* Above sea background, potentially below float */
+}
+
+#fishing-cat-boat {
+    position: absolute;
+    bottom: 55%; /* Example: On the water surface, adjust based on #fishing-water-area layout */
+    left: 10%;   /* Example: Position on the left side of the water area */
+    width: 120px; /* Adjust based on image */
+    height: 100px; /* Adjust based on image */
+    z-index: 15; /* Above water, sea container, and fish */
+}
+#fishing-cat-boat img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+#fishing-cat-boat.reeling {
+    animation: catReelAnimation 0.5s infinite alternate; /* Simple reeling animation */
+}
+@keyframes catReelAnimation {
+    0% { transform: translateY(0px) rotate(-2deg); }
+    100% { transform: translateY(-2px) rotate(2deg); }
+}
+
+
+#fishing-float {
+    position: absolute; /* Positioned by JS */
+    width: 20px;
+    height: 20px;
+    z-index: 20; /* Should be above fish and water, line might be tricky */
+    display: none; /* Initially hidden */
+}
+#fishing-float img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+#fishing-float.bite {
+    animation: floatBiteAnimation 0.5s infinite;
+}
+@keyframes floatBiteAnimation {
+    0% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(5px) scale(0.9); }
+    100% { transform: translateY(0px) scale(1); }
+}
+
+
+#fishing-line {
+    position: absolute;
+    height: 2px; /* Line thickness */
+    background-color: #333; /* Dark line color */
+    transform-origin: 0 50%; /* Rotate from one end (rod tip) */
+    z-index: 19; /* Below float, above fish/water */
+    display: none; /* Initially hidden */
+    pointer-events: none; /* Line should not interfere with clicks */
+}

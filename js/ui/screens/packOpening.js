@@ -178,16 +178,28 @@ openingpack.showPackOpeningUI_Desktop = function() {
 
         const cardVisualDiv = document.createElement('div');
         cardVisualDiv.className = 'desktop-booster-card';
-        cardVisualDiv.id = `booster-card-container-desktop-${card.packIndex}`;
+        cardVisualDiv.id = `booster-card-container-desktop-${card.packIndex}`; // This is the one that gets animations
+
+        const cardImageWrapper = document.createElement('div');
+        // Apply .card and rarity class to this wrapper
+        cardImageWrapper.className = `card ${card.revealed ? card.rarityKey : 'card-back-state'}`; // Use 'card-back-state' or similar for unrevealed
+        cardImageWrapper.dataset.packIndex = card.packIndex; // Keep packIndex for potential click handling on wrapper
 
         const img = document.createElement('img');
         const cardBackSrc = currentActiveSetVersion === 'v2' ? 'gui/yuki-back.jpg' : 'gui/back.jpg';
         img.src = card.revealed ? getCardImagePath(card.set, card.cardId) : cardBackSrc;
         img.alt = card.revealed ? `${card.set}-C${card.cardId}` : 'Card Back';
-        img.className = `card ${card.revealed ? card.rarityKey : 'card-back-image'}`;
-        img.dataset.packIndex = card.packIndex;
-        img.onclick = card.revealed ? () => { showCardDetail(card.set, card.cardId, card.rarityKey, 'pack', null, card.grade, card); if (typeof playSound === 'function') playSound('sfx_button_click_subtle.mp3'); } : () => this.revealCardDesktop(card.packIndex);
+        // img no longer needs .card or rarity class, but might need a class for specific img styling
+        img.className = 'pack-opening-card-image';
         img.onerror = function() { this.src = `https://placehold.co/130x182/cccccc/000000?text=Error`; this.onerror = null; };
+
+        // Click handler: can be on cardImageWrapper or img. If on wrapper, good. If on img, ensure wrapper doesn't block.
+        // For now, let's make the wrapper clickable for reveal, and img clickable for detail after reveal.
+        if (card.revealed) {
+            cardImageWrapper.onclick = () => { showCardDetail(card.set, card.cardId, card.rarityKey, 'pack', null, card.grade, card); if (typeof playSound === 'function') playSound('sfx_button_click_subtle.mp3'); };
+        } else {
+            cardImageWrapper.onclick = () => this.revealCardDesktop(card.packIndex);
+        }
         
         const newIndicator = document.createElement('span');
         newIndicator.className = 'new-indicator';
@@ -195,8 +207,9 @@ openingpack.showPackOpeningUI_Desktop = function() {
         newIndicator.style.display = (card.revealed && card.isNew) ? 'block' : 'none';
         if (card.revealed && card.isNew) newIndicator.innerHTML = "NEW <span class='new-star'>⭐</span>";
 
-        cardVisualDiv.appendChild(img);
-        cardVisualDiv.appendChild(newIndicator);
+        cardImageWrapper.appendChild(img); // Image inside the new wrapper
+        cardImageWrapper.appendChild(newIndicator); // New indicator also inside wrapper, above image via CSS z-index if needed
+        cardVisualDiv.appendChild(cardImageWrapper); // Append wrapper to the animated container
         cardContainer.appendChild(cardVisualDiv);
 
         const infoPara = document.createElement('p');
@@ -226,14 +239,20 @@ openingpack.revealCardDesktop = function(packIndex) {
     const infoPara = document.getElementById(`pack-card-info-desktop-${packIndex}`);
     const newIndicator = document.getElementById(`new-indicator-desktop-${packIndex}`);
 
-    if (cardVisualDiv) {
-        const img = cardVisualDiv.querySelector('img');
-        if (img) {
+    if (cardVisualDiv) { // This is desktop-booster-card (the animated container)
+        const cardImageWrapper = cardVisualDiv.querySelector('.card'); // Get the new wrapper
+        const img = cardImageWrapper ? cardImageWrapper.querySelector('img.pack-opening-card-image') : null;
+
+        if (cardImageWrapper && img) {
             img.src = getCardImagePath(cardData.set, cardData.cardId);
             img.alt = `${cardData.set}-C${cardData.cardId}`;
-            img.className = `card ${cardData.rarityKey}`;
-            img.onclick = () => { showCardDetail(cardData.set, cardData.cardId, cardData.rarityKey, 'pack', null, cardData.grade, cardData); if (typeof playSound === 'function') playSound('sfx_button_click_subtle.mp3'); };
             
+            // Update wrapper's class for rarity effect
+            cardImageWrapper.className = `card ${cardData.rarityKey}`;
+            // Update click handler on wrapper to show detail
+            cardImageWrapper.onclick = () => { showCardDetail(cardData.set, cardData.cardId, cardData.rarityKey, 'pack', null, cardData.grade, cardData); if (typeof playSound === 'function') playSound('sfx_button_click_subtle.mp3'); };
+
+            // Animation is on cardVisualDiv (the parent of cardImageWrapper)
             cardVisualDiv.classList.remove(...Array.from(cardVisualDiv.classList).filter(c => c.startsWith('card-reveal-animation-')));
             cardVisualDiv.classList.add('card-reveal-animation', `card-reveal-animation-${cardData.rarityKey}`);
             setTimeout(() => cardVisualDiv.classList.remove('card-reveal-animation', `card-reveal-animation-${cardData.rarityKey}`), this.getAnimationDurationByRarity(cardData.rarityKey));
@@ -241,9 +260,9 @@ openingpack.revealCardDesktop = function(packIndex) {
             // Play sound based on rarity
             if (typeof playSound === 'function') {
                 const rarityLevel = stringToRarityInt[cardData.rarityKey] || 0;
-                if (rarityLevel >= 3) playSound('sfx_card_reveal_epic.mp3'); // Holo, Star, Rainy, Gold, Shiny
-                else if (rarityLevel >= 1) playSound('sfx_card_reveal_uncommon.mp3'); // Rare, Foil
-                else playSound('sfx_card_reveal_common.mp3'); // Base
+                if (rarityLevel >= 3) playSound('sfx_card_reveal_epic.mp3');
+                else if (rarityLevel >= 1) playSound('sfx_card_reveal_uncommon.mp3');
+                else playSound('sfx_card_reveal_common.mp3');
             }
         }
     }

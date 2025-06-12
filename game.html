@@ -141,7 +141,10 @@
          <div id="card-detail-pack-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('pack'); playSound('sfx_modal_close.mp3'); }">
             <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
                 <div class="detail-image-container-frameless">
-                    <img id="detail-image-pack" class="detail-image card" onclick="closeDetail('pack'); playSound('sfx_modal_close.mp3');">
+                    {/* The .card class and rarity class will be added here by JS for showCardDetail */}
+                    <div id="detail-image-pack-wrapper" class="card">
+                        <img id="detail-image-pack" class="detail-image" onclick="closeDetail('pack'); playSound('sfx_modal_close.mp3');">
+                    </div>
                 </div>
                 <div class="detail-info-panel-frameless">
                     <p id="detail-info-pack"></p>
@@ -177,7 +180,10 @@
         <div id="card-detail-collection-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('collection'); playSound('sfx_modal_close.mp3'); }">
             <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
                 <div class="detail-image-container-frameless">
-                    <img id="detail-image-collection" class="detail-image card" onclick="closeDetail('collection'); playSound('sfx_modal_close.mp3');">
+                    {/* The .card class and rarity class will be added here by JS for showCardDetail */}
+                    <div id="detail-image-collection-wrapper" class="card">
+                        <img id="detail-image-collection" class="detail-image" onclick="closeDetail('collection'); playSound('sfx_modal_close.mp3');">
+                    </div>
                 </div>
                 <div id="detail-info-panel-collection" class="detail-info-panel-frameless">
                     <p id="detail-info-collection"></p>
@@ -217,7 +223,10 @@
          <div id="card-detail-gallery-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('gallery'); playSound('sfx_modal_close.mp3'); }">
             <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
                  <div class="detail-image-container-frameless">
-                    <img id="detail-image-gallery" class="detail-image card" onclick="closeDetail('gallery'); playSound('sfx_modal_close.mp3');">
+                    {/* The .card class and rarity class will be added here by JS for showCardDetail */}
+                    <div id="detail-image-gallery-wrapper" class="card">
+                        <img id="detail-image-gallery" class="detail-image" onclick="closeDetail('gallery'); playSound('sfx_modal_close.mp3');">
+                    </div>
                 </div>
                 <div class="detail-info-panel-frameless">
                     <p id="detail-info-gallery"></p>
@@ -233,7 +242,10 @@
         <div id="card-detail-offer-opponent-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('offer-opponent'); playSound('sfx_modal_close.mp3'); }">
             <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
                 <div class="detail-image-container-frameless">
-                    <img id="detail-image-offer-opponent" class="detail-image card" onclick="closeDetail('offer-opponent'); playSound('sfx_modal_close.mp3');">
+                     {/* The .card class and rarity class will be added here by JS for showCardDetail */}
+                    <div id="detail-image-offer-opponent-wrapper" class="card">
+                        <img id="detail-image-offer-opponent" class="detail-image" onclick="closeDetail('offer-opponent'); playSound('sfx_modal_close.mp3');">
+                    </div>
                 </div>
                 <div class="detail-info-panel-frameless">
                     <p id="detail-info-offer-opponent"></p>
@@ -245,7 +257,10 @@
         <div id="card-detail-anvil-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('anvil'); playSound('sfx_modal_close.mp3'); }">
             <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
                 <div class="detail-image-container-frameless">
-                    <img id="detail-image-anvil" class="detail-image card" onclick="closeDetail('anvil'); playSound('sfx_modal_close.mp3');">
+                    {/* The .card class and rarity class will be added here by JS for showCardDetail */}
+                    <div id="detail-image-anvil-wrapper" class="card">
+                         <img id="detail-image-anvil" class="detail-image" onclick="closeDetail('anvil'); playSound('sfx_modal_close.mp3');">
+                    </div>
                 </div>
                 <div class="detail-info-panel-frameless">
                     <p id="detail-info-anvil"></p>
@@ -427,7 +442,85 @@
         </div>
 
         <div id="fish-in-sea-screen" class="screen mini-game-screen" style="display:none;">
-             <!-- Content for Fishing Game will be dynamically injected by fishingUi.init() -->
+            <!-- Sky Area -->
+            <div id="fishing-sky-container">
+                <!-- Birds will be dynamically added here by sky-ui.js -->
+            </div>
+            <!-- End Sky Area -->
+
+            <!-- Core Fishing Game Area -->
+            <div id="fishing-cat-boat"><img src="gui/fishing_game/cat_on_boat.png" alt="Cat on Boat"></div>
+            <div id="fishing-line" style="display:none;"></div> <!-- Styled by CSS, controlled by JS -->
+            <div id="fishing-float" style="display:none;"><img src="gui/fishing_game/float.png" alt="Float"></div>
+            <div id="fishing-sea-container">
+                <!-- Fish will be dynamically added here by fishing-game-ui.js -->
+            </div>
+            <!-- End Core Fishing Game Area -->
+
+            <!-- Tree Mechanics Elements -->
+            <div id="fishing-tree-container">
+                <!-- Tree card slots will be dynamically added here by JS -->
+            </div>
+            <div id="tree-moisture-display">Moisture: <span id="tree-moisture-display-value">100</span>%</div>
+            <!-- End Tree Mechanics Elements -->
+
+            <!-- Watering Can Elements -->
+            <img id="watering-can-icon" src="gui/fishing_game/watering_can_icon.png" alt="Upgrades" title="Tree Upgrades">
+
+            <div id="watering-can-upgrade-modal" class="custom-modal-overlay" style="display: none;">
+                <div class="custom-modal-content">
+                    <span class="custom-modal-close" id="close-watering-can-modal">&times;</span>
+                    <h2>Tree Upgrades</h2>
+                    <div class="upgrade-option">
+                        <p>Constant Moisture Supply (Tree never dries out)</p>
+                        <button id="purchase-moisture-btn" class="game-button">Purchase (Cost: 500 Toki)</button>
+                    </div>
+                    <!-- Add more upgrade options here in the future -->
+                    <div class="upgrade-option">
+                        <p>Auto-Picker (Automatically collects mature fruit - Coming Soon!)</p>
+                        <button id="purchase-auto-pick-btn" class="game-button" disabled>Purchase (Cost: ??? Toki)</button>
+                    </div>
+                     <div class="upgrade-option">
+                        <p>Faster Growth I (Fruit matures 10% faster - Coming Soon!)</p>
+                        <button id="purchase-growth-1-btn" class="game-button" disabled>Purchase (Cost: ??? Toki)</button>
+                    </div>
+                </div>
+            </div>
+            <!-- End Watering Can Elements -->
+
+            <!-- Rock Mechanics Elements -->
+            <img id="pickaxe-icon" src="gui/fishing_game/pickaxe_icon.png" alt="Pickaxe" title="Select Pickaxe">
+            <div id="fishing-rocks-container">
+                <!-- Rocks will be dynamically added here by fishing-rocks-ui.js -->
+            </div>
+            <!-- End Rock Mechanics Elements -->
+
+            <!-- Fishing Basket Icon (could be part of a general fishing UI toolbar) -->
+            <img id="fishing-basket-icon" src="gui/fishing_game/basket_icon.png" alt="Basket" title="Open Basket">
+
+            <!-- Fishing Basket Modal -->
+            <div id="fishing-basket-modal" class="custom-modal-overlay" style="display: none;">
+                <div class="custom-modal-content fishing-basket-modal-content">
+                    <div class="custom-modal-header">
+                        <h3>Fishing Basket</h3>
+                        <span class="custom-modal-close" id="close-fishing-basket-modal">&times;</span>
+                    </div>
+                    <div class="fishing-basket-controls">
+                        <label for="fishing-basket-rarity-filter">Filter by Rarity:</label>
+                        <select id="fishing-basket-rarity-filter">
+                            {/* Options will be populated by JS */}
+                        </select>
+                        {/* Add more filters or sort options here if needed */}
+                    </div>
+                    <div id="basket-cards-container" class="fishing-basket-grid-container">
+                        {/* Basket items will be rendered here by JS */}
+                    </div>
+                    <div class="fishing-basket-bulk-actions">
+                        <button id="fishing-basket-sell-all" class="game-button game-button-danger">Sell All Unlocked</button>
+                        <button id="fishing-basket-collect-all" class="game-button">Collect All Unlocked</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div id="card-detail-fishingbasket-modal" class="fishing-game-modal-overlay" style="display: none;">
             <div class="fishing-game-modal-content card-detail-fishingbasket-content">
@@ -437,7 +530,10 @@
                 </div>
                 <div class="fishing-game-modal-scrollable-content fishing-basket-detail-scrollable">
                     <div class="detail-image-container-frameless" id="fishing-basket-detail-image-container">
-                        <img id="detail-image-fishingbasket" class="detail-image card">
+                    {/* The .card class and rarity class will be added here by JS for showCardDetail */}
+                    <div id="detail-image-fishingbasket-wrapper" class="card">
+                        <img id="detail-image-fishingbasket" class="detail-image">
+                    </div>
                     </div>
                     <div class="detail-info-panel-frameless" id="fishing-basket-detail-info-panel">
                         <p id="detail-info-fishingbasket"></p>

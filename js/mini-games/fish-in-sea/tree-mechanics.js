@@ -1,122 +1,241 @@
-// js/mini-games/fish-in-sea/tree-mechanics.js
+// Initial state for the tree
+let treeSlots = [null, null, null, null, null, null, null, null]; // 8 slots, null if empty
+let treeMoisture = 100; // Percentage, affects growth speed
+const MAX_MOISTURE = 100;
+let constantMoistureActive = false;
+const MATURATION_TIME = 10000; // 10 seconds to mature at 100% moisture
+const SPAWN_TIME = 5000; // 5 seconds to spawn a new unmatured card
 
-const treeMechanics = {
-    updateTreeFruitGrowth() {
-        if (!fishingGameState.isGameActive) return;
-        const now = Date.now();
-        const elapsedSeconds = (now - fishingGameState.lastTreeUpdateTime) / 1000;
-
-        if (elapsedSeconds <= 0) return;
-
-        let moistureUpdated = false;
-        const activeGrowingSlots = fishingGameState.fruitSlots.filter(s => s.targetRarityKey && !s.isMature).length;
-        // console.log(`[Tree Mechanics] Update Fruit Growth. Elapsed(s): ${elapsedSeconds.toFixed(2)}, Moisture: ${fishingGameState.treeMoistureLevel.toFixed(1)}, Active Slots: ${activeGrowingSlots}`);
+// Timers for each slot
+let slotTimers = [0, 0, 0, 0, 0, 0, 0, 0];
+let maturationProgress = [0, 0, 0, 0, 0, 0, 0, 0];
 
 
-        if (fishingGameState.treeMoistureLevel > 0 && activeGrowingSlots > 0) {
-            const moistureConsumed = FISHING_CONFIG.TREE_CONFIG.MOISTURE_CONSUMPTION_RATE_PER_SECOND * elapsedSeconds * activeGrowingSlots;
-            const oldMoisture = fishingGameState.treeMoistureLevel;
-            fishingGameState.treeMoistureLevel = Math.max(0, fishingGameState.treeMoistureLevel - moistureConsumed);
-            if (Math.abs(oldMoisture - fishingGameState.treeMoistureLevel) > 0.01) {
-                moistureUpdated = true;
-                // console.log(`[Tree Mechanics] Moisture consumed: ${moistureConsumed.toFixed(3)}, New Moisture: ${fishingGameState.treeMoistureLevel.toFixed(1)}`);
+/**
+ * Initializes the tree state.
+ * Called when the fishing game starts.
+ */
+function initializeTree() {
+    treeSlots = [null, null, null, null, null, null, null, null];
+    treeMoisture = 100; // Default moisture
+    constantMoistureActive = false; // Reset on new game init
+    slotTimers = [0, 0, 0, 0, 0, 0, 0, 0];
+    maturationProgress = [0, 0, 0, 0, 0, 0, 0, 0];
+
+    if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.renderTreeSlots === 'function') {
+        fishingTreeUi.renderTreeSlots(getTreeSlotsData());
+    }
+    if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.updateMoistureDisplay === 'function') {
+        fishingTreeUi.updateMoistureDisplay(treeMoisture);
+    }
+    console.log("Tree initialized");
+}
+
+/**
+ * Activates or deactivates the constant moisture supply.
+ * @param {boolean} isActive True to activate, false to deactivate.
+ */
+function setConstantMoistureSupply(isActive) {
+    constantMoistureActive = isActive;
+    if (isActive) {
+        treeMoisture = MAX_MOISTURE;
+        if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.updateMoistureDisplay === 'function') {
+            fishingTreeUi.updateMoistureDisplay(treeMoisture);
+        }
+        console.log("Constant moisture supply ACTIVE. Tree moisture set to max.");
+    } else {
+        console.log("Constant moisture supply DEACTIVATED.");
+    }
+}
+
+/**
+ * Updates the growth of fruit on the tree.
+ * Called in the main game loop.
+ * @param {number} deltaTime Time since the last update in milliseconds.
+ */
+function updateTreeFruitGrowth(deltaTime) {
+    if (constantMoistureActive) {
+        treeMoisture = MAX_MOISTURE;
+        // No need to call fishingTreeUi.updateMoistureDisplay here as it's called if moisture changes.
+        // Call it if you want to ensure it's updated every frame regardless of change.
+    }
+
+    let slotsChanged = false;
+    for (let i = 0; i < treeSlots.length; i++) {
+        if (treeSlots[i] === null) { // Slot is empty
+            slotTimers[i] += deltaTime;
+            if (slotTimers[i] >= SPAWN_TIME) {
+                treeSlots[i] = { state: "unmatured", type: "generic_card", maturation: 0 };
+                maturationProgress[i] = 0; // Reset progress for new card
+                slotTimers[i] = 0;
+                slotsChanged = true;
+                console.log(`Slot ${i}: New card spawning.`);
             }
-        }
-        
-        fishingGameState.lastTreeUpdateTime = now;
+        } else if (treeSlots[i].state === "unmatured") {
+            const moistureFactor = treeMoisture / MAX_MOISTURE;
+            // maturationProgress stores percentage, treeSlots[i].maturation also stores percentage
+            let currentProgress = treeSlots[i].maturation || 0;
+            currentProgress += (deltaTime / MATURATION_TIME) * 100 * moistureFactor;
+            currentProgress = Math.min(currentProgress, 100); // Cap at 100%
+            treeSlots[i].maturation = currentProgress;
+            maturationProgress[i] = currentProgress; // Keep the separate array in sync for now
 
-
-        let fruitsUpdatedThisTick = false;
-        for (let i = 0; i < FISHING_CONFIG.TREE_CONFIG.FRUIT_SLOTS; i++) {
-            const slot = fishingGameState.fruitSlots[i];
-            if (!slot.isMature && fishingGameState.treeMoistureLevel > 0) { 
-                if (!slot.targetRarityKey) { 
-                    let randomPackProb = Math.random();
-                    let cumulativePackProb = 0;
-                    let determinedRarity = RARITY_PACK_PULL_DISTRIBUTION[0].key; 
-                    for (const tier of (liveRarityPackPullDistribution || RARITY_PACK_PULL_DISTRIBUTION)) {
-                        cumulativePackProb += tier.packProb;
-                        if (randomPackProb < cumulativePackProb) { determinedRarity = tier.key; break; }
-                    }
-                    if (randomPackProb >= cumulativePackProb && cumulativePackProb < (1.0 - 0.00001) && (liveRarityPackPullDistribution || RARITY_PACK_PULL_DISTRIBUTION).length > 0) { 
-                        determinedRarity = (liveRarityPackPullDistribution || RARITY_PACK_PULL_DISTRIBUTION)[0].key; 
-                    }
-
-                    slot.targetRarityKey = determinedRarity;
-                    slot.ripeningTime = FISHING_CONFIG.TREE_CONFIG.GROW_TIME_FACTORS_BY_RARITY[slot.targetRarityKey] || FISHING_CONFIG.TREE_CONFIG.GROW_TIME_FACTORS_BY_RARITY.base;
-                    slot.growthProgress = 0; 
-                    fruitsUpdatedThisTick = true;
-                    // console.log(`[Tree Mechanics] Slot ${i} starts growing: ${slot.targetRarityKey}, Ripening time (ms): ${slot.ripeningTime}`);
-                }
-
-                if (slot.targetRarityKey && !slot.isMature) { 
-                    const moistureFactor = Math.max(0.1, fishingGameState.treeMoistureLevel / FISHING_CONFIG.TREE_CONFIG.MAX_MOISTURE_LEVEL);
-                    const growthThisTick = (elapsedSeconds / (slot.ripeningTime / 1000)) * 100 * moistureFactor;
-                    slot.growthProgress += growthThisTick;
-                    fruitsUpdatedThisTick = true;
-                    // console.log(`[Tree Mechanics] Slot ${i} (${slot.targetRarityKey}) progress: ${slot.growthProgress.toFixed(1)}%, Moisture factor: ${moistureFactor.toFixed(2)}, Growth this tick: ${growthThisTick.toFixed(3)}`);
-
-
-                    if (slot.growthProgress >= 100) {
-                        slot.growthProgress = 100;
-                        slot.isMature = true;
-                        const activeSets = getActiveSetDefinitions();
-                        let cardGenerated = false;
-                        let attempts = 0;
-                        while(!cardGenerated && attempts < 50 && activeSets.length > 0) {
-                            attempts++;
-                            const randomSetDef = activeSets[Math.floor(Math.random() * activeSets.length)];
-                            if (randomSetDef.count > 0) {
-                                const potentialCardIds = Array.from({ length: randomSetDef.count }, (_, k) => k + 1);
-                                const eligibleCards = potentialCardIds.filter(id => getCardIntrinsicRarity(randomSetDef.abbr, id) === slot.targetRarityKey);
-                                if (eligibleCards.length > 0) {
-                                    const cardId = eligibleCards[Math.floor(Math.random() * eligibleCards.length)];
-                                    const fixedProps = getFixedGradeAndPrice(randomSetDef.abbr, cardId);
-                                    slot.item = { set: randomSetDef.abbr, cardId, rarityKey: fixedProps.rarityKey, grade: fixedProps.grade, price: fixedProps.price };
-                                    cardGenerated = true;
-                                }
-                            }
-                        }
-                        if (!cardGenerated) { 
-                            const fallbackSet = activeSets.find(s => s.count > 0) || ALL_SET_DEFINITIONS.find(s => s.count > 0) || ALL_SET_DEFINITIONS[0];
-                            const cardId = (fallbackSet.count > 0) ? Math.floor(Math.random() * fallbackSet.count) + 1 : 1;
-                            const fixedProps = getFixedGradeAndPrice(fallbackSet.abbr, cardId); 
-                            slot.item = {set: fallbackSet.abbr, cardId, rarityKey: slot.targetRarityKey, grade: fixedProps.grade, price: fixedProps.price};
-                        }
-                        // console.log(`[Tree Mechanics] Slot ${i} MATURED! Item: ${JSON.stringify(slot.item)}`);
-                        if (typeof playSound === 'function') playSound('sfx_fishing_fruit_ready.mp3');
-                    }
-                }
+            if (currentProgress >= 100) {
+                treeSlots[i].state = "revealed";
+                slotsChanged = true;
+                console.log(`Slot ${i}: Card matured and revealed!`);
             }
-        }
-        if ((fruitsUpdatedThisTick || moistureUpdated) && typeof fishingTreeUi !== 'undefined' && fishingTreeUi.updateVisuals) {
-            fishingTreeUi.updateVisuals();
-        }
-    },
-
-    collectFruit(slotIndex) {
-        const slot = fishingGameState.fruitSlots[slotIndex];
-        if (slot && slot.isMature && slot.item) {
-            if (typeof playSound === 'function') playSound('sfx_fishing_collect.mp3');
-            const fruitCardItem = {
-                type: 'fruit_card',
-                details: { ...slot.item, name: `${slot.item.rarityKey} Fruit Card` }, 
-                id: Date.now() + `_fruit_${slotIndex}` 
-            };
-            fishingGameState.basket.push(fruitCardItem);
-            if (typeof fishingUi !== 'undefined' && fishingUi.showCatchPreview) fishingUi.showCatchPreview(fruitCardItem); 
-            // console.log(`[Tree Mechanics] Collected fruit from slot ${slotIndex}. Item: ${JSON.stringify(fruitCardItem)}`);
-
-
-            slot.item = null;
-            slot.targetRarityKey = null;
-            slot.growthProgress = 0;
-            slot.isMature = false;
-            slot.ripeningTime = 0;
-            if (typeof fishingTreeUi !== 'undefined' && fishingTreeUi.updateVisuals) fishingTreeUi.updateVisuals();
-            if (typeof saveGame === 'function') saveGame();
-        } else {
-            // console.warn(`[Tree Mechanics] Attempted to collect from slot ${slotIndex}, but not ready or no item. Slot state:`, JSON.stringify(slot));
         }
     }
-};
+
+    if (slotsChanged && typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.renderTreeSlots === 'function') {
+        fishingTreeUi.renderTreeSlots(getTreeSlotsData());
+    }
+
+    // Moisture display is updated by updateTreeMoisture when it's called,
+    // or if constant moisture is active, it's set once.
+    // If moisture can decrease naturally, this is where you'd handle that and then update display.
+}
+
+/**
+ * Helper function to get a combined view of tree slots with their progress.
+ * This is what fishingTreeUi.renderTreeSlots will use.
+ */
+function getTreeSlotsData() {
+    return treeSlots.map((slot, index) => {
+        if (slot) {
+            return {
+                ...slot,
+                maturation: maturationProgress[index] // Ensure this is the most up-to-date
+            };
+        }
+        return null;
+    });
+}
+
+/**
+ * Allows the player to collect a revealed card from the tree.
+ * @param {number} slotIndex The index of the tree slot.
+ */
+function collectCardFromTree(slotIndex) {
+    if (slotIndex < 0 || slotIndex >= treeSlots.length) {
+        console.error(`Invalid slot index: ${slotIndex}`);
+        return null;
+    }
+
+    const card = treeSlots[slotIndex];
+    if (card && card.state === "revealed") {
+        // Define cardData for the basket
+        // The 'type' field in 'card' can determine the specific fruit.
+        // For now, a generic fruit card.
+        const cardData = {
+            id: card.type || `fruit_slot_${slotIndex}`, // Use card.type or a fallback
+            set: 'fish_in_sea_fruit', // A made-up set for these items
+            name: `${card.type ? (card.type.charAt(0).toUpperCase() + card.type.slice(1)) : 'Mystic'} Fruit`,
+            rarity: 'common', // Placeholder, could depend on fruit type
+            price: 15,        // Placeholder price
+            imagePath: `gui/fishing_game/${card.type || 'fruit_placeholder'}.png`, // Placeholder image path
+            source: 'tree'
+        };
+
+        console.log(`Collecting card from slot ${slotIndex}:`, cardData);
+
+        if (typeof addItemToBasket === 'function') {
+            addItemToBasket(cardData, 1);
+        } else {
+            console.warn("addItemToBasket function not found. Card not added to basket.");
+        }
+
+        // Clear the slot
+        treeSlots[slotIndex] = null;
+        maturationProgress[slotIndex] = 0; // Reset progress
+        slotTimers[slotIndex] = 0;         // Reset spawn timer
+
+        if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.renderTreeSlots === 'function') {
+            fishingTreeUi.renderTreeSlots(getTreeSlotsData());
+        }
+        console.log(`Slot ${slotIndex} cleared after collecting ${cardData.name}.`);
+        // Return the collected card data (original card object from slot, not necessarily cardData for basket)
+        return { ...card }; // Return a copy of what was in the slot
+    } else {
+        console.log(`No revealed card to collect in slot ${slotIndex}. Current state:`, card ? card.state : 'empty');
+        return null;
+    }
+}
+
+/**
+ * Updates the tree's moisture level.
+ * @param {number} newMoisture The new moisture level (0-100).
+ */
+function updateTreeMoisture(newMoisture) {
+    const oldMoisture = treeMoisture;
+    if (!constantMoistureActive) { // Only allow manual changes if constant supply isn't active
+        treeMoisture = Math.max(0, Math.min(newMoisture, MAX_MOISTURE));
+    } else {
+        treeMoisture = MAX_MOISTURE; // Constant supply keeps it at max
+    }
+
+    if (treeMoisture !== oldMoisture || constantMoistureActive) { // Update display if value changed or forced by constant supply
+        if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.updateMoistureDisplay === 'function') {
+            fishingTreeUi.updateMoistureDisplay(treeMoisture);
+        }
+    }
+    console.log(`Tree moisture updated to: ${treeMoisture}% (Constant moisture: ${constantMoistureActive})`);
+}
+
+/**
+ * Returns the current state of the tree for saving.
+ */
+function getTreeDataForSave() {
+    return {
+        treeSlots: treeSlots.map(slot => slot ? { ...slot } : null),
+        treeMoisture,
+        slotTimers: [...slotTimers],
+        maturationProgress: [...maturationProgress],
+        constantMoistureActive, // Save this new state
+    };
+}
+
+/**
+ * Loads tree state from saved data.
+ * @param {object} data The saved tree data.
+ */
+function loadTreeData(data) {
+    if (!data) {
+        console.error("No data provided to loadTreeData.");
+        initializeTree(); // Initialize to default if no data
+        return;
+    }
+
+    treeSlots = data.treeSlots ? data.treeSlots.map(slot => slot ? { ...slot } : null) : Array(8).fill(null);
+    treeMoisture = data.treeMoisture !== undefined ? data.treeMoisture : 100;
+    slotTimers = data.slotTimers || Array(8).fill(0);
+    maturationProgress = data.maturationProgress || Array(8).fill(0);
+    constantMoistureActive = data.constantMoistureActive || false;
+
+    if (constantMoistureActive) {
+        treeMoisture = MAX_MOISTURE; // Ensure moisture is max if upgrade was active
+    }
+
+    // Update visuals after loading data
+    if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.renderTreeSlots === 'function') {
+        fishingTreeUi.renderTreeSlots(getTreeSlotsData());
+    }
+    if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.updateMoistureDisplay === 'function') {
+        fishingTreeUi.updateMoistureDisplay(treeMoisture);
+    }
+    console.log("Tree data loaded:", getTreeDataForSave());
+}
+
+// Export functions if using modules, otherwise they are global.
+// For this project structure, they are likely global.
+// window.initializeTree = initializeTree;
+// window.setConstantMoistureSupply = setConstantMoistureSupply;
+// window.updateTreeFruitGrowth = updateTreeFruitGrowth;
+// window.getTreeSlotsData = getTreeSlotsData;
+// window.collectCardFromTree = collectCardFromTree;
+// window.updateTreeMoisture = updateTreeMoisture;
+// window.getTreeDataForSave = getTreeDataForSave;
+// window.loadTreeData = loadTreeData;
+
+console.log("tree-mechanics.js loaded with UI integration points.");

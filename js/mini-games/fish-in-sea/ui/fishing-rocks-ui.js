@@ -1,126 +1,135 @@
 // js/mini-games/fish-in-sea/ui/fishing-rocks-ui.js
 
 const fishingRocksUi = {
-    init(parentElement) {
-        fishingGameState.ui.rocksContainer = parentElement.querySelector('#fishing-rocks-container');
-        fishingGameState.ui.pickaxeIcon = parentElement.querySelector('#fishing-ui-panel-right #fishing-tool-pickaxe');
+    pickaxeIconElement: null,
+    rocksContainerElement: null,
 
-        if (fishingGameState.ui.pickaxeIcon) {
-            fishingGameState.ui.pickaxeIcon.addEventListener('click', () => this.handlePickaxeToolClick());
-        }
-        // console.log('[Rock UI] Initialized. Rocks Container Element:', fishingGameState.ui.rocksContainer);
-    },
+    /**
+     * Initializes the Rock UI components and event listeners.
+     * Should be called when the fishing game screen is set up.
+     */
+    initializeRockUI: function() {
+        this.pickaxeIconElement = document.getElementById('pickaxe-icon');
+        this.rocksContainerElement = document.getElementById('fishing-rocks-container');
 
-    _getSVGRockPath(rockDef, crackLevel = 0) { 
-        let pathData = "M10,30 Q15,5 25,10 T40,30 Q30,35 20,35 T10,30 Z"; 
-        if (crackLevel === 1 && rockDef.clicksToBreak > 1) pathData += " M15,15 L25,25"; 
-        else if (crackLevel === 2 && rockDef.clicksToBreak > 2) pathData += " M15,15 L25,25 M15,25 L25,15"; 
-        else if (crackLevel >= 3 && rockDef.clicksToBreak > 3) pathData += " M15,15 L25,25 M15,25 L25,15 M20,10 L20,30 M12,20 L38,20";
-        return pathData;
-    },
-
-    addRockToDOM(rockInstance) { 
-        const rocksContainer = fishingGameState.ui.rocksContainer;
-        if (!rocksContainer) return;
-        // console.log(`[Rock UI] Adding rock to DOM: ${rockInstance.definition.name}, ID: ${rockInstance.instanceId}`);
-
-
-        const rockWrapper = document.createElement('div');
-        rockWrapper.className = 'fishing-rock-wrapper';
-        rockWrapper.id = rockInstance.instanceId;
-        rockWrapper.style.left = `${rockInstance.position.x}%`;
-        rockWrapper.style.bottom = `${rockInstance.position.y}%`;
-        rockWrapper.onclick = () => this.handleRockClick(rockInstance.instanceId);
-
-        const rockSvg = fishingUi._createSVGElement('svg'); 
-        rockSvg.classList.add('fishing-rock-svg');
-        rockSvg.setAttribute('viewBox', '0 0 50 40'); 
-        rockSvg.setAttribute('width', '40'); 
-        rockSvg.setAttribute('height', '32'); 
-        
-        const rockName = document.createElement('div');
-        rockName.className = 'rock-name-display';
-        rockName.textContent = rockInstance.definition.name;
-
-        rockWrapper.appendChild(rockSvg);
-        rockWrapper.appendChild(rockName);
-        rocksContainer.appendChild(rockWrapper);
-        this.updateVisual(rockInstance.instanceId); 
-    },
-
-    updateVisual(rockInstanceId) { 
-        const rockWrapper = document.getElementById(rockInstanceId);
-        if (!rockWrapper) return;
-        const rockSvg = rockWrapper.querySelector('.fishing-rock-svg');
-        const rockInstance = fishingGameState.rocks.find(r => r.instanceId === rockInstanceId);
-
-        if (!rockSvg || !rockInstance) return;
-        rockSvg.innerHTML = ''; 
-        // console.log(`[Rock UI] Updating rock visual: ${rockInstanceId}, Ready: ${rockInstance.isReadyToMine}, Clicks: ${rockInstance.currentClicks}`);
-
-
-        const basePath = fishingUi._createSVGElement('path');
-        const crackLevel = rockInstance.isReadyToMine ? rockInstance.currentClicks : 0;
-        basePath.setAttribute('d', this._getSVGRockPath(rockInstance.definition, crackLevel));
-        
-        if (!rockInstance.isReadyToMine) {
-            rockSvg.classList.add('cooldown');
-            basePath.setAttribute('fill', FISHING_CONFIG.SVG_COLORS.rockCooldown);
-            basePath.setAttribute('stroke', FISHING_CONFIG.SVG_COLORS.rockCooldownStroke);
+        if (!this.pickaxeIconElement) {
+            console.error("Pickaxe icon element (#pickaxe-icon) not found in HTML.");
         } else {
-            rockSvg.classList.remove('cooldown');
-            basePath.setAttribute('fill', rockInstance.definition.color || FISHING_CONFIG.SVG_COLORS.rockNormal);
-            basePath.setAttribute('stroke', FISHING_CONFIG.SVG_COLORS.rockStroke);
+            this.pickaxeIconElement.addEventListener('click', () => {
+                if (typeof pickaxeSelected !== 'undefined' && pickaxeSelected) {
+                    if (typeof deselectPickaxeTool === 'function') deselectPickaxeTool();
+                } else {
+                    if (typeof selectPickaxeTool === 'function') selectPickaxeTool();
+                }
+            });
         }
-        basePath.setAttribute('stroke-width', '1');
-        rockSvg.appendChild(basePath);
-    },
 
-    playBreakAnimation(rockInstanceId, callback) { 
-        const rockWrapper = document.getElementById(rockInstanceId);
-        if (!rockWrapper) { if (callback) callback(); return; }
-        const rockSvg = rockWrapper.querySelector('.fishing-rock-svg');
-        if (!rockSvg) { if (callback) callback(); return; }
-        // console.log(`[Rock UI] Playing break animation for rock: ${rockInstanceId}`);
-
-
-        rockSvg.classList.add('mining-effect');
+        if (!this.rocksContainerElement) {
+            console.error("Fishing rocks container (#fishing-rocks-container) not found in HTML.");
+            return;
+        }
         
-        setTimeout(() => {
-            if (rockWrapper && rockWrapper.parentNode) {
-                 rockWrapper.parentNode.removeChild(rockWrapper);
-            }
-            if (callback) callback();
-        }, 250); 
+        // Initial render. Assumes rock-mechanics.js has initialized its data.
+        if (typeof getRockSlotsData === 'function') {
+            this.renderRocks(getRockSlotsData());
+        } else {
+             console.warn("getRockSlotsData function not found during Rock UI init. Rocks may not render initially.");
+             // Attempt to render empty slots if function is missing, using MAX_ROCKS from rock-mechanics if available
+             const numSlots = typeof MAX_ROCKS !== 'undefined' ? MAX_ROCKS : 3;
+             this.renderRocks(new Array(numSlots).fill(null));
+        }
+        console.log("Fishing Rocks UI initialized.");
     },
 
-    updateAllVisuals() { 
-        if (fishingGameState.ui.rocksContainer) fishingGameState.ui.rocksContainer.innerHTML = '';
-        fishingGameState.rocks.forEach(rock => {
-            this.addRockToDOM(rock);
+    /**
+     * Renders the rocks in their container based on rockSlotsData.
+     * @param {Array<object|null>} rockSlotsData - Array of rock data.
+     */
+    renderRocks: function(rockSlotsData) {
+        if (!this.rocksContainerElement) {
+            return; // Container not available
+        }
+        this.rocksContainerElement.innerHTML = '';
+
+        const numSlots = typeof MAX_ROCKS !== 'undefined' ? MAX_ROCKS : 3;
+        if (!rockSlotsData || !Array.isArray(rockSlotsData) || rockSlotsData.length !== numSlots) {
+            console.warn("Invalid or incomplete rockSlotsData for renderRocks. Rendering default empty slots.", rockSlotsData);
+            rockSlotsData = new Array(numSlots).fill(null);
+        }
+
+        rockSlotsData.forEach((rockData, index) => {
+            const rockDiv = document.createElement('div');
+            rockDiv.classList.add('rock-instance');
+            rockDiv.dataset.slotIndex = index;
+
+            if (rockData && !rockData.isRespawning) {
+                rockDiv.classList.add(`rock-rarity-${rockData.rarity || 'common'}`);
+
+                const definition = rockData.definition || rockDefinitions[rockData.rarity];
+                if (!definition) {
+                    console.error(`Rock definition missing for rarity: ${rockData.rarity}`);
+                    rockDiv.classList.add('rock-error');
+                    rockDiv.textContent = 'Error';
+                    this.rocksContainerElement.appendChild(rockDiv);
+                    return; // continue to next rock
+                }
+
+                let rockImage = `gui/fishing_game/${definition.image || 'rock_common.png'}`;
+                if (rockData.cracks > 0 && definition.crackImages && definition.crackImages.length > 0) {
+                    const crackImageIndex = Math.min(rockData.cracks, definition.crackImages.length) - 1;
+                    if (crackImageIndex >= 0) {
+                         rockImage = `gui/fishing_game/${definition.crackImages[crackImageIndex]}`;
+                    }
+                }
+                rockDiv.style.backgroundImage = `url('${rockImage}')`;
+
+                const hpDisplay = document.createElement('div');
+                hpDisplay.classList.add('rock-hp-display');
+                hpDisplay.textContent = `${rockData.hp}/${rockData.maxHp}`;
+                rockDiv.appendChild(hpDisplay);
+
+                rockDiv.onclick = () => {
+                    if (typeof hitRock === 'function') {
+                        hitRock(index);
+                    } else {
+                        console.error('hitRock function not found.');
+                    }
+                };
+            } else if (rockData && rockData.isRespawning) {
+                rockDiv.classList.add('rock-respawning');
+                const respawnTime = (rockData.definition && rockData.definition.respawnTime) || BASE_ROCK_RESPAWN_TIME;
+                const timerPercentage = Math.max(0, 100 - (rockData.respawnTimer / respawnTime) * 100);
+                rockDiv.innerHTML = `<div class="rock-respawn-timer-text">Respawning</div>
+                                     <div class="rock-respawn-bar-container">
+                                         <div class="rock-respawn-bar" style="width:${timerPercentage}%"></div>
+                                     </div>`;
+            } else {
+                rockDiv.classList.add('rock-empty-slot');
+            }
+            this.rocksContainerElement.appendChild(rockDiv);
         });
     },
 
-    handleRockClick(rockInstanceId) {
-        if (fishingGameState.pickaxeSelected) {
-            // console.log(`[Rock UI] Pickaxe selected, attempting to mine rock: ${rockInstanceId}`);
-            rockMechanics.mineRock(rockInstanceId);
+    /**
+     * Updates the main game cursor and pickaxe icon style.
+     * @param {boolean} isSelected - True if pickaxe is selected.
+     */
+    updatePickaxeCursor: function(isSelected) {
+        const gameScreen = document.getElementById('fish-in-sea-screen'); // More specific target
+
+        if (isSelected) {
+            if (gameScreen) gameScreen.classList.add('pickaxe-active');
+            else document.body.classList.add('pickaxe-active'); // Fallback to body
+
+            if (this.pickaxeIconElement) this.pickaxeIconElement.classList.add('selected');
         } else {
-            // console.log(`[Rock UI] Rock clicked but pickaxe not selected: ${rockInstanceId}`);
-        }
-    },
+            if (gameScreen) gameScreen.classList.remove('pickaxe-active');
+            else document.body.classList.remove('pickaxe-active');
 
-    handlePickaxeToolClick() {
-        fishingGameState.pickaxeSelected = !fishingGameState.pickaxeSelected;
-        this.updatePickaxeIconState();
-        // console.log(`[Rock UI] Pickaxe tool toggled. Selected: ${fishingGameState.pickaxeSelected}`);
-        if (typeof playSound === 'function') playSound('sfx_button_click_subtle.mp3');
-    },
-
-    updatePickaxeIconState() {
-        if (fishingGameState.ui.pickaxeIcon) {
-            fishingGameState.ui.pickaxeIcon.classList.toggle('selected-tool', fishingGameState.pickaxeSelected);
-            // console.log(`[Rock UI] Pickaxe icon class 'selected-tool' ${fishingGameState.pickaxeSelected ? 'added' : 'removed'}`);
+            if (this.pickaxeIconElement) this.pickaxeIconElement.classList.remove('selected');
         }
     }
 };
+
+window.fishingRocksUi = fishingRocksUi;
+console.log("fishing-rocks-ui.js loaded and attached to window.");

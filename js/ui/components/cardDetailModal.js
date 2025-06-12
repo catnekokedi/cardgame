@@ -78,8 +78,24 @@ function showCardDetail(setIdentifier, cardId, rarityKey, source, instanceId = n
 
     imgElement.src = getCardImagePath(setIdentifier, cardId);
     imgElement.alt = `Card ${setIdentifier}-C${cardId} (${displayNameRarity}, Grade ${displayGrade})`;
-    imgElement.className = `detail-image card ${displayRarityKey}`;
+    // Apply .card and rarity class to the wrapper div, not the img itself
+    const imgWrapper = document.getElementById(`detail-image-${source}-wrapper`);
+    if (imgWrapper) {
+        imgWrapper.className = `card ${displayRarityKey}`; // This div will now hold the effects
+    } else {
+        // Fallback or error if wrapper not found, though HTML was changed to add it
+        // If wrapper isn't there, effects won't work. For safety, apply to img as before.
+        console.warn(`Image wrapper 'detail-image-${source}-wrapper' not found. Applying classes to img.`);
+        imgElement.className = `detail-image card ${displayRarityKey}`;
+    }
     imgElement.onerror = function() { this.src=`https://placehold.co/300x420/CF6679/FFFFFF?text=${setIdentifier}-C${cardId}`; this.alt=`Error loading image`; this.onerror=null; };
+    // Ensure the img itself doesn't have .card if wrapper exists, to avoid confusion or double styling if CSS targets img.card
+    if (imgWrapper && imgElement.classList.contains('card')) {
+        imgElement.classList.remove('card', displayRarityKey); // Remove general card style classes, keep 'detail-image'
+    } else if (imgWrapper && !imgElement.classList.contains('detail-image')) {
+        imgElement.classList.add('detail-image'); // Ensure it has detail-image if it was somehow removed
+    }
+
 
     const cardInCollection = collection[setIdentifier]?.[cardId];
     const ownedCount = cardInCollection ? cardInCollection.count : 0;
@@ -271,7 +287,48 @@ function showCardDetail(setIdentifier, cardId, rarityKey, source, instanceId = n
         } else {
             console.error("Exhibit button (ID: exhibit-card-collection-button) not found within collection modal.");
         }
+    } else if (source === 'fishingBasket' && packCardDetails && packCardDetails.actions) {
+        const infoPanel = document.getElementById(`detail-info-panel-${source}`); // e.g., detail-info-panel-fishingBasket
+        if (infoPanel) {
+            // Clear previous custom buttons if any
+            const existingButtons = infoPanel.querySelectorAll('.fishing-basket-action-button');
+            existingButtons.forEach(btn => btn.remove());
+
+            // Add quantity and lock status to info if provided
+            if (packCardDetails.currentQuantity !== undefined) {
+                const quantityP = document.createElement('p');
+                quantityP.innerHTML = `<strong>In Basket:</strong> ${packCardDetails.currentQuantity}`;
+                infoPanel.appendChild(quantityP);
+            }
+            if (packCardDetails.isLocked !== undefined) {
+                const lockedP = document.createElement('p');
+                lockedP.innerHTML = `<strong>Status:</strong> ${packCardDetails.isLocked ? 'Locked' : 'Unlocked'}`;
+                infoPanel.appendChild(lockedP);
+            }
+
+
+            const actionsContainer = document.createElement('div');
+            actionsContainer.className = 'fishing-basket-actions-container';
+
+            packCardDetails.actions.forEach(action => {
+                const button = document.createElement('button');
+                button.textContent = action.label;
+                button.className = 'game-button fishing-basket-action-button'; // Add a common class for styling
+                if (action.disabled) {
+                    button.disabled = true;
+                }
+                button.onclick = () => {
+                    action.callback();
+                    // No automatic closeDetail(source) here, callback should handle it if needed
+                };
+                actionsContainer.appendChild(button);
+            });
+            infoPanel.appendChild(actionsContainer);
+        } else {
+            console.error(`Info panel for fishingBasket (detail-info-panel-${source}) not found.`);
+        }
     }
+
 
     modal.style.display = 'flex';
 }

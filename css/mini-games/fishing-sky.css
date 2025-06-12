@@ -1,0 +1,37 @@
+/* css/mini-games/fishing-sky.css */
+
+#fishing-sky-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 35%; /* Or adjust based on overall layout; e.g., same height as sky part of #fishing-water-area */
+    /* background: linear-gradient(to bottom, #87CEEB, #ADD8E6); /* Sky blue gradient */
+    /* Or use image from existing #fishing-water-area if it has a distinct sky part */
+    background: linear-gradient(to bottom,
+        #c1e7f7 0%,    /* Light Sky Blue for sky */
+        #e0f2f7 100%   /* Fading Sky Blue */
+    );
+    overflow: hidden; /* Birds should not make scrollbars appear */
+    z-index: 1; /* Below other UI elements like modals, but above main background if any */
+}
+
+.bird-in-sky {
+    position: absolute; /* Positioned by JS */
+    width: 40px;  /* Adjust based on bird sprite */
+    height: 30px; /* Adjust based on bird sprite */
+    background-image: url('../../gui/fishing_game/bird_type1.png'); /* Default placeholder */
+    background-size: contain;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    z-index: 2; /* Above the sky background */
+    transition: opacity 0.3s ease; /* For fade out on click, if desired */
+}
+
+/* Example for different bird types if needed */
+/* .bird-in-sky.bird-type2 { background-image: url('../../gui/fishing_game/bird_type2.png'); } */
+
+/* Add a class for when bird is clicked, if visual feedback beyond removal is needed */
+.bird-in-sky.clicked {
+    opacity: 0; /* Example: fade out */
+}

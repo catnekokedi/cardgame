@@ -1,126 +1,116 @@
 // js/mini-games/fish-in-sea/ui/fishing-tree-ui.js
 
 const fishingTreeUi = {
-    init(parentElement) {
-        fishingGameState.ui.treeSvg = parentElement.querySelector('#fishing-tree-svg');
-        fishingGameState.ui.treeMoistureBarContainer = parentElement.querySelector('#fishing-tree-moisture-bar-container');
-        fishingGameState.ui.treeMoistureBar = parentElement.querySelector('#fishing-tree-moisture-bar');
-        fishingGameState.ui.fruitSlotsContainer = parentElement.querySelector('#fishing-fruit-slots-container');
-        fishingGameState.ui.treeDropArea = parentElement.querySelector('#fishing-tree-container'); 
-
-        if (fishingGameState.ui.treeDropArea) {
-             fishingGameState.ui.treeDropArea.addEventListener('dragover', (e) => fishingUi.handleDragOver(e, 'tree_area'));
-             fishingGameState.ui.treeDropArea.addEventListener('dragleave', (e) => fishingUi.handleDragLeave(e, 'tree_area'));
-             fishingGameState.ui.treeDropArea.addEventListener('drop', (e) => fishingUi.handleDrop(e, 'tree_area'));
+    /**
+     * Renders the tree slots in the UI.
+     * @param {Array<object|null>} slotsData - Array of slot data from treeMechanics.getTreeSlotsData().
+     * Each object can be null (empty) or { state: "unmatured|revealed", type: "...", maturation: 0-100 }.
+     */
+    renderTreeSlots: function(slotsData) {
+        const treeContainer = document.getElementById('fishing-tree-container');
+        if (!treeContainer) {
+            // console.error("fishing-tree-container not found in HTML. Deferring render.");
+            return; // Exit if container not ready
         }
-    },
 
-    _getSVGTreePath() { 
-        // ViewBox is 0 0 200 180
-        // Trunk: Narrower base, less prominent roots
-        const trunkPath = "M100,180 C85,180 75,175 65,160 C50,140 55,100 70,70 L75,50 C80,30 90,25 100,25 C110,25 120,30 125,50 L130,70 C145,100 150,140 135,160 C125,175 115,180 100,180 Z";
-        // Leaves: Kept the same wider canopy from previous adjustment
-        const leavesPath = "M20,70 C-20,50 10,0 100,0 C190,0 220,50 180,70 C210,100 170,130 100,120 C30,130 -10,100 20,70 Z";
-        return { 
-            trunk: trunkPath,
-            leaves: leavesPath
-        };
-    },
+        treeContainer.innerHTML = ''; // Clear existing slots
 
-    _getSVGFruitPath(growthStage) { 
-        switch(growthStage) {
-            case 'sprout': return "M10,20 Q12,15 15,20 Q12,25 10,20 M15,20 Q18,15 20,20 Q18,25 15,20"; 
-            case 'bud': return "M12,18 A6,6 0 1,1 12,6 A6,6 0 1,1 12,18 Z"; 
-            default: return "M5,5 H19 V29 H5 Z"; 
+        if (!slotsData || !Array.isArray(slotsData)) {
+            console.error("Invalid or missing slotsData for renderTreeSlots. Rendering empty slots.", slotsData);
+            slotsData = Array(8).fill(null); // Default to 8 empty slots
         }
-    },
-
-    updateVisuals() { 
-        const treeSvgContainer = fishingGameState.ui.treeSvg; 
-        if (!treeSvgContainer || !fishingGameState.ui.fruitSlotsContainer) {
-            return;
-        }
-        treeSvgContainer.innerHTML = ''; 
-        treeSvgContainer.setAttribute("viewBox", "0 0 200 180"); // Ensure viewBox is correct for new paths
-
-
-        const treePaths = this._getSVGTreePath();
-        const trunk = fishingUi._createSVGElement('path'); 
-        trunk.setAttribute('d', treePaths.trunk);
-        trunk.setAttribute('fill', FISHING_CONFIG.SVG_COLORS.treeTrunk);
-        trunk.setAttribute('stroke', FISHING_CONFIG.SVG_COLORS.treeTrunkStroke);
-        trunk.setAttribute('stroke-width', '1.5'); 
-        treeSvgContainer.appendChild(trunk);
-
-        const leaves = fishingUi._createSVGElement('path');
-        leaves.setAttribute('d', treePaths.leaves);
-        leaves.setAttribute('fill', FISHING_CONFIG.SVG_COLORS.treeLeaves);
-        leaves.setAttribute('stroke', FISHING_CONFIG.SVG_COLORS.treeLeavesStroke);
-        leaves.setAttribute('stroke-width', '1'); 
-        treeSvgContainer.appendChild(leaves);
         
-        const moisturePercentage = Math.max(0, Math.min(100, (fishingGameState.treeMoistureLevel / FISHING_CONFIG.TREE_CONFIG.MAX_MOISTURE_LEVEL) * 100));
-        if (fishingGameState.ui.treeMoistureBar) {
-            fishingGameState.ui.treeMoistureBar.style.width = `${moisturePercentage}%`;
-            fishingGameState.ui.treeMoistureBar.textContent = `${moisturePercentage.toFixed(0)}%`; 
+        // Ensure slotsData always has 8 items for rendering
+        if (slotsData.length !== 8) {
+            console.warn(`slotsData length is ${slotsData.length}, expected 8. Padding/truncating.`);
+            const tempSlotsData = Array(8).fill(null);
+            for(let i=0; i < 8; i++) {
+                tempSlotsData[i] = slotsData[i] || null; // Use provided data or fill with null
+            }
+            slotsData = tempSlotsData;
         }
 
-        if (fishingGameState.ui.fruitSlotsContainer) {
-            fishingGameState.ui.fruitSlotsContainer.innerHTML = '';
-            fishingGameState.fruitSlots.forEach((slot, index) => {
-                const slotEl = document.createElement('div');
-                slotEl.className = 'fishing-fruit-slot';
-                slotEl.dataset.slotIndex = index; 
+        slotsData.forEach((slot, index) => {
+            const slotDiv = document.createElement('div');
+            slotDiv.classList.add('tree-card-slot');
+            slotDiv.dataset.slotIndex = index;
+            // CSS variable for progress bar
+            slotDiv.style.setProperty('--maturation-progress', `0%`);
 
-                const innerContainer = document.createElement('div');
-                innerContainer.className = 'fruit-card-container-inner';
 
-                const backVisual = fishingUi._createSVGElement('svg'); 
-                backVisual.classList.add('fruit-card-back');
-                backVisual.setAttribute('viewBox', '0 0 24 34'); 
-
-                const frontImg = fishingUi._createSVGElement('image'); 
-                frontImg.classList.add('fruit-card-front');
+            if (slot) {
+                slotDiv.classList.remove('empty', 'closed', 'unmatured', 'revealed'); // Clear old states
+                slotDiv.classList.add(slot.state); // "unmatured" or "revealed"
                 
-                if (slot.isMature && slot.item) {
-                    slotEl.classList.add('mature');
-                    frontImg.setAttributeNS('http://www.w3.org/1999/xlink', 'href', getCardImagePath(slot.item.set, slot.item.cardId));
-                    frontImg.classList.add(slot.item.rarityKey); 
-                    frontImg.onerror = () => frontImg.setAttributeNS('http://www.w3.org/1999/xlink', 'href', 'gui/fishing_game/tree-back.png'); 
-                    
-                    const matureBackPath = fishingUi._createSVGElement('rect');
-                    matureBackPath.setAttribute('width', '100%'); matureBackPath.setAttribute('height', '100%');
-                    matureBackPath.setAttribute('fill', FISHING_CONFIG.SVG_COLORS.fruitMaturing);
-                    backVisual.appendChild(matureBackPath);
-
-                    slotEl.onclick = () => treeMechanics.collectFruit(index);
-                } else if (slot.growthProgress > 0 && slot.targetRarityKey) {
-                    slotEl.classList.add('growing-visible');
-                    let fruitPathData = "";
-                    let fruitFillColor = FISHING_CONFIG.SVG_COLORS.fruitSprout;
-
-                    if (slot.growthProgress < 33) fruitPathData = this._getSVGFruitPath('sprout');
-                    else if (slot.growthProgress < 66) { fruitPathData = this._getSVGFruitPath('bud'); fruitFillColor = FISHING_CONFIG.SVG_COLORS.fruitBud; }
-                    else { fruitPathData = this._getSVGFruitPath('maturing'); fruitFillColor = FISHING_CONFIG.SVG_COLORS.fruitMaturing; }
-                    
-                    const fruitPathEl = fishingUi._createSVGElement('path');
-                    fruitPathEl.setAttribute('d', fruitPathData);
-                    fruitPathEl.setAttribute('fill', fruitFillColor);
-                    fruitPathEl.setAttribute('stroke', FISHING_CONFIG.SVG_COLORS.fruitStroke);
-                    fruitPathEl.setAttribute('stroke-width', '0.5');
-                    backVisual.appendChild(fruitPathEl);
-                    frontImg.style.display = 'none';
-                } else {
-                     slotEl.classList.add('empty-slot'); 
-                     backVisual.style.display = 'none';
-                     frontImg.style.display = 'none';
+                if (slot.state === "unmatured") {
+                    slotDiv.style.backgroundImage = `url('gui/fishing_game/tree-back.png')`;
+                    slotDiv.style.setProperty('--maturation-progress', `${Math.floor(slot.maturation || 0)}%`);
+                    // Simple text for progress, can be styled with CSS using the variable.
+                    // This text won't be visible if card is face down unless styled to overlay.
+                    // Consider adding a visible progress bar element if needed.
+                    // slotDiv.textContent = `${Math.floor(slot.maturation || 0)}%`;
+                } else if (slot.state === "revealed") {
+                    slotDiv.style.backgroundImage = `url('gui/fishing_game/fish-back.png')`; // Placeholder
+                    slotDiv.onclick = () => {
+                        if (typeof collectCardFromTree === 'function') {
+                            collectCardFromTree(index);
+                            if (typeof playSound === 'function') playSound('sfx_collect_fruit.mp3');
+                        } else {
+                            console.error('collectCardFromTree function not found.');
+                        }
+                    };
+                } else { // Default to closed if unknown state for some reason
+                    slotDiv.classList.add('closed');
+                    slotDiv.style.backgroundImage = `url('gui/fishing_game/tree-back.png')`;
                 }
+            } else {
+                slotDiv.classList.remove('closed', 'unmatured', 'revealed');
+                slotDiv.classList.add('empty');
+                // No background image for empty, or a specific one if desired
+                slotDiv.style.backgroundImage = 'none';
+            }
+            treeContainer.appendChild(slotDiv);
+        });
+    },
 
-                innerContainer.appendChild(backVisual);
-                innerContainer.appendChild(frontImg);
-                slotEl.appendChild(innerContainer);
-                fishingGameState.ui.fruitSlotsContainer.appendChild(slotEl);
-            });
+    /**
+     * Updates the tree moisture display in the UI.
+     * @param {number} moistureLevel - The current moisture level (0-100).
+     */
+    updateMoistureDisplay: function(moistureLevel) {
+        const moistureDisplayValue = document.getElementById('tree-moisture-display-value');
+        if (moistureDisplayValue) {
+            moistureDisplayValue.textContent = Math.round(moistureLevel);
+        } else {
+            // This can happen if called before DOM is fully ready.
+            // console.warn("tree-moisture-display-value element not found at time of update.");
         }
+    },
+
+    /**
+     * Initializes the tree UI components.
+     * Should be called after the main DOM is loaded and treeMechanics state is available.
+     */
+    initialize: function() {
+        // Attempt initial render. treeMechanics.initializeTree will also call these.
+        if (typeof getTreeSlotsData === 'function' && typeof treeMoisture !== 'undefined') {
+            this.renderTreeSlots(getTreeSlotsData());
+            this.updateMoistureDisplay(treeMoisture);
+        } else {
+            // Fallback if treeMechanics isn't ready, render default empty state
+            console.warn("fishingTreeUi.initialize: treeMechanics data not ready. Rendering default empty tree.");
+            this.renderTreeSlots(Array(8).fill(null));
+            this.updateMoistureDisplay(100); // Default moisture
+        }
+        console.log("Fishing Tree UI initialized or re-initialized.");
     }
 };
+
+// Make it globally available
+window.fishingTreeUi = fishingTreeUi;
+
+// The initialize call should ideally be managed by the main game script (e.g., in startFishingGame)
+// after all necessary HTML and JS are loaded.
+// For example, after fishingUi.init(gameContentEl); in fish-in-sea-main.js,
+// you could add fishingTreeUi.initialize();
+console.log("fishing-tree-ui.js loaded and attached to window.");

@@ -1,31 +1,83 @@
 /* css/mini-games/fishing-watering-can.css */
 
-#fishing-water-panel.drag-over-active, /* Applied to the old water panel, now #fishing-water-surface */
-#fishing-water-surface.drag-over-active { /* Ensure it works on new water surface div */
-    outline: 3px dashed var(--material-primary);
-    outline-offset: -3px; /* Offset inside to avoid growing the element */
-    box-shadow: inset 0 0 10px rgba(3,218,198,0.3);
+#watering-can-icon {
+    position: absolute;
+    right: 20px; /* Position on the right side */
+    top: 20px;  /* Adjust as needed from the top of the fish-in-sea-screen */
+    width: 50px; /* Adjust size as needed */
+    height: 50px;
+    cursor: pointer;
+    z-index: 1050; /* Ensure it's above other game elements but potentially below modals */
+    transition: transform 0.2s ease-in-out;
+    filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
 }
 
-#fishing-tree-container.drag-over-active { 
-    outline: 3px dashed var(--material-primary);
-    outline-offset: 2px;
-    border-radius: 5px;
+#watering-can-icon:hover {
+    transform: scale(1.1);
 }
 
-.fishing-ui-icon#fishing-tool-watering-can.dragging { 
-    cursor: grabbing !important; 
-    opacity: 0.6; 
-    transform: scale(1.1); 
-    border: 1.5px dashed var(--material-primary); 
+/* Watering Can Upgrade Modal */
+/* Uses general .custom-modal-overlay and .custom-modal-content from style.css */
+/* Specific styles for watering can modal if needed */
+#watering-can-upgrade-modal .custom-modal-content {
+    max-width: 500px; /* Adjust width as needed */
+    background-color: #fdfaf0; /* A slightly creamy, warm background */
+    border: 2px solid #c8b88a; /* A soft, earthy border */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
-.fishing-ui-icon#fishing-tool-watering-can.full { 
-    background-color: #90caf9; /* Light blue when full */
-    border-color: #64b5f6; /* Darker light blue border */
-    color: #13314a; /* Darker text for contrast */
-} 
-.fishing-ui-icon#fishing-tool-watering-can.empty { 
-    background-color: #e0e0e0; /* Grey when empty */
-    color: #888; 
-    border-color: #bdbdbd; 
+
+#watering-can-upgrade-modal h2 {
+    text-align: center;
+    color: #6d5540; /* A richer, darker brown for titles */
+    margin-bottom: 25px;
+    font-size: 1.8em;
+}
+
+.upgrade-option {
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #e0d8c0; /* Lighter border for options */
+    border-radius: 8px;
+    background-color: #fffefc; /* Very light cream for contrast */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.upgrade-option p {
+    margin-bottom: 12px;
+    font-size: 1.05em; /* Slightly larger text for readability */
+    color: #5e4a3e;
+}
+
+.upgrade-option .game-button {
+    padding: 10px 20px; /* More generous padding */
+    font-size: 1em;
+    min-width: 180px;
+    background-color: #8bc34a; /* A pleasant green for purchase buttons */
+    color: white;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+.upgrade-option .game-button:hover:not(:disabled) {
+    background-color: #7cb342; /* Darker green on hover */
+}
+
+.upgrade-option .game-button:disabled {
+    background-color: #d0d0d0; /* A more distinct disabled state */
+    cursor: not-allowed;
+    color: #888;
+    border: 1px solid #bbb;
+}
+
+/* Standard close button styling is likely fine from style.css */
+#close-watering-can-modal {
+    /* Ensure it's styled consistently with other modals if needed */
+    color: #6d5540; /* Match title color */
+}
+#close-watering-can-modal:hover {
+    color: #c8b88a; /* Match border color on hover */
 }
