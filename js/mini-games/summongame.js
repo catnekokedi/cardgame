@@ -181,9 +181,11 @@ function renderSummonGameScreen(containerElement) {
 
         const ticketsNeeded = currentSelectedSummonQuantity;
         const ticketsOwned = getSummonTicketBalance(currentSelectedSummonRarity);
+        const ticketsOwned = getSummonTicketBalance(currentSelectedSummonRarity);
         const canSummon = ticketsOwned >= ticketsNeeded;
 
         packSlotEl.classList.toggle('active', canSummon);
+        packSlotEl.classList.toggle('summon-pack-unavailable', !canSummon); // Add this class
         packSlotEl.style.cursor = canSummon ? 'pointer' : 'not-allowed';
 
         if (canSummon) {

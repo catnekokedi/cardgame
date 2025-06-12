@@ -1,6 +1,6 @@
 // js/mini-games/fish-in-sea/fishing-basket.js
 
-const fishingBasket = {
+window.fishingBasket = { // Ensure it's explicitly on window
     basketContents: [], // Array of { cardData, quantity, isLocked, instanceId }
     // cardData: { set (e.g., 'fish_in_sea_fish', 'fish_in_sea_mineral'), id (unique within set), rarity, price, name, imagePath }
     // instanceId is unique for each item stack in the basket for locking/selling specific stacks if needed, or can be cardData.id if we stack strictly by card type.
@@ -239,11 +239,14 @@ const fishingBasket = {
      * @returns {Array<object>} Filtered and sorted basket contents.
      */
     getBasketContentsForDisplay: function(filters = {}) {
-        let displayData = [...this.basketContents];
-        if (filters.rarity && filters.rarity !== 'all') {
-            displayData = displayData.filter(item => item.cardData.rarity === filters.rarity);
+        let displayData = [];
+        if (Array.isArray(this.basketContents)) {
+            displayData = [...this.basketContents];
+            if (filters.rarity && filters.rarity !== 'all') {
+                displayData = displayData.filter(item => item && item.cardData && item.cardData.rarity === filters.rarity);
+            }
+            // Add sorting if needed
         }
-        // Add sorting if needed
         return displayData;
     },
 
@@ -283,11 +286,14 @@ const fishingBasket = {
 };
 
 // Make globally available
-// window.fishingBasket = fishingBasket;
-// Expose addItemToBasket globally for other mechanics modules to use directly
+// window.fishingBasket = fishingBasket; // Already done by window.fishingBasket = { ... }
+
+// Remove the separate global addItemToBasket function.
+// Other modules will now call window.fishingBasket.addCardToBasket directly.
+/*
 function addItemToBasket(cardData, quantity = 1) {
     fishingBasket.addCardToBasket(cardData, quantity);
 }
+*/
 
-
-console.log("fishing-basket.js loaded");
+console.log("fishing-basket.js loaded and attached to window.fishingBasket");

@@ -2,60 +2,47 @@
 
 #fishing-tree-container {
     position: absolute;
-    left: 1%; /* Small margin from edge */
-    width: 38%; /* Fit within 40% land area */
-    top: 26%;  /* Below sky (25% height) + small margin */
-    height: 60%; /* Take up most of the remaining vertical space */
-    /* transform: translateY(-50%); /* Remove this if top is set directly */
+    /* Centered in the left 40% "land" area, upper part */
+    left: calc(20% - 175px); /* (40% viewport width / 2) - (tree width / 2) to center in left half */
+    width: 350px; /* Larger width */
+    top: 28%;  /* Below sky (25% height) + small margin */
+    height: 65%; /* Larger height */
+    max-height: 500px; /* Constraint */
     background-image: url('../../gui/fishing_game/tree_placeholder.png');
-    background-color: #8B4513;
+    background-color: #8B4513; /* Brown fallback color for tree area */
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    display: grid; /* Changed to grid */
-    grid-template-columns: repeat(4, 1fr); /* 4 columns */
-    grid-template-rows: repeat(2, auto);    /* 2 rows, auto height for content */
-    gap: 8px; /* Gap between grid items */
-    padding: 20px; /* Padding around the grid within the container */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);    /* Evenly distribute row heights */
+    gap: 10px;
+    padding: 30px 20px 40px 20px; /* More top/bottom padding for branches/roots feel */
     box-sizing: border-box;
     align-items: center;
     justify-items: center;
 }
 #fishing-tree-container::before {
-    content: 'Tree Area';
+    content: 'Tree'; /* Simpler text */
     position: absolute;
-    top: 10px;
+    top: 8px; /* Adjusted */
     left: 50%;
     transform: translateX(-50%);
-    color: rgba(255,255,255,0.3);
-    font-size: 1.5em;
+    color: rgba(255,255,255,0.1); /* Very subtle, almost invisible if image loads */
+    font-size: 1.1em; /* Adjusted */
     font-weight: bold;
-    z-index: 0; /* Above background color, below cards */
-    /* Text will only be visible if background-image fails AND background-color is the brown fallback.
-       This is more of a decorative/debug text. */
+    z-index: 0;
+    pointer-events: none;
 }
-/* If a background image IS set (even if it fails to load), the ::before text remains transparent.
-   If NO background-image is set by inline style or other CSS, AND the placeholder class is on, show text.
-   This is still tricky. Simplest: assume JS would add a 'no-image' class if loading failed.
-   For CSS-only, the brown background is the main fallback. The text is a bonus.
-   The ::before is always there, just transparent unless a specific class is added or image is truly 'none'.
-*/
-/* Let's ensure the text is only visible if no background image is successfully loaded.
-   This is hard in pure CSS. The current setup will show brown if image fails.
-   The text 'Tree Area' will be styled but likely hidden by the (broken) image attempt.
-   A simple fix: make the text display if the background is the fallback color.
-   However, CSS cannot directly check if a background-image URL loaded successfully.
-   So, we'll just ensure the ::before content doesn't disrupt the layout.
-   The background color #8B4513 will be the primary indicator of a missing image.
-*/
-
 
 .tree-card-slot {
-    width: 55px; /* Smaller card slot width */
-    height: 77px; /* Smaller card slot height (maintaining ~7:5 ratio) */
-    border: 1px solid #8b4513; /* More thematic border */
-    background-color: rgba(0,0,0,0.1); /* Default empty slot color - slightly transparent */
+    width: 45px; /* Further reduced width */
+    height: 63px; /* Further reduced height (7:5 ratio) */
+    border: 1px solid #7a3d0f; /* Darker thematic border */
+    background-color: rgba(0,0,0,0.2); /* Darker placeholder */
     display: flex;
+    border-radius: 4px; /* Slightly rounded slots */
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.2);
     justify-content: center;
     align-items: center;
     /* margin: 5px; /* Removed, using grid gap now */
@@ -65,34 +52,62 @@
     cursor: pointer;
 }
 
-.tree-card-slot.closed {
+.tree-card-slot.closed,
+.tree-card-slot.empty { /* Empty slots also use tree-back */
     background-image: url('../../gui/fishing_game/tree-back.png');
+    background-color: rgba(0,0,0,0.3); /* Darken the back a bit */
 }
 
 .tree-card-slot.maturing {
-    /* Style for maturing cards - e.g., a progress bar or overlay */
-    /* For now, just a different background */
-    background-color: #add8e6; /* Light blue */
-    /* You might add an ::after pseudo-element for a progress bar */
+    background-image: url('../../gui/fishing_game/tree-back.png'); /* Still show back when maturing */
+    position: relative; /* For progress bar pseudo-element */
+}
+.tree-card-slot.maturing::after {
+    content: '';
+    position: absolute;
+    bottom: 2px; /* Position progress bar at the bottom of the slot */
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 8px); /* Slightly inset */
+    height: 6px; /* Height of progress bar */
+    background-color: rgba(0,0,0,0.3); /* Bar background */
+    border-radius: 3px;
+    overflow: hidden; /* Clip progress fill */
+}
+.tree-card-slot.maturing::before { /* The actual progress fill */
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 4px; /* Align with parent's inset */
+    width: var(--maturation-progress, 0%); /* Controlled by JS via style property */
+    height: 6px;
+    background-color: #4CAF50; /* Green progress */
+    border-radius: 3px;
+    z-index: 1; /* Above the ::after bar background */
+    transition: width 0.2s linear;
 }
 
 .tree-card-slot.revealed {
-    /* Placeholder, actual card image will be set by JS */
-    background-image: url('../../gui/fishing_game/fish-back.png');
+    /* Background image set by JS to actual card art */
+    border: 1px solid gold; /* Highlight revealed card */
 }
+
 
 #tree-moisture-display {
     position: absolute;
-    left: 1%; /* Align with tree container's new left */
-    /* top: calc(26% + 60% + 5px); /* Position below the tree container: top + height + margin */
-    bottom: 2%; /* Alternative: position from bottom of screen */
-    /* transform: translateY(10px); /* May not be needed if using bottom */
-    background-color: rgba(0, 0, 0, 0.7);
+    /* Centered below the tree container */
+    left: calc(20% - 175px + 175px); /* (tree_container_left + tree_container_width / 2) */
+    transform: translateX(-50%);
+    bottom: calc(100% - (28% + 65% + 45px)); /* (100% - tree_top - tree_height - desired_offset_from_bottom_padding) */
+                                            /* Tree top 28%, height 65%. Bottom padding of tree container is 40px. */
+                                            /* So, 100% - 93% - 5px (approx) = 7% - 5px from bottom of screen */
+    background-color: rgba(0, 0, 0, 0.75);
     color: white;
-    padding: 5px 10px;
+    padding: 6px 12px;
     border-radius: 5px;
     font-size: 0.9em;
     z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 /* Example of how slots might be absolutely positioned on a tree image */

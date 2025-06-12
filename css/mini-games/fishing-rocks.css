@@ -173,11 +173,25 @@
 
 /* Pickaxe cursor active on the fishing game screen */
 #fish-in-sea-screen.pickaxe-active {
-    /* The cursor is set on rock-instance directly for better control */
+    cursor: url('../../gui/fishing_game/pickaxe_cursor.png'), auto; /* Apply to whole game screen */
 }
+
+/* Ensure specific interactive elements retain their normal cursors even when pickaxe is active */
+#fish-in-sea-screen.pickaxe-active .fishing-ui-icon, /* General class for UI icons if one exists */
+#fish-in-sea-screen.pickaxe-active #pickaxe-icon,
+#fish-in-sea-screen.pickaxe-active #watering-can-icon,
+#fish-in-sea-screen.pickaxe-active #fishing-basket-icon,
+#fish-in-sea-screen.pickaxe-active .tree-card-slot,
+#fish-in-sea-screen.pickaxe-active button,
+#fish-in-sea-screen.pickaxe-active select,
+#fish-in-sea-screen.pickaxe-active .custom-modal-close {
+    cursor: pointer; /* Or 'default' if not interactive */
+}
+
+/* Rocks will inherit the pickaxe cursor from the screen if not overridden.
+   If an active rock should have a specific interaction cursor with the pickaxe, it can be defined here.
+   Otherwise, it will correctly use the pickaxe cursor. */
 #fish-in-sea-screen.pickaxe-active .rock-instance:not(.rock-empty-slot):not(.rock-respawning) {
-    cursor: url('../../gui/fishing_game/pickaxe_cursor.png'), auto;
-}
-#fish-in-sea-screen.pickaxe-active #pickaxe-icon { /* Keep normal pointer on selected icon */
-    cursor: pointer;
+    /* cursor: url('../../gui/fishing_game/pickaxe_hit_cursor.png'), auto; /* Optional: different cursor for hitting */
+    /* Inherits from #fish-in-sea-screen.pickaxe-active, which is good */
 }

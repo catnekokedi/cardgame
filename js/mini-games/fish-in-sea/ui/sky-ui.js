@@ -85,4 +85,22 @@ const skyUi = {
 // Make it globally available
 window.skyUi = skyUi;
 
-console.log("sky-ui.js loaded and attached to window.");
+console.log("sky-ui.js loaded and attached to window.skyUi. Initializing loggers within module.");
+
+// Add detailed logs inside methods for testing
+const originalInitializeSkyUI = window.skyUi.initializeSkyUI;
+window.skyUi.initializeSkyUI = function() {
+    console.log('[SkyUI] Initializing/Re-initializing...');
+    originalInitializeSkyUI.call(this);
+    console.log('[SkyUI] Initialized. Container:', this.skyContainerElement);
+};
+
+const originalRenderBirds = window.skyUi.renderBirds;
+window.skyUi.renderBirds = function(activeBirdsData) {
+    console.log('[SkyUI] renderBirds called with data:', activeBirdsData);
+    if (!this.skyContainerElement) {
+        console.warn('[SkyUI] renderBirds: skyContainerElement is null, cannot render.');
+    }
+    originalRenderBirds.call(this, activeBirdsData);
+    // console.log('[SkyUI] renderBirds finished. Container innerHTML:', this.skyContainerElement ? this.skyContainerElement.innerHTML : 'N/A');
+};

@@ -139,7 +139,7 @@ function hitRock(rockSlotIndex) {
     if (rock.hp <= 0) {
         console.log(`Rock in slot ${rockSlotIndex} destroyed!`);
         grantRockRewards(rock.definition);
-        
+
         rockSlots[rockSlotIndex] = {
             isRespawning: true,
             respawnTimer: BASE_ROCK_RESPAWN_TIME + (Math.random() * 5000 - 2500) // Add some variance
@@ -158,25 +158,95 @@ function hitRock(rockSlotIndex) {
  * @param {object} rockDef The definition of the destroyed rock.
  */
 function grantRockRewards(rockDef) {
-    const cardData = {
-        id: `mineral_${rockDef.name.toLowerCase().replace(/ /g, '_')}`, // More consistent ID if not unique stack
-        set: 'fish_in_sea_mineral',
-        name: `${rockDef.name} Fragment`,
-        type: "mineral", // Could be a more general 'material' type
-        rarity: rockDef.rarity, // This is rock rarity, map to card rarity if different (e.g. common rock -> common mineral)
-        price: rockDef.hp * 2, // Example price based on HP
-        imagePath: `gui/fishing_game/mineral_${rockDef.rarity}.png`, // e.g., mineral_common.png
-        source: "mining"
-    };
-    console.log("Granted mineral card:", cardData);
-    if (typeof addItemToBasket === 'function') {
-        addItemToBasket(cardData, 1); // Pass cardData and quantity 1
-    } else {
-        console.warn("addItemToBasket function not found. Mineral card not added to basket.");
+    // Determine card to drop based on rock rarity (more advanced logic can be added here)
+    let generatedCardData = null;
+    if (typeof getActiveSetDefinitions === 'function' && typeof getFixedGradeAndPrice === 'function' && typeof getCardImagePath === 'function' && typeof liveRarityPackPullDistribution !== 'undefined') {
+        const activeSets = getActiveSetDefinitions();
+        if (activeSets.length > 0) {
+            const randomSetDef = activeSets[Math.floor(Math.random() * activeSets.length)];
+            if (randomSetDef.count > 0) {
+                // Influence rarity by rock type - very basic example:
+                // Common rock: mostly base/rare. Legendary rock: higher chance for foil/holo etc.
+                let targetPullRarityKey = 'base';
+                const rockRarityLevel = stringToRarityInt[rockDef.rarity] || 0; // Assuming stringToRarityInt exists
+
+                // Simple biased pull based on rock rarity (0=common, up to 3=legendary for rockRarities)
+                // This is a placeholder for a more sophisticated loot table.
+                const randomPackProb = Math.random();
+                let cumulativePackProb = 0;
+                // Filter liveRarityPackPullDistribution or use a specific one for rocks
+                const rockLootTable = [...liveRarityPackPullDistribution].sort((a,b) => (stringToRarityInt[a.key] || 0) - (stringToRarityInt[b.key] || 0));
+
+                for (const tier of rockLootTable) {
+                    let tierProb = tier.packProb;
+                    // Basic bias: increase chance of higher rarities for rarer rocks
+                    if ((stringToRarityInt[tier.key] || 0) > rockRarityLevel + 1) { // if card rarity is much higher than rock
+                        tierProb *= 0.5; // Halve chance
+                    } else if ((stringToRarityInt[tier.key] || 0) === rockRarityLevel +1 ) {
+                        tierProb *= 1.5; // Slightly boost chance for card one level above rock
+                    } else if ((stringToRarityInt[tier.key] || 0) <= rockRarityLevel ) {
+                         tierProb *= 1.2; // Boost same or lower
+                    }
+
+                    cumulativePackProb += tierProb; // Note: this sum might not be 1.0, Math.random() should be scaled or logic adjusted.
+                                                // For simplicity, direct use here might skew distribution.
+                                                // A better way is to normalize tierProb first.
+                    if (randomPackProb * cumulativePackProb < tierProb) { // Simplified check, not standard way to use cumulative
+                         targetPullRarityKey = tier.key;
+                         break;
+                    }
+                }
+                 // Fallback if loop finishes (e.g. if randomPackProb * cumulativePackProb was too large)
+                if (targetPullRarityKey === 'base' && rockLootTable.length > 0 && randomPackProb > 0.5 && rockRarityLevel > 1) {
+                     targetPullRarityKey = rockLootTable[Math.min(rockRarityLevel, rockLootTable.length -1 )].key; // Bias towards rock's own rarity tier
+                }
+
+
+                let potentialCardIds = Array.from({ length: randomSetDef.count }, (_, k) => k + 1);
+                let eligibleCardIds = potentialCardIds.filter(id => getCardIntrinsicRarity(randomSetDef.abbr, id) === targetPullRarityKey);
+                if (eligibleCardIds.length === 0) eligibleCardIds = potentialCardIds; // Fallback to any card from set if no specific rarity match
+
+                if (eligibleCardIds.length > 0) {
+                    const cardIdNum = eligibleCardIds[Math.floor(Math.random() * eligibleCardIds.length)];
+                    const fixedProps = getFixedGradeAndPrice(randomSetDef.abbr, cardIdNum);
+                    generatedCardData = {
+                        set: randomSetDef.abbr,
+                        id: cardIdNum,
+                        name: `${randomSetDef.name} Card #${cardIdNum} (from ${rockDef.name})`,
+                        rarity: fixedProps.rarityKey, // Actual card rarity
+                        price: fixedProps.price,
+                        imagePath: getCardImagePath(randomSetDef.abbr, cardIdNum),
+                        type: 'collectible_card', // Mark as a standard collectible card
+                        source: 'mining'
+                    };
+                }
+            }
+        }
     }
 
+    if (generatedCardData) {
+        console.log("Rock dropped collectible card:", generatedCardData);
+        if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+            window.fishingBasket.addCardToBasket(generatedCardData, 1);
+        } else {
+            console.warn("fishingBasket.addCardToBasket function not found. Card not added to basket.");
+        }
+    } else {
+        // Fallback: if no collectible card generated, drop a generic mineral as before
+        const fallbackMineral = {
+            id: `mineral_fallback_${rockDef.rarity}_${Date.now()}`, set: 'fish_in_sea_mineral',
+            name: `${rockDef.name} Generic Shard`, type: "mineral", rarity: rockDef.rarity,
+            price: rockDef.hp, imagePath: `gui/fishing_game/mineral_${rockDef.rarity}.png`, source: "mining_fallback"
+        };
+        console.log("Rock failed to drop collectible card, granting fallback mineral:", fallbackMineral);
+        if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+            window.fishingBasket.addCardToBasket(fallbackMineral, 1);
+        }
+    }
+
+    // Ticket chance remains
     if (Math.random() < rockDef.ticketChance) {
-        const ticketType = "common_summon_ticket"; // Placeholder, could be linked to rock rarity
+        const ticketType = "common_summon_ticket"; // Placeholder, could also be biased by rockDef.rarity
         console.log(`Granted Summon Ticket: ${ticketType}`);
         if (typeof gainSummonTicket === 'function') {
             gainSummonTicket(ticketType, 1);

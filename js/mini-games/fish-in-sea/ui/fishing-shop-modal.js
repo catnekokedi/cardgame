@@ -107,7 +107,7 @@ function renderFishingShopItems(tabType = 'fish') { // Renamed from renderShopIt
     exchangeInfoArea.appendChild(progressDiv);
 
     const currentBasketItems = (typeof fishingBasket !== 'undefined' && Array.isArray(fishingBasket.basketContents)) ? fishingBasket.basketContents : [];
-    const itemsToDisplay = currentBasketItems.filter(item => item.cardData.type === itemFilterType && !item.isLocked);
+    const itemsToDisplay = currentBasketItems.filter(item => item && item.cardData && item.cardData.type === itemFilterType && !item.isLocked);
 
     if (itemsToDisplay.length === 0) {
         itemsGrid.innerHTML = `<p class="text-center text-xs text-gray-500" style="grid-column: 1 / -1;">No unlocked ${tabType.replace('_',' ')} items in basket for exchange.</p>`;
@@ -154,7 +154,7 @@ function handleFishingShopExchangeAll() { // Renamed from handleShopExchangeAll
     Object.keys(exchangeRatesConfig).forEach(itemRarityKey => {
         // Filter for current rarity among eligible (unlocked, correct type) items
         const itemsOfThisRarityForExchange = currentBasketItems.filter(item =>
-            item.cardData.type === itemFilterType && item.cardData.rarity === itemRarityKey && !item.isLocked
+            item && item.cardData && item.cardData.type === itemFilterType && item.cardData.rarity === itemRarityKey && !item.isLocked
         );
         
         let consumedFromBasketCount = 0; // How many of itemsOfThisRarityForExchange are consumed

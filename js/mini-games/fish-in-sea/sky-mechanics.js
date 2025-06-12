@@ -1,6 +1,6 @@
 // js/mini-games/fish-in-sea/sky-mechanics.js
 
-const skyMechanics = {
+window.skyMechanics = { // Ensure it's explicitly on window
     activeBirds: [],
     maxActiveBirds: 5, // Max birds on screen at once
     skyBoundaries: { minY: 10, maxY: 100, spawnMargin: 50 }, // Y boundaries for birds, and off-screen margin for spawn/despawn
@@ -51,7 +51,8 @@ const skyMechanics = {
 
         // Randomly spawn new birds if below max count
         if (this.activeBirds.length < this.maxActiveBirds) {
-            if (Math.random() < 0.02) { // Chance to spawn a new bird each frame (adjust for balance)
+            const BIRD_SPAWN_CHANCE_PER_FRAME = 0.2; // Increased for testing (was 0.02)
+            if (Math.random() < BIRD_SPAWN_CHANCE_PER_FRAME) {
                 this.spawnBird();
                 birdsChanged = true;
             }
@@ -137,11 +138,11 @@ const skyMechanics = {
                 imagePath: `gui/fishing_game/feather_${bird.type}.png`, // e.g. feather_type1.png
                 source: "bird_click"
             };
-            if (typeof addItemToBasket === 'function') {
-                addItemToBasket(cardData, 1);
+            if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+                window.fishingBasket.addCardToBasket(cardData, 1);
                 if (typeof showCustomModal === 'function') showCustomModal(`You found a ${cardData.name}!`, "success");
             } else {
-                console.warn("addItemToBasket function not found. Feather card not added.");
+                console.warn("fishingBasket.addCardToBasket function not found. Feather card not added.");
             }
         } else { // Ticket reward
             const ticketType = "common_summon_ticket"; // Example, could be rarer
@@ -156,7 +157,42 @@ const skyMechanics = {
     }
 };
 
-// Make globally available if not using ES6 modules
-// window.skyMechanics = skyMechanics;
+// Make globally available
+// window.skyMechanics = skyMechanics; // Already done by window.skyMechanics = { ... }
 
-console.log("sky-mechanics.js loaded");
+console.log("sky-mechanics.js loaded and attached to window.skyMechanics. Initializing loggers within module.");
+
+// Add detailed logs inside methods for testing
+const originalInitializeSkyMechanics = window.skyMechanics.initializeSkyMechanics;
+window.skyMechanics.initializeSkyMechanics = function() {
+    console.log('[SkyMechanics] Initializing/Re-initializing...');
+    originalInitializeSkyMechanics.call(this);
+    console.log('[SkyMechanics] Initialized. Birds:', this.activeBirds);
+};
+
+let skyUpdateCounter = 0;
+const originalUpdateBirdMovementAndSpawns = window.skyMechanics.updateBirdMovementAndSpawns;
+window.skyMechanics.updateBirdMovementAndSpawns = function(deltaTime) {
+    skyUpdateCounter++;
+    if (skyUpdateCounter % 60 === 0) { // Log approx every second if 60fps (loop is 100ms, so every 6s)
+         // Let's log more frequently for testing, e.g. every 10 calls (every 1 second)
+        // console.log(`[SkyMechanics] updateBirdMovementAndSpawns #${skyUpdateCounter}, deltaTime: ${deltaTime}, Active birds: ${this.activeBirds.length}`);
+    }
+    // For more frequent logging during debug:
+    if (skyUpdateCounter < 30 || skyUpdateCounter % 10 === 0) { // Log first few calls, then every second
+         console.log(`[SkyMechanics] updateBirdMovementAndSpawns #${skyUpdateCounter}, deltaTime: ${deltaTime}, Active birds: ${this.activeBirds.length}, First bird x: ${this.activeBirds[0]?.x}`);
+    }
+    originalUpdateBirdMovementAndSpawns.call(this, deltaTime);
+};
+
+const originalClickBird = window.skyMechanics.clickBird;
+window.skyMechanics.clickBird = function(birdId) {
+    console.log('[SkyMechanics] clickBird called for birdId:', birdId);
+    originalClickBird.call(this, birdId);
+};
+
+const originalGrantBirdClickReward = window.skyMechanics.grantBirdClickReward;
+window.skyMechanics.grantBirdClickReward = function(bird) {
+    console.log('[SkyMechanics] grantBirdClickReward called for bird:', bird);
+    originalGrantBirdClickReward.call(this, bird);
+};

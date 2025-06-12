@@ -39,7 +39,7 @@ const fishingMechanics = {
             rarity: "common", // Placeholder
             isCardPlaceholder: true, // All fish are placeholders for now
             // Add visual properties like image path if needed by UI
-            imagePath: 'gui/fishing_game/fish.png' // Use existing generic fish image
+            imagePath: 'gui/fishing_game/fish-back.png' // User request: use fish-back.png for in-sea visual
         };
 
         if (replaceFishId) {
@@ -108,11 +108,12 @@ const fishingMechanics = {
         fishingGameState.isReeling = false;
         fishingGameState.bitingFishId = null;
         fishingGameState.hasHookedFish = false;
+        fishingGameState.bobberPosition = { ...this.hookPosition }; // Update global state for fishingUi
 
         // Use existing fishingUi for rod, line, float visuals
         if (typeof fishingUi !== 'undefined') {
-            fishingUi.showBobber(this.hookPosition); // Assuming showBobber can take position or fishingUi uses a shared state for it
-            fishingUi.drawRodLine(this.hookPosition); // Assuming drawRodLine can take position
+            fishingUi.showBobber(); // Assumes it uses fishingGameState.bobberPosition
+            fishingUi.drawRodLine(); // Assumes it uses fishingGameState.bobberPosition and rod origin
             fishingUi.showExclamationOnBobber(false); // Ensure no exclamation from previous state
             fishingUi.resetBobberAnimation();
             fishingUi.updateStatusText("Waiting for a bite...");
@@ -238,10 +239,10 @@ const fishingMechanics = {
                         source: 'fishing'
                         // grade: caughtItem.details.grade, // if grade is part of details
                     };
-                    if (typeof addItemToBasket === 'function') {
-                        addItemToBasket(cardDataForBasket, 1);
+                    if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+                        window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
                     } else {
-                        console.error("addItemToBasket function is undefined!");
+                        console.error("fishingBasket.addCardToBasket function is undefined!");
                     }
                 } else if (caughtItem.type === 'ticket') {
                     // Ticket is handled by determineCatch (calls addSummonTickets)

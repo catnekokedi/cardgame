@@ -2,7 +2,8 @@
 // js/ui/components/cardDetailModal.js
 
 function applyCardHoverEffects(event, cardElementContainer) {
-    const cardElement = cardElementContainer.querySelector('.detail-image.card');
+    // The cardElement is now the wrapper div with class 'card'
+    const cardElement = cardElementContainer.querySelector('div.card');
     if (!cardElement) return;
 
     const cardWidth = cardElementContainer.offsetWidth;
@@ -36,7 +37,8 @@ function applyCardHoverEffects(event, cardElementContainer) {
 }
 
 function resetCardHoverEffects(cardElementContainer) {
-    const cardElement = cardElementContainer.querySelector('.detail-image.card');
+    // The cardElement is now the wrapper div with class 'card'
+    const cardElement = cardElementContainer.querySelector('div.card');
     if (!cardElement) return;
 
     cardElementContainer.style.removeProperty('--mx');

@@ -65,13 +65,51 @@ function updateTreeFruitGrowth(deltaTime) {
         if (treeSlots[i] === null) { // Slot is empty
             slotTimers[i] += deltaTime;
             if (slotTimers[i] >= SPAWN_TIME) {
-                treeSlots[i] = { state: "unmatured", type: "generic_card", maturation: 0 };
+                // Generate a real card
+                let newCardData = null;
+                if (typeof getActiveSetDefinitions === 'function' && typeof getFixedGradeAndPrice === 'function' && typeof getCardImagePath === 'function') {
+                    const activeSets = getActiveSetDefinitions();
+                    if (activeSets.length > 0) {
+                        const randomSetDef = activeSets[Math.floor(Math.random() * activeSets.length)];
+                        if (randomSetDef.count > 0) {
+                            const cardIdNum = Math.floor(Math.random() * randomSetDef.count) + 1;
+                            const fixedProps = getFixedGradeAndPrice(randomSetDef.abbr, cardIdNum);
+                            newCardData = {
+                                set: randomSetDef.abbr,
+                                id: cardIdNum, // cardId is the number
+                                name: `${randomSetDef.name} Card #${cardIdNum}`, // Placeholder name
+                                rarity: fixedProps.rarityKey,
+                                price: fixedProps.price,
+                                imagePath: getCardImagePath(randomSetDef.abbr, cardIdNum), // Actual image path
+                                type: 'collectible_card' // Distinguish from generic fruit type if needed
+                            };
+                        }
+                    }
+                }
+
+                if (newCardData) {
+                    treeSlots[i] = {
+                        state: "unmatured",
+                        card: newCardData, // Store the actual card data
+                        maturation: 0
+                    };
+                    console.log(`Slot ${i}: New collectible card [${newCardData.set}-${newCardData.id}] spawning.`);
+                } else {
+                    // Fallback to a generic placeholder if card generation fails
+                    treeSlots[i] = { state: "unmatured", card: { type: "generic_fruit", name: "Generic Fruit", imagePath: "gui/fishing_game/fruit_placeholder.png", rarity:"common", price:5, set:"fish_in_sea_fruit", id:"generic_fruit" }, maturation: 0 };
+                    console.log(`Slot ${i}: New GENERIC fruit spawning due to error.`);
+                }
+
                 maturationProgress[i] = 0; // Reset progress for new card
                 slotTimers[i] = 0;
                 slotsChanged = true;
-                console.log(`Slot ${i}: New card spawning.`);
             }
         } else if (treeSlots[i].state === "unmatured") {
+            // Ensure card object exists, if not (e.g. loading old save), convert it
+            if (!treeSlots[i].card) {
+                treeSlots[i].card = { type: treeSlots[i].type || "generic_fruit", name: "Generic Fruit", imagePath: "gui/fishing_game/fruit_placeholder.png", rarity:"common", price:5, set:"fish_in_sea_fruit", id:"generic_fruit" };
+            }
+
             const moistureFactor = treeMoisture / MAX_MOISTURE;
             // maturationProgress stores percentage, treeSlots[i].maturation also stores percentage
             let currentProgress = treeSlots[i].maturation || 0;
@@ -140,10 +178,10 @@ function collectCardFromTree(slotIndex) {
 
         console.log(`Collecting card from slot ${slotIndex}:`, cardData);
 
-        if (typeof addItemToBasket === 'function') {
-            addItemToBasket(cardData, 1);
+        if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+            window.fishingBasket.addCardToBasket(cardData, 1);
         } else {
-            console.warn("addItemToBasket function not found. Card not added to basket.");
+            console.warn("fishingBasket.addCardToBasket function not found. Card not added to basket.");
         }
 
         // Clear the slot

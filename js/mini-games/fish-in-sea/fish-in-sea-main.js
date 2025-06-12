@@ -7,110 +7,67 @@ function startFishingGame(gameContentEl, gameResultEl) {
     }
 
     initializeFishingGameState(); // From fishing-state.js
-    if (typeof initializeTree === 'function') {
-        initializeTree(); // From tree-mechanics.js
-    } else {
-        console.warn("initializeTree function not found. Ensure tree-mechanics.js is loaded.");
-    }
-    // Initialize main fishing UI first
-    fishingUi.init(gameContentEl); // From fishing-ui.js
 
-    // Then initialize specific UI components like the tree
-    if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.initialize === 'function') {
-        fishingTreeUi.initialize();
+    if (typeof initializeTree === 'function') initializeTree(); else console.warn("initializeTree function not found.");
+
+    // Initialize main fishing UI (assumed to be always available, e.g., window.fishingUi)
+    if (typeof fishingUi !== 'undefined' && typeof fishingUi.init === 'function') {
+        fishingUi.init(gameContentEl);
     } else {
-        console.warn("fishingTreeUi.initialize function not found.");
+        console.error("CRITICAL: Main fishingUi.init function not found.");
+        // Potentially stop further initialization if main UI can't load
     }
 
-    // Initialize watering can mechanics (which might depend on UI elements being ready)
-    if (typeof initializeWateringCan === 'function') {
-        initializeWateringCan(); // From watering-can.js
-    } else {
-        console.warn("initializeWateringCan function not found. Ensure watering-can.js is loaded.");
-    }
+    if (typeof window.fishingTreeUi !== 'undefined' && typeof window.fishingTreeUi.initialize === 'function') window.fishingTreeUi.initialize(); else console.warn("fishingTreeUi.initialize function not found.");
+    if (typeof initializeWateringCan === 'function') initializeWateringCan(); else console.warn("initializeWateringCan function not found.");
+    if (typeof initializeRocks === 'function') initializeRocks(); else console.warn("initializeRocks function not found.");
+    if (typeof window.fishingRocksUi !== 'undefined' && typeof window.fishingRocksUi.initializeRockUI === 'function') window.fishingRocksUi.initializeRockUI(); else console.warn("fishingRocksUi.initializeRockUI function not found.");
 
-    // Initialize Rock Mechanics and UI
-    if (typeof initializeRocks === 'function') {
-        initializeRocks(); // From rock-mechanics.js
-    } else {
-        console.warn("initializeRocks function not found. Ensure rock-mechanics.js is loaded.");
-    }
-    if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.initializeRockUI === 'function') {
-        fishingRocksUi.initializeRockUI();
-    } else {
-        console.warn("fishingRocksUi.initializeRockUI function not found.");
-    }
+    // Core fishing mechanics (fish movement, bite logic)
+    if (typeof window.fishingMechanics !== 'undefined' && typeof window.fishingMechanics.initializeFishingMechanics === 'function') window.fishingMechanics.initializeFishingMechanics(); else console.warn("fishingMechanics.initializeFishingMechanics function not found.");
+    // UI for new core fishing game elements (sea container, fish rendering)
+    if (typeof window.fishingGameUi !== 'undefined' && typeof window.fishingGameUi.initializeFishingUIElements === 'function') window.fishingGameUi.initializeFishingUIElements(); else console.warn("fishingGameUi.initializeFishingUIElements function not found.");
 
-    // Initialize core fishing mechanics (like fish in sea)
-    if (typeof fishingMechanics !== 'undefined' && typeof fishingMechanics.initializeFishingMechanics === 'function') {
-        fishingMechanics.initializeFishingMechanics();
-    } else {
-        console.warn("fishingMechanics.initializeFishingMechanics function not found.");
-    }
-    // Initialize UI for the core fishing game elements (sea, fish, float)
-    if (typeof fishingGameUi !== 'undefined' && typeof fishingGameUi.initializeFishingUIElements === 'function') {
-        fishingGameUi.initializeFishingUIElements();
-    } else {
-        console.warn("fishingGameUi.initializeFishingUIElements function not found.");
-    }
+    // Sky Mechanics and UI
+    if (typeof window.skyMechanics !== 'undefined' && typeof window.skyMechanics.initializeSkyMechanics === 'function') window.skyMechanics.initializeSkyMechanics(); else console.warn("skyMechanics.initializeSkyMechanics function not found.");
+    if (typeof window.skyUi !== 'undefined' && typeof window.skyUi.initializeSkyUI === 'function') window.skyUi.initializeSkyUI(); else console.warn("skyUi.initializeSkyUI function not found.");
 
-    // Initialize Sky Mechanics and UI
-    if (typeof skyMechanics !== 'undefined' && typeof skyMechanics.initializeSkyMechanics === 'function') {
-        skyMechanics.initializeSkyMechanics();
-    } else {
-        console.warn("skyMechanics.initializeSkyMechanics function not found.");
-    }
-    if (typeof skyUi !== 'undefined' && typeof skyUi.initializeSkyUI === 'function') {
-        skyUi.initializeSkyUI();
-    } else {
-        console.warn("skyUi.initializeSkyUI function not found.");
-    }
-
-    // Initialize Fishing Basket logic and UI
-    if (typeof fishingBasket !== 'undefined' && typeof fishingBasket.initializeBasket === 'function') {
-        fishingBasket.initializeBasket(); // Initializes data logic
-    } else {
-        console.warn("fishingBasket.initializeBasket function not found.");
-    }
-    if (typeof fishingBasketUi !== 'undefined' && typeof fishingBasketUi.initializeBasketUI === 'function') {
-        fishingBasketUi.initializeBasketUI(); // Initializes UI elements and listeners
-    } else {
-        console.warn("fishingBasketUi.initializeBasketUI function not found.");
-    }
+    // Fishing Basket logic and UI
+    if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.initializeBasket === 'function') window.fishingBasket.initializeBasket(); else console.warn("fishingBasket.initializeBasket function not found.");
+    if (typeof window.fishingBasketUi !== 'undefined' && typeof window.fishingBasketUi.initializeBasketUI === 'function') window.fishingBasketUi.initializeBasketUI(); else console.warn("fishingBasketUi.initializeBasketUI function not found.");
 
     // Load persistent state AFTER all initializations
     if (typeof miniGameData === 'object' && miniGameData.fishingGame) {
-        loadPersistentFishingState(miniGameData.fishingGame); // From fishing-state.js
+        if (typeof loadPersistentFishingState === 'function') {
+            loadPersistentFishingState(miniGameData.fishingGame); // From fishing-state.js
+        } else {
+            console.error("loadPersistentFishingState function not found.");
+        }
+
         // After loading, UI components need refreshing based on the now-loaded state
-        if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.initialize === 'function') {
-            fishingTreeUi.initialize();
+        if (typeof window.fishingTreeUi !== 'undefined' && typeof window.fishingTreeUi.initialize === 'function') window.fishingTreeUi.initialize();
+        if (typeof updateWateringCanUI === 'function') updateWateringCanUI();
+        if (typeof window.fishingRocksUi !== 'undefined' && typeof window.fishingRocksUi.renderRocks === 'function' && typeof getRockSlotsData === 'function') window.fishingRocksUi.renderRocks(getRockSlotsData());
+        if (typeof window.fishingRocksUi !== 'undefined' && typeof window.fishingRocksUi.updatePickaxeCursor === 'function' && typeof pickaxeSelected !== 'undefined') window.fishingRocksUi.updatePickaxeCursor(pickaxeSelected);
+
+        if (typeof window.fishingGameUi !== 'undefined' && typeof window.fishingMechanics !== 'undefined') {
+            if (typeof window.fishingGameUi.renderFish === 'function' && window.fishingMechanics.activeFish) window.fishingGameUi.renderFish(window.fishingMechanics.activeFish);
+            // Calls to renderFishingRod and showBiteIndicator were moved to fishingMechanics to use fishingUi
         }
-        if (typeof updateWateringCanUI === 'function') { // From watering-can.js
-            updateWateringCanUI();
+        if (typeof window.fishingBasketUi !== 'undefined' && typeof window.fishingBasket !== 'undefined') {
+            if (typeof window.fishingBasketUi.renderBasket === 'function') window.fishingBasketUi.renderBasket(window.fishingBasket.getBasketContentsForDisplay(window.fishingBasketUi.currentFilters));
+            if (typeof window.fishingBasketUi.updateBasketCountDisplay === 'function') window.fishingBasketUi.updateBasketCountDisplay(window.fishingBasket.getTotalItemCount());
         }
-        if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.renderRocks === 'function' && typeof getRockSlotsData === 'function') {
-            fishingRocksUi.renderRocks(getRockSlotsData());
-        }
-        if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.updatePickaxeCursor === 'function' && typeof pickaxeSelected !== 'undefined') {
-            fishingRocksUi.updatePickaxeCursor(pickaxeSelected);
-        }
-        if (typeof fishingGameUi !== 'undefined' && typeof fishingMechanics !== 'undefined') {
-            if (typeof fishingGameUi.renderFish === 'function' && fishingMechanics.activeFish) {
-                 fishingGameUi.renderFish(fishingMechanics.activeFish);
+        // Ensure existing fishingUi (for bobber, line etc.) is also updated after load
+        if (typeof fishingUi !== 'undefined') {
+            if (fishingGameState.isRodCast || fishingGameState.hasHookedFish) {
+                if (typeof fishingUi.showBobber === 'function') fishingUi.showBobber(fishingMechanics.hookPosition);
+                if (typeof fishingUi.drawRodLine === 'function') fishingUi.drawRodLine(fishingMechanics.hookPosition);
+                if (typeof fishingUi.showExclamationOnBobber === 'function') fishingUi.showExclamationOnBobber(fishingGameState.hasHookedFish && !fishingGameState.isReeling);
+            } else {
+                if (typeof fishingUi.hideBobber === 'function') fishingUi.hideBobber();
+                if (typeof fishingUi.hideRodLine === 'function') fishingUi.hideRodLine();
             }
-            if (typeof fishingGameUi.renderFishingRod === 'function' && fishingMechanics.hookPosition) {
-                fishingGameUi.renderFishingRod(fishingGameState.isRodCast || fishingGameState.hasHookedFish, fishingMechanics.hookPosition);
-            }
-            if (typeof fishingGameUi.showBiteIndicator === 'function') {
-                fishingGameUi.showBiteIndicator(fishingGameState.hasHookedFish && !fishingGameState.isReeling);
-            }
-        }
-        // Refresh basket UI after loading state
-        if (typeof fishingBasketUi !== 'undefined' && typeof fishingBasket !== 'undefined' && typeof fishingBasketUi.renderBasket === 'function') {
-            fishingBasketUi.renderBasket(fishingBasket.getBasketContentsForDisplay(fishingBasketUi.currentFilters));
-        }
-         if (typeof fishingBasketUi !== 'undefined' && typeof fishingBasket !== 'undefined' && typeof fishingBasketUi.updateBasketCountDisplay === 'function') {
-            fishingBasketUi.updateBasketCountDisplay(fishingBasket.getTotalItemCount());
         }
     }
 
@@ -135,34 +92,23 @@ function updateFishingGameLoop() {
     }
     // console.log("Fishing game loop running...");
     
-    // Convert ms to seconds for physics/movement calculations
-    const deltaTimeInSeconds = 100 / 1000.0;
+    const deltaTimeMs = 100; // Game loop interval in milliseconds
+    const deltaTimeInSeconds = deltaTimeMs / 1000.0;
 
-    if (typeof fishingMechanics !== 'undefined') {
-        if (typeof fishingMechanics.updateFishMovement === 'function') {
-            fishingMechanics.updateFishMovement(deltaTimeInSeconds);
-        }
-        if (typeof fishingMechanics.checkForBite === 'function') {
-            fishingMechanics.checkForBite(deltaTimeInSeconds);
-        }
-        // fishingMechanics.updateBiteTimer(); // This was from the old system, replaced by checkForBite
+    if (typeof window.fishingMechanics !== 'undefined') {
+        if (typeof window.fishingMechanics.updateFishMovement === 'function') window.fishingMechanics.updateFishMovement(deltaTimeInSeconds);
+        if (typeof window.fishingMechanics.checkForBite === 'function') window.fishingMechanics.checkForBite(deltaTimeInSeconds);
     }
 
+    if (typeof updateTreeFruitGrowth === 'function') updateTreeFruitGrowth(deltaTimeMs);
+    if (typeof manageRockSpawnsAndRespawns === 'function') manageRockSpawnsAndRespawns(deltaTimeMs);
 
-    // Call other modularized mechanics
-    const deltaTimeMs = 100;
-    if (typeof updateTreeFruitGrowth === 'function') {
-        updateTreeFruitGrowth(deltaTimeMs);
+    // Assuming wateringCanMechanics is an object on window if it exists
+    if (typeof window.wateringCanMechanics !== 'undefined' && typeof window.wateringCanMechanics.updateWateringCanDragAction === 'function') {
+        window.wateringCanMechanics.updateWateringCanDragAction();
     }
-    if (typeof manageRockSpawnsAndRespawns === 'function') {
-        manageRockSpawnsAndRespawns(deltaTimeMs);
-    }
-    if (typeof wateringCanMechanics !== 'undefined' && typeof wateringCanMechanics.updateWateringCanDragAction === 'function') {
-        // This function might need deltaTimeMs if it involves timed actions
-        wateringCanMechanics.updateWateringCanDragAction();
-    }
-    if (typeof skyMechanics !== 'undefined' && typeof skyMechanics.updateBirdMovementAndSpawns === 'function') {
-        skyMechanics.updateBirdMovementAndSpawns(deltaTimeInSeconds);
+    if (typeof window.skyMechanics !== 'undefined' && typeof window.skyMechanics.updateBirdMovementAndSpawns === 'function') {
+        window.skyMechanics.updateBirdMovementAndSpawns(deltaTimeInSeconds);
     }
 }
 
@@ -170,7 +116,6 @@ function updateFishingGameLoop() {
 function handleFishingKeyPress(event) {
     if (currentMiniGame !== SCREENS.FISHING_GAME || document.querySelector('.custom-modal-overlay[style*="display: flex"]')) return;
     
-    // Prevent space action if any major fishing game modal is open or a tool is selected
     const isModalOpen = document.getElementById('fishing-basket-modal')?.style.display === 'flex' ||
                         document.getElementById('fishing-rod-upgrade-modal')?.style.display === 'flex' ||
                         document.getElementById('fishing-bait-select-modal')?.style.display === 'flex' ||
@@ -178,26 +123,19 @@ function handleFishingKeyPress(event) {
                         document.getElementById('watering-can-upgrade-modal')?.style.display === 'flex';
 
     if (isModalOpen) return;
-    if (typeof fishingUi !== 'undefined' && fishingUi.isToolSelected && fishingUi.isToolSelected()) return; // Check if a tool like pickaxe is active
+    // Assuming fishingUi.isToolSelected is a global function or on a global object
+    if (typeof fishingUi !== 'undefined' && typeof fishingUi.isToolSelected === 'function' && fishingUi.isToolSelected()) return;
 
     if (event.code === 'Space') {
         event.preventDefault();
-        if (fishingGameState.isReeling) {
-            // Already reeling, space might do nothing or speed it up in future
-            return;
-        }
-        if (fishingGameState.hasHookedFish) { // A fish is on the line, reel it in!
-            if (typeof fishingMechanics !== 'undefined' && typeof fishingMechanics.reelRod === 'function') {
-                fishingMechanics.reelRod();
-            }
-        } else if (fishingGameState.isRodCast) { // Rod is cast, but no bite yet, reel it back
-            if (typeof fishingMechanics !== 'undefined' && typeof fishingMechanics.reelRod === 'function') {
-                fishingMechanics.reelRod(); // reelRod now handles empty hook retrieval
-            }
-        } else { // Rod is not cast, cast it
-            if (typeof fishingMechanics !== 'undefined' && typeof fishingMechanics.castRod === 'function') {
-                fishingMechanics.castRod();
-            }
+        if (fishingGameState.isReeling) return;
+
+        if (fishingGameState.hasHookedFish) {
+            if (typeof window.fishingMechanics !== 'undefined' && typeof window.fishingMechanics.reelRod === 'function') window.fishingMechanics.reelRod();
+        } else if (fishingGameState.isRodCast) {
+            if (typeof window.fishingMechanics !== 'undefined' && typeof window.fishingMechanics.reelRod === 'function') window.fishingMechanics.reelRod();
+        } else {
+            if (typeof window.fishingMechanics !== 'undefined' && typeof window.fishingMechanics.castRod === 'function') window.fishingMechanics.castRod();
         }
     }
 }

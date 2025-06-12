@@ -45,7 +45,7 @@ const fishingGameUi = { // Renamed to avoid conflict if an old fishingGameUi exi
             fishEl.style.left = `${fish.x}px`;
             fishEl.style.top = `${fish.y}px`;
             // Placeholder image, actual image could depend on fish.rarity or type
-            fishEl.style.backgroundImage = `url('${fish.imagePath || 'gui/fishing_game/fish.png'}')`; // Fallback to fish.png
+            fishEl.style.backgroundImage = `url('${fish.imagePath || 'gui/fishing_game/fish-back.png'}')`; // Fallback to fish-back.png
             // Add class for rarity if needed: fishEl.className = `fish-card-in-sea fish-rarity-${fish.rarity}`;
         });
 

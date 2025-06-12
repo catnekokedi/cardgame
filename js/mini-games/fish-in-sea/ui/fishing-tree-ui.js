@@ -50,7 +50,16 @@ const fishingTreeUi = {
                     // Consider adding a visible progress bar element if needed.
                     // slotDiv.textContent = `${Math.floor(slot.maturation || 0)}%`;
                 } else if (slot.state === "revealed") {
-                    slotDiv.style.backgroundImage = `url('gui/fishing_game/fish-back.png')`; // Placeholder
+                    // Ensure slot.card and slot.card.imagePath exist
+                    if (slot.card && slot.card.imagePath) {
+                        slotDiv.style.backgroundImage = `url('${slot.card.imagePath}')`;
+                        // Add a class for general revealed card styling if needed, distinct from specific rarity image
+                        slotDiv.classList.add('revealed-collectible');
+                    } else {
+                        // Fallback if card data or imagePath is missing for a revealed card
+                        slotDiv.style.backgroundImage = `url('gui/fishing_game/fish-back.png')`; // Generic fallback
+                        console.warn("Revealed tree card missing cardData or imagePath, using fallback.", slot);
+                    }
                     slotDiv.onclick = () => {
                         if (typeof collectCardFromTree === 'function') {
                             collectCardFromTree(index);
