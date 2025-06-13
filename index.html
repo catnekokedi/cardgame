@@ -539,73 +539,76 @@
 
   </div> 
 
-  <script src="js/core/config.js" defer></script>
-  <script src="js/core/state.js" defer></script>
-  <script src="js/core/utils.js" defer></script>
-  <script src="js/core/time-rewards.js" defer></script> 
-  
-  <script src="js/data/card-definitions.js" defer></script>
-  <script src="js/data/card-rarity-definitions.js" defer></script>
-  <script src="js/data/summon-ticket-definitions.js" defer></script>
-  
-  <script src="js/core/rarity-grade-manager.js" defer></script>
-  <script src="js/core/summon-ticket-manager.js" defer></script>
-  <script src="js/core/card-utils.js" defer></script>
-  <script src="js/core/saveload.js" defer></script>
+  <!-- DATA DEFINITIONS FIRST -->
+<script src="js/data/card-definitions.js"></script>
+<script src="js/data/card-rarity-definitions.js"></script>
+<script src="js/data/summon-ticket-definitions.js"></script>
+<!-- ADD ANY OTHER RAW DATA FILES HERE -->
 
-  <script src="js/ui/components/filters.js" defer></script>
-  <script src="js/ui/components/cardDetailModal.js" defer></script>
-  <script src="js/ui/components/transitions.js" defer></script>
-  <script src="js/ui/components/global-item-display.js" defer></script>
-  
-  <script src="js/ui/screens/achievements.js" defer></script>
-  <script src="js/ui/screens/collection.js" defer></script>
-  <script src="js/ui/screens/duplicates.js" defer></script>
-  <script src="js/ui/screens/gallery.js" defer></script>
-  <script src="js/ui/screens/packOpening.js" defer></script>
-  <script src="js/ui/screens/packSelection.js" defer></script>
-  <script src="js/ui/screens/rarityOddsScreen.js" defer></script>
-  <script src="js/ui/screens/stats.js" defer></script>
-  
-  <script src="js/mini-games/summongame.js" defer></script> 
-  <script src="js/mini-games/anvilgame.js" defer></script>
-  <script src="js/mini-games/offergame.js" defer></script>
-  <script src="js/mini-games/predictiongame.js" defer></script>
-  <script src="js/mini-games/highorlowgame.js" defer></script>
-  <script src="js/mini-games/silhouettegame.js" defer></script>
-  
-  <!-- Fish in Sea Scripts -->
-  <script src="js/mini-games/fish-in-sea/fish-in-sea-config.js" defer></script>
-  <script src="js/mini-games/fish-in-sea/fish-in-sea-state.js" defer></script>
-  <script src="js/mini-games/fish-in-sea/watering-can.js" defer></script>
-  <script src="js/mini-games/fish-in-sea/tree-mechanics.js" defer></script>
-  <script src="js/mini-games/fish-in-sea/rock-mechanics.js" defer></script>
-  <script src="js/mini-games/fish-in-sea/fish-in-sea-mechanics.js" defer></script>
-  <!-- New Fishing UI Modules -->
-  <script src="js/mini-games/fish-in-sea/ui/fishing-tree-ui.js" defer></script>
-  <script src="js/mini-games/fish-in-sea/ui/fishing-watering-can-ui.js" defer></script>
-  <script src="js/mini-games/fish-in-sea/ui/fishing-rocks-ui.js" defer></script>
-  <!-- Main Fishing UI Orchestrator (after specific UI modules) -->
-  <script src="js/mini-games/fish-in-sea/ui/fishing-ui.js" defer></script>
-  <!-- Fishing Modal UI Logic -->
-  <script src="js/mini-games/fish-in-sea/ui/fishing-basket-modal.js" defer></script>
-  <script src="js/mini-games/fish-in-sea/ui/fishing-rod-modal.js" defer></script>
-  <script src="js/mini-games/fish-in-sea/ui/fishing-bait-modal.js" defer></script>
-  <script src="js/mini-games/fish-in-sea/ui/fishing-shop-modal.js" defer></script>
-  <!-- Main Fishing Game Logic -->
-  <script src="js/mini-games/fish-in-sea/fish-in-sea-main.js" defer></script>
-  <!-- End Fish in Sea Scripts -->
-  
-  <script src="js/idle-exhibition/ie-economic-balance.js" defer></script>
-  <script src="js/idle-exhibition/ie-config.js" defer></script>
-  <script src="js/idle-exhibition/ie-state.js" defer></script>
-  <script src="js/idle-exhibition/ie-ui.js" defer></script>
-  <script src="js/idle-exhibition/ie-main.js" defer></script>
+<!-- CORE STATE & UTILITIES -->
+<script src="js/core/state.js"></script>
+<script src="js/core/utils.js"></script> <!-- If you have one -->
+<script src="js/core/rarity-grade-manager.js"></script>
+<script src="js/core/card-utils.js"></script>
+<script src="js/core/summon-ticket-manager.js"></script>
+<script src="js/core/time-rewards.js"></script> <!-- If you have one -->
 
-  <script src="js/ui/miniGamesHost.js" defer></script>
-  <script src="js/audio/audio-manager.js" defer></script>
-  
-  <script src="js/core/main.js" defer></script> 
+<!-- UI COMPONENTS (Global or Independent) -->
+<script src="js/ui/components/cardDetailModal.js"></script>
+<script src="js/ui/components/filters.js"></script>
+<script src="js/ui/components/global-item-display.js"></script>
+<script src="js/ui/components/transitions.js"></script>
+
+<!-- FISHING MINI-GAME (Order within this block is important) -->
+<script src="js/mini-games/fish-in-sea/fish-in-sea-state.js"></script>
+<script src="js/mini-games/fish-in-sea/ui/fishing-ui.js"></script>
+<script src="js/mini-games/fish-in-sea/fishing-basket.js"></script>
+<script src="js/mini-games/fish-in-sea/ui/fishing-basket-ui.js"></script>
+<script src="js/mini-games/fish-in-sea/ui/fishing-tree-ui.js"></script> <!-- tree-mechanics needs this -->
+<script src="js/mini-games/fish-in-sea/tree-mechanics.js"></script>
+<script src="js/mini-games/fish-in-sea/ui/fishing-rocks-ui.js"></script> <!-- rock-mechanics needs this -->
+<script src="js/mini-games/fish-in-sea/rock-mechanics.js"></script>
+<script src="js/mini-games/fish-in-sea/watering-can.js"></script> <!-- Often interacts with tree/tree-ui -->
+<script src="js/mini-games/fish-in-sea/fish-in-sea-mechanics.js"></script>
+<!-- Bird System for Fishing Game -->
+<script src="js/mini-games/fish-in-sea/bird-mechanics.js"></script>
+<script src="js/mini-games/fish-in-sea/ui/bird-ui.js"></script>
+<!-- Main orchestrator for Fishing Game -->
+<script src="js/mini-games/fish-in-sea/fish-in-sea-main.js"></script>
+
+<!-- OTHER MINI-GAMES (Anvil, Summon, etc.) -->
+<script src="js/mini-games/anvilgame.js"></script>
+<script src="js/mini-games/summongame.js"></script>
+<!-- ADD OTHER MINI-GAME JS FILES HERE -->
+<script src="js/mini-games/highorlowgame.js"></script>
+<script src="js/mini-games/offergame.js"></script>
+<script src="js/mini-games/predictiongame.js"></script>
+<script src="js/mini-games/silhouettegame.js"></script>
+
+<!-- IDLE EXHIBITION (if it has multiple files, order them) -->
+<script src="js/idle-exhibition/ie-config.js"></script>
+<script src="js/idle-exhibition/ie-state.js"></script>
+<script src="js/idle-exhibition/ie-economic-balance.js"></script>
+<script src="js/idle-exhibition/ie-ui.js"></script>
+<script src="js/idle-exhibition/ie-main.js"></script>
+
+<!-- MAIN UI SCREENS & MANAGERS -->
+<script src="js/ui/screens/achievements.js"></script>
+<script src="js/ui/screens/collection.js"></script>
+<script src="js/ui/screens/duplicates.js"></script>
+<script src="js/ui/screens/gallery.js"></script>
+<script src="js/ui/screens/packOpening.js"></script>
+<script src="js/ui/screens/packSelection.js"></script>
+<script src="js/ui/screens/rarityOddsScreen.js"></script>
+<script src="js/ui/screens/stats.js"></script>
+<script src="js/ui/miniGamesHost.js"></script> <!-- Manages loading mini-games -->
+
+<!-- AUDIO MANAGER -->
+<script src="js/audio/audio-manager.js"></script>
+
+<!-- CORE SAVE/LOAD & MAIN INITIALIZATION (Usually last or very late) -->
+<script src="js/core/saveload.js"></script>
+<script src="js/core/main.js"></script>
 
 </body>
 </html>
