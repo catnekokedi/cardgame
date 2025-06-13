@@ -145,6 +145,7 @@
          <div id="card-detail-pack-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('pack'); playSound('sfx_modal_close.mp3'); }">
             <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
                 <div class="detail-image-container-frameless">
+                    {/* The .card class and rarity class will be added here by JS for showCardDetail */}
                     <div id="detail-image-pack-wrapper" class="card">
                         <img id="detail-image-pack" class="detail-image" onclick="closeDetail('pack'); playSound('sfx_modal_close.mp3');">
                     </div>
@@ -183,6 +184,7 @@
         <div id="card-detail-collection-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('collection'); playSound('sfx_modal_close.mp3'); }">
             <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
                 <div class="detail-image-container-frameless">
+                    {/* The .card class and rarity class will be added here by JS for showCardDetail */}
                     <div id="detail-image-collection-wrapper" class="card">
                         <img id="detail-image-collection" class="detail-image" onclick="closeDetail('collection'); playSound('sfx_modal_close.mp3');">
                     </div>
@@ -225,6 +227,7 @@
          <div id="card-detail-gallery-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('gallery'); playSound('sfx_modal_close.mp3'); }">
             <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
                  <div class="detail-image-container-frameless">
+                    {/* The .card class and rarity class will be added here by JS for showCardDetail */}
                     <div id="detail-image-gallery-wrapper" class="card">
                         <img id="detail-image-gallery" class="detail-image" onclick="closeDetail('gallery'); playSound('sfx_modal_close.mp3');">
                     </div>
@@ -243,6 +246,7 @@
         <div id="card-detail-offer-opponent-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('offer-opponent'); playSound('sfx_modal_close.mp3'); }">
             <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
                 <div class="detail-image-container-frameless">
+                     {/* The .card class and rarity class will be added here by JS for showCardDetail */}
                     <div id="detail-image-offer-opponent-wrapper" class="card">
                         <img id="detail-image-offer-opponent" class="detail-image" onclick="closeDetail('offer-opponent'); playSound('sfx_modal_close.mp3');">
                     </div>
@@ -257,6 +261,7 @@
         <div id="card-detail-anvil-modal" class="card-detail-modal" onclick="if(event.target === this) { closeDetail('anvil'); playSound('sfx_modal_close.mp3'); }">
             <div class="card-detail-modal-content-frameless" onclick="event.stopPropagation();">
                 <div class="detail-image-container-frameless">
+                    {/* The .card class and rarity class will be added here by JS for showCardDetail */}
                     <div id="detail-image-anvil-wrapper" class="card">
                          <img id="detail-image-anvil" class="detail-image" onclick="closeDetail('anvil'); playSound('sfx_modal_close.mp3');">
                     </div>
@@ -503,9 +508,12 @@
                     <div class="fishing-basket-controls">
                         <label for="fishing-basket-rarity-filter">Filter by Rarity:</label>
                         <select id="fishing-basket-rarity-filter">
+                            {/* Options will be populated by JS */}
                         </select>
+                        {/* Add more filters or sort options here if needed */}
                     </div>
                     <div id="basket-cards-container" class="fishing-basket-grid-container">
+                        {/* Basket items will be rendered here by JS */}
                     </div>
                     <div class="fishing-basket-bulk-actions">
                         <button id="fishing-basket-sell-all" class="game-button game-button-danger">Sell All Unlocked</button>
@@ -522,6 +530,7 @@
                 </div>
                 <div class="fishing-game-modal-scrollable-content fishing-basket-detail-scrollable">
                     <div class="detail-image-container-frameless" id="fishing-basket-detail-image-container">
+                    {/* The .card class and rarity class will be added here by JS for showCardDetail */}
                     <div id="detail-image-fishingbasket-wrapper" class="card">
                         <img id="detail-image-fishingbasket" class="detail-image">
                     </div>

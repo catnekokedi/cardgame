@@ -204,56 +204,73 @@ function grantRockRewards(rockDef) {
         }
     }
 
-    if (generatedCardData && generatedCardData.type === 'collectible_card' && generatedCardData.set) {
-        // This is a collectible card, send to pack opening screen
-        console.log("Rock dropped collectible card, preparing for pack opening:", generatedCardData);
-        const isNew = !collection[generatedCardData.set]?.[generatedCardData.id] || collection[generatedCardData.set][generatedCardData.id].count === 0;
-        const formattedCardObject = {
+    // Reverting: All items from rocks go directly to basket and use local display
+    if (generatedCardData) {
+        const cardDataForBasket = {
+            id: generatedCardData.id,
             set: generatedCardData.set,
-            cardId: generatedCardData.id,
-            rarityKey: generatedCardData.rarity, // Assuming 'rarity' in rock card is 'rarityKey'
-            grade: generatedCardData.grade || getFixedGradeAndPrice(generatedCardData.set, generatedCardData.id)?.grade || 'S',
-            price: generatedCardData.price || getFixedGradeAndPrice(generatedCardData.set, generatedCardData.id)?.price || 0,
-            revealed: false,
-            isNew: isNew,
-            packIndex: 0
+            name: generatedCardData.name,
+            rarity: generatedCardData.rarityKey || generatedCardData.rarity,
+            rarityKey: generatedCardData.rarityKey || generatedCardData.rarity,
+            price: generatedCardData.price,
+            grade: generatedCardData.grade,
+            imagePath: generatedCardData.imagePath || getCardImagePath(generatedCardData.set, generatedCardData.id),
+            type: generatedCardData.type, // 'collectible_card' or 'mineral'
+            source: generatedCardData.source || 'mining'
         };
 
-        fishingRewardPackSource = [formattedCardObject];
-        isOpeningFishingReward = true;
-
-        if (typeof showScreen === 'function') {
-            showScreen(SCREENS.PACK_SELECTION);
-        } else {
-            console.error("showScreen function is undefined! Cannot transition to pack opening for rock reward.");
-            // Fallback: Add directly to basket
-            if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
-                window.fishingBasket.addCardToBasket(generatedCardData, 1); // Use original generatedCardData for basket
-            }
-        }
-    } else if (generatedCardData) {
-        // This is another type of item (e.g., fallback mineral), add directly to basket
-        console.log("Rock dropped non-collectible item (e.g., mineral), adding to basket:", generatedCardData);
+        console.log("Rock dropped item, adding to basket:", cardDataForBasket);
         if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
-            window.fishingBasket.addCardToBasket(generatedCardData, 1);
+            window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
+
+            // Show temporary display
+            const displayData = {
+                type: cardDataForBasket.type === 'collectible_card' ? 'card' : cardDataForBasket.type,
+                details: cardDataForBasket,
+                set: cardDataForBasket.set,
+                id: cardDataForBasket.id,
+                cardId: cardDataForBasket.id,
+                name: cardDataForBasket.name,
+                rarityKey: cardDataForBasket.rarityKey,
+                grade: cardDataForBasket.grade,
+                imagePath: cardDataForBasket.imagePath
+            };
+
+            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
+                window.fishingUi.showCaughtItemDisplay(displayData);
+            } else if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+                const previewItem = {
+                    type: displayData.type === 'mineral' ? 'material' : 'card', // Adjust for showCatchPreview
+                    details: displayData.details
+                };
+                window.fishingUi.showCatchPreview(previewItem);
+            } else if (typeof showTemporaryCollectedItem === 'function') {
+                showTemporaryCollectedItem(displayData);
+            }
+
         } else {
             console.warn("fishingBasket.addCardToBasket function not found. Item from rock not added to basket.");
         }
     } else {
-         // No card/item was generated (e.g. if all conditions failed in the generation logic)
         console.log("No specific item generated from rock break (neither collectible nor fallback).");
     }
-
 
     // Ticket chance remains, handled independently of the card/mineral drop
     if (Math.random() < rockDef.ticketChance) {
         const ticketType = "common_summon_ticket"; // Placeholder, could also be biased by rockDef.rarity
-        console.log(`Granted Summon Ticket: ${ticketType}`);
-        if (typeof gainSummonTicket === 'function') {
-            gainSummonTicket(ticketType, 1);
-            if(typeof showCustomModal === 'function') showCustomModal(`Found a ${ticketType.replace(/_/g, ' ')}!`, "success");
+        // console.log(`Granted Summon Ticket: ${ticketType}`); // Original log
+        if (typeof addSummonTickets === 'function') {
+            const ticketRarityKey = ticketType.replace('_summon_ticket',''); // e.g., "common"
+            addSummonTickets(ticketRarityKey, 1);
+            if(typeof showCustomModal === 'function') {
+                // Construct a more user-friendly name if possible
+                const rarityInfo = typeof getRarityTierInfo === 'function' ? getRarityTierInfo(ticketRarityKey) : null;
+                const ticketDisplayName = rarityInfo ? `${rarityInfo.name} Summon Ticket` : ticketType.replace(/_/g, ' ');
+                showCustomModal(`Found a ${ticketDisplayName}!`, "success");
+            }
+            console.log(`Granted Summon Ticket: ${ticketRarityKey} (originally ${ticketType})`);
         } else {
-            console.warn("gainSummonTicket function not found. Ticket not granted.");
+            console.warn("addSummonTickets function not found. Ticket not granted.");
         }
     }
 }

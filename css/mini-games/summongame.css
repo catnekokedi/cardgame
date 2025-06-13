@@ -1,261 +1,87 @@
+/* css/mini-games/summongame.css */
 
-/* css/mini-games/summongame.css  */
+/* Styles for the Summon Game Screen */
 
-/* Styles below apply to elements *within* the gameContentEl provided by miniGamesHost.js */
+/* General layout styles for summon game (if not already in main style.css or template) */
+/* #summon-game-screen { ... } */
+/* .summon-panel { ... } */
+/* .summon-control-group { ... } */
+/* .summon-ticket-balance-item { ... } */
 
-#summon-config-row {
-    display: flex;
-    flex-direction: row; 
-    justify-content: center; 
-    align-items: center;
-    gap: 20px; 
-    width: 100%;
-    max-width: 700px; 
-    padding: 10px 12px; 
-    background-color: rgba(255, 255, 255, 0.7); 
-    border-radius: 8px;
-    box-shadow: var(--elevation-dp1); 
-    border: 1px solid rgba(0,0,0,0.05); 
-    margin-left: auto; 
-    margin-right: auto; 
-    margin-bottom: 15px; 
-    flex-shrink: 0; 
-}
-
-.summon-main-content-area {
-    display: flex;
-    flex-direction: row; 
-    align-items: stretch; 
-    gap: 20px; 
-    width: 100%;
-    max-width: 900px; 
-    margin-left: auto; /* Center this area if its max-width is reached */
-    margin-right: auto; /* Center this area if its max-width is reached */
-    margin-bottom: 15px; 
-    flex-grow: 1; 
-    min-height: 0; 
-}
-
-.summon-panel { 
-    background-color: rgba(255, 255, 255, 0.8); 
-    padding: 15px; 
-    border-radius: 10px; 
-    box-shadow: var(--elevation-dp2); 
-    border: 1px solid rgba(0,0,0,0.08); 
-    display: flex;
-    flex-direction: column;
-    width: 100%; /* Will be overridden by flex:1 below */
-    box-sizing: border-box;
-    flex-grow: 0; 
-    flex-shrink: 0; 
-    max-height: 320px; 
-}
-
-#summon-ticket-balances {
-    flex: 1; /* Changed from 1.5 to allow equal sharing with pack display */
-    min-height: 0; 
-}
-
-#summon-pack-display-area {
-    flex: 1; /* Ensure it takes equal space with ticket balances */
-    align-items: center; 
-    justify-content: center;
-    gap: 10px; 
-}
-
-.summon-tickets-title {
-    font-size: 1.1rem; 
-    color: #3A3B3C; 
-    margin: 0 0 10px 0; 
-    text-align: center;
-    font-family: var(--button-font); 
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-    padding-bottom: 8px;
-    flex-shrink: 0;
-}
-.summon-tickets-title .ticket-icon-title {
-    font-size: 1.2em; 
-    margin-right: 8px; 
-}
-
-#summon-ticket-list-items {
-    column-count: 2; 
-    column-gap: 20px; 
-    overflow-y: auto;
-    flex-grow: 1; 
-    padding: 0 5px; 
-    min-height: 0; 
-    max-height: calc(320px - 60px); 
-}
-
-.summon-ticket-balance-item {
-    font-size: 0.85rem; 
-    margin-bottom: 6px; 
-    padding: 6px 4px; 
-    border-bottom: 1px solid rgba(0,0,0,0.05); 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center;
-}
-.ticket-rarity-info { display:flex; align-items:center; gap: 6px; } 
-
-.summon-ticket-balance-item .ticket-dot {
-    /* width: 12px; height: 12px; border-radius:50%; */ /* Removed original dot styling */
-    font-size: 1.1em; /* Control icon size */
-    line-height: 1;
-    text-align: center;
-    min-width: 14px; /* Ensure some space for the icon */
-    display: inline-block;
-}
-
-/* New icon styles using ::before */
-.summon-ticket-balance-item .ticket-dot.base::before { content: '●'; color: var(--base-color); }
-.summon-ticket-balance-item .ticket-dot.rare::before { content: '◆'; color: var(--rare-color); }
-.summon-ticket-balance-item .ticket-dot.foil::before { content: '■'; color: var(--foil-color); }
-.summon-ticket-balance-item .ticket-dot.holo::before { content: '✶'; color: var(--holo-color); }
-.summon-ticket-balance-item .ticket-dot.star::before { content: '★'; color: var(--star-color); }
-.summon-ticket-balance-item .ticket-dot.rainy::before { content: '〰'; color: var(--rainy-color-1); font-weight:bold; }
-.summon-ticket-balance-item .ticket-dot.gold::before { content: '◉'; color: var(--gold-color); }
-.summon-ticket-balance-item .ticket-dot.shiny::before { content: '✧'; color: var(--shiny-color); font-weight:bold;}
-
-
-.summon-ticket-balance-item span[class^="rarity-text-"] { 
-    font-weight: 500;
-    color: #3A3B3C; 
-}
-/* Ensure rarity colors are applied to text if needed */
-/* These might be redundant if text color is handled by the rarityKey class directly on the span */
-.rarity-text-base { color: var(--base-color) !important; }
-.rarity-text-rare { color: var(--rare-color) !important; }
-.rarity-text-foil { color: var(--foil-color) !important; }
-.rarity-text-holo { color: var(--holo-color) !important; }
-.rarity-text-star { color: var(--star-color) !important; }
-.rarity-text-rainy { color: var(--rainy-color-1) !important; }
-.rarity-text-gold { color: var(--gold-color) !important; }
-.rarity-text-shiny { color: var(--shiny-color) !important; }
-
-
-.summon-ticket-balance-item .ticket-count {
-    color: #3A3B3C; 
-    min-width: 30px; 
-    text-align: right; 
-}
-
-#summon-config-row .summon-control-group {
-    display: flex; 
-    flex-direction: row; 
-    align-items: center; 
-    gap: 8px; 
-    width: auto; 
-}
-#summon-config-row .summon-control-group label {
-    font-size: 0.8rem; 
-    color: #444; 
-    margin-bottom: 0; 
-}
-#summon-config-row select,
-#summon-config-row input[type="number"] {
-    width: auto; 
-    min-width: 120px; 
-    max-width: 200px; 
-    padding: 7px 9px; 
-    background-color: #fff; 
-    color: #333; 
-    border-radius: 4px; 
-    border: 1px solid #ccc; 
-    font-size: 0.85rem; 
-}
-#summon-config-row input[type="number"] {
-    max-width: 100px; 
-}
-
+/* Styling for the main summon pack image and its container */
 #summon-pack-slot {
-    width: 150px; 
-    height: 225px; 
-    background-color: rgba(220, 230, 240, 0.6); 
-    border: 2px dashed rgba(58, 59, 60, 0.4); 
-    padding: 6px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    overflow: hidden; 
-    flex-shrink: 0; 
-}
-#summon-pack-image { 
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    display: block; 
-    border-radius: 4px; 
+    /* border: 2px solid transparent; */ /* Base border */
+    transition: transform 0.2s ease-out, border-color 0.3s ease, box-shadow 0.3s ease;
+    padding: 10px;
+    border-radius: 10px; /* Rounded corners for the slot itself */
+    background-color: rgba(255, 255, 255, 0.1); /* Slight background for the slot */
+    display: inline-block; /* To make it wrap the image size + padding */
 }
 
-#summon-pack-slot.active {
-    border-color: var(--material-primary); 
-    box-shadow: 0 0 8px var(--material-primary), 0 0 15px var(--material-primary-variant); 
-    transform: scale(1.03);
-}
 #summon-pack-slot.active:hover {
-    border-color: var(--material-primary-variant);
-    box-shadow: 0 0 12px var(--material-primary), 0 0 25px var(--material-primary-variant); 
-    transform: scale(1.08); 
+    transform: scale(1.03);
+    box-shadow: 0 0 15px var(--holo-color); /* Example hover glow */
 }
 
-#summon-pack-status-text {
-    color: #444; 
-    font-size: 0.8rem; 
-    flex-shrink: 0;
+#summon-pack-image {
+    max-width: 180px; /* Max width for the pack art */
+    height: auto;   /* Maintain aspect ratio */
+    display: block; /* Remove extra space below image */
+    margin: 0 auto; /* Center if slot is wider */
+    transition: opacity 0.3s ease, filter 0.3s ease;
+    border-radius: 8px;
 }
 
-/* The main description paragraph at the bottom */
-.mini-game-main-content > p.text-center.mt-4.text-sm { 
-    color: #555; 
-    font-size: 0.75rem; 
-    line-height: 1.4;
-    margin-top: 10px; 
-    max-width: 700px; 
-    align-self: center; 
-    flex-shrink: 0;
+/* Styles for unavailable summon pack */
+#summon-pack-slot.summon-pack-unavailable {
+    /* Optionally change border or background of the slot itself */
+    /* border-color: #777; */
 }
 
+/* Temporarily commented out for debugging Step 16 */
+/*
+#summon-pack-slot.summon-pack-unavailable #summon-pack-image {
+    opacity: 0.6;
+    filter: grayscale(80%) saturate(50%) brightness(0.9);
+}
+*/
 
-@media (max-width: 768px) { 
-     .summon-main-content-area {
-        flex-direction: column; 
-        align-items: center; 
-    }
-    #summon-ticket-balances, #summon-pack-display-area {
-        max-width: 450px; 
-        width: 100%;
-        max-height: 250px; 
-    }
-     #summon-ticket-list-items {
-        column-count: 1; 
-        max-height: 180px; 
-    }
+/* The JS already sets cursor: not-allowed on packSlotEl if !canSummon */
+
+/* Optional: Style the status text differently when unavailable - JS already does this */
+/* #summon-pack-slot.summon-pack-unavailable + #summon-pack-status-text { ... } */
+
+
+/* Styling for ticket dots (if not already globally styled) */
+.ticket-dot {
+    display: inline-block;
+    width: 10px; /* Slightly larger dots */
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+    border: 1px solid rgba(0,0,0,0.2); /* Subtle border for definition */
+}
+.ticket-dot.base { background-color: var(--base-color, #B0BEC5); }
+.ticket-dot.rare { background-color: var(--rare-color, #42A5F5); }
+.ticket-dot.foil { background-color: var(--foil-color, #CD7F32); }
+.ticket-dot.holo { background-color: var(--holo-color, #FFEE58); }
+.ticket-dot.star { background-color: var(--star-color, #FFA726); }
+.ticket-dot.rainy { background-color: var(--rainy-color-1, #64B5F6); }
+.ticket-dot.gold { background-color: var(--gold-color, #FFCA28); }
+.ticket-dot.shiny { background-color: var(--shiny-color, #E0E0E0);
+    /* Add a subtle border that implies shininess for the dot */
+    border: 1px solid var(--holo-color, #FFEE58);
+    box-shadow: 0 0 3px var(--shiny-color, #E0E0E0);
 }
 
-@media (max-width: 480px) { 
-    #summon-config-row {
-        flex-direction: column; 
-        align-items: stretch; 
-    }
-    #summon-config-row .summon-control-group {
-        width: 100%; 
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    #summon-config-row .summon-control-group label {
-        margin-bottom: 4px;
-    }
-    #summon-config-row select,
-    #summon-config-row input[type="number"] {
-        width: 100%;
-        max-width: none;
-    }
-    #summon-ticket-balances, #summon-pack-display-area {
-        max-height: 200px; 
-    }
-    #summon-ticket-list-items {
-        max-height: 130px; 
-    }
+/* Ensure rarity text next to dots is legible */
+.summon-ticket-balance-item .ticket-rarity-info .rarity-text-shiny {
+    /* If --shiny-color is very light, it might need shadow for its text */
+     text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+}
+.summon-ticket-balance-item .ticket-rarity-info .rarity-text-star,
+.summon-ticket-balance-item .ticket-rarity-info .rarity-text-gold,
+.summon-ticket-balance-item .ticket-rarity-info .rarity-text-holo {
+     text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
 }

@@ -165,7 +165,67 @@ function collectCardFromTree(slotIndex) {
     if (slot && slot.state === "revealed" && slot.card) {
         const collectedCardDetails = slot.card; // This is the object with set, id, rarity, price, type
 
-        // Check if the collected item is a 'collectible_card' to send to pack opening
+        // Reverting: All items from tree go directly to basket and use local display
+        const cardDataForBasket = {
+            // Use properties from collectedCardDetails, ensure they match basket expectations
+            id: collectedCardDetails.id || collectedCardDetails.type || `fruit_slot_${slotIndex}`,
+            set: collectedCardDetails.set || (collectedCardDetails.type === 'collectible_card' ? 'unknown_set' : 'fish_in_sea_fruit'),
+            name: collectedCardDetails.name || `${collectedCardDetails.type ? (collectedCardDetails.type.charAt(0).toUpperCase() + collectedCardDetails.type.slice(1)) : 'Mystic'} Item`,
+            rarity: collectedCardDetails.rarityKey || collectedCardDetails.rarity || 'common', // Ensure basket gets 'rarity' or 'rarityKey'
+            rarityKey: collectedCardDetails.rarityKey || collectedCardDetails.rarity || 'common',
+            price: collectedCardDetails.price || (collectedCardDetails.type === 'collectible_card' ? 0 : 15),
+            grade: collectedCardDetails.grade || (collectedCardDetails.type === 'collectible_card' ? 'S' : null),
+            imagePath: collectedCardDetails.imagePath || getCardImagePath(collectedCardDetails.set, collectedCardDetails.id) || `gui/fishing_game/${collectedCardDetails.type || 'fruit_placeholder'}.png`,
+            source: 'tree',
+            type: collectedCardDetails.type || (collectedCardDetails.set ? 'card' : 'fruit_card') // Provide a type for basket filtering
+        };
+
+        console.log(`Collecting item from slot ${slotIndex} directly to basket:`, cardDataForBasket);
+
+        if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+            window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
+
+            // Show temporary display
+            // Ensure cardDataForDisplay has the right properties for showCaughtItemDisplay or showCatchPreview
+            const displayData = {
+                type: cardDataForBasket.type === 'collectible_card' ? 'card' : cardDataForBasket.type, // for showCatchPreview
+                details: cardDataForBasket, // for showCatchPreview (if it expects details sub-object)
+                // for showCaughtItemDisplay (direct properties)
+                set: cardDataForBasket.set,
+                id: cardDataForBasket.id, // or cardId if showCaughtItemDisplay expects that
+                cardId: cardDataForBasket.id,
+                name: cardDataForBasket.name,
+                rarityKey: cardDataForBasket.rarityKey,
+                grade: cardDataForBasket.grade,
+                imagePath: cardDataForBasket.imagePath
+            };
+
+            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
+                 window.fishingUi.showCaughtItemDisplay(displayData);
+            } else if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+                // showCatchPreview expects { type: 'card'/'ticket', details: {set, cardId, rarityKey, grade, name} }
+                // or { type: 'material', details: {name, imagePath} }
+                // Adapt displayData if necessary or ensure cardDataForBasket is suitable
+                const previewItem = {
+                    type: displayData.type === 'fruit_card' || displayData.type === 'collectible_card' ? 'card' : displayData.type, // map to 'card' if it's a card-like fruit
+                    details: {
+                        set: displayData.set,
+                        cardId: displayData.cardId,
+                        rarityKey: displayData.rarityKey,
+                        grade: displayData.grade,
+                        name: displayData.name,
+                        imagePath: displayData.imagePath // if showCatchPreview uses this for non-cards
+                    }
+                };
+                window.fishingUi.showCatchPreview(previewItem);
+            } else if (typeof showTemporaryCollectedItem === 'function') {
+                showTemporaryCollectedItem(displayData); // Fallback
+            }
+
+        } else {
+            console.warn("fishingBasket.addCardToBasket function not found. Card not added to basket.");
+        }
+        /* Removed pack opening logic for tree items
         if (collectedCardDetails.type === 'collectible_card' && collectedCardDetails.set && collectedCardDetails.id) {
             const isNew = !collection[collectedCardDetails.set]?.[collectedCardDetails.id] || collection[collectedCardDetails.set][collectedCardDetails.id].count === 0;
             const formattedCardObject = {
@@ -232,11 +292,13 @@ function collectCardFromTree(slotIndex) {
         if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.renderTreeSlots === 'function') {
             fishingTreeUi.renderTreeSlots(getTreeSlotsData());
         }
-        console.log(`Slot ${slotIndex} cleared after collecting ${cardData.name}.`);
-        // Return the collected card data (original card object from slot, not necessarily cardData for basket)
-        return { ...card }; // Return a copy of what was in the slot
+        // Use collectedCardDetails for the name, as cardData might not be defined in all paths if generic fruit was collected directly.
+        console.log(`Slot ${slotIndex} cleared after collecting ${collectedCardDetails.name || 'item'}.`);
+        // Return the collected card details
+        return { ...collectedCardDetails };
     } else {
-        console.log(`No revealed card to collect in slot ${slotIndex}. Current state:`, card ? card.state : 'empty');
+        // Use 'slot' here to check its state
+        console.log(`No revealed card to collect in slot ${slotIndex}. Current state: ${slot ? slot.state : 'empty'}`);
         return null;
     }
 }

@@ -214,15 +214,20 @@
 
 
 #fishing-ui-panel-right {
-    display: flex; flex-direction: column; align-items: center; justify-content: flex-start; 
-    padding: 6px; gap: 6px; 
+    display: flex;
+    flex-direction: row; /* CHANGED to row */
+    align-items: center;
+    justify-content: flex-start; /* Or center/flex-end depending on desired alignment within panel */
+    padding: 6px;
+    gap: 8px; /* Adjusted gap for horizontal layout */
     position: absolute; 
-    right: 8px; top: 8px; 
+    right: 8px;
+    bottom: 8px; /* CHANGED from top: 8px */
     background-color: rgba(255, 255, 255, 0.65); 
     border-radius: 4px; 
     box-shadow: 0 1px 2.5px rgba(0,0,0,0.1); 
     z-index: 20;
-    max-height: calc(100% - 16px); 
+    /* max-height is likely not needed for a horizontal panel, or could be adjusted to max-width if it wraps */
 }
 .fishing-ui-icon {
     width: 30px; height: 30px; border: 1.5px solid #a8a8a8; 
@@ -637,4 +642,28 @@
   25% { transform: translateY(3px) scale(0.95); }
   50% { transform: translateY(-2px) scale(1.05); }
   75% { transform: translateY(2px) scale(0.9); }
+}
+
+/* New Local Fishing Reward Popup Styles */
+#fishing-reward-popup {
+    /* Base styles are set inline in JS: display, position, transform, z-index, padding, background-color, border-radius, text-align, box-shadow, flex-direction, align-items */
+    border: 3px solid #5D9CEC; /* Example watery blue border */
+    background: linear-gradient(135deg, #4A90E2, #78B9F2); /* Example gradient */
+    /* flex-direction: column; /* This is already set inline */
+    /* align-items: center; /* This is already set inline */
+    cursor: pointer; /* To indicate it's clickable to dismiss */
+}
+
+#fishing-reward-popup-img {
+    /* Base styles are set inline in JS: max-width, max-height, border-radius, margin-bottom, border */
+    /* border: 2px solid #FFF; */ /* This is already set inline */
+    object-fit: contain; /* Ensure the image content is not distorted */
+}
+
+#fishing-reward-popup-text {
+    /* Base styles are set inline in JS: color, font-size, margin, font-family, font-weight */
+    /* font-family: 'Arial', sans-serif; */ /* Example font, already set to Roboto inline */
+    /* font-weight: bold; */ /* Already set inline */
+    margin-top: 10px; /* Ensure there's a margin if not overridden by inline */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* Add a little shadow for better readability */
 }

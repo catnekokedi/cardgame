@@ -21,9 +21,9 @@ window.fishingMechanics = {
         fishingGameState.hasHookedFish = false; // New state for when fish is on the hook but not yet reeled
         fishingGameState.biteTimer = 0;
 
-        if (typeof fishingGameUi !== 'undefined' && typeof fishingGameUi.renderFish === 'function') {
-            fishingGameUi.renderFish(this.activeFish);
-        }
+        // if (typeof fishingGameUi !== 'undefined' && typeof fishingGameUi.renderFish === 'function') {
+        //     fishingGameUi.renderFish(this.activeFish);
+        // } // Removed as per task
         console.log("Fishing mechanics initialized with fish.");
     },
 
@@ -89,9 +89,9 @@ window.fishingMechanics = {
             fishChanged = true;
         });
 
-        if (fishChanged && typeof fishingGameUi !== 'undefined' && typeof fishingGameUi.renderFish === 'function') {
-            fishingGameUi.renderFish(this.activeFish);
-        }
+        // if (fishChanged && typeof fishingGameUi !== 'undefined' && typeof fishingGameUi.renderFish === 'function') {
+        //     fishingGameUi.renderFish(this.activeFish);
+        // } // Removed as per task
     },
 
     castRod() {
@@ -102,8 +102,8 @@ window.fishingMechanics = {
         // this.hookPosition = { x: ..., y: ... };
 
         if (typeof playSound === 'function') playSound('sfx_fishing_cast.mp3');
-        if (typeof window.fishingGameUi !== 'undefined' && typeof window.fishingGameUi.updateCatState === 'function') {
-            window.fishingGameUi.updateCatState('casting');
+        if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.setCatState === 'function') {
+            window.fishingUi.setCatState('casting');
         }
 
         fishingGameState.isRodCast = true;
@@ -112,11 +112,12 @@ window.fishingMechanics = {
         fishingGameState.hasHookedFish = false;
         // Note: fishingGameState.bobberPosition is not strictly needed by fishingGameUi if hookPosition is passed directly
 
-        if (typeof window.fishingGameUi !== 'undefined') {
-            if (typeof window.fishingGameUi.showLineAndFloat === 'function') window.fishingGameUi.showLineAndFloat(this.hookPosition);
-            if (typeof window.fishingGameUi.animateBobberBite === 'function') window.fishingGameUi.animateBobberBite(false); // Ensure not biting
+        if (typeof window.fishingUi !== 'undefined') {
+            if (window.fishingUi.showBobber) window.fishingUi.showBobber(); // showBobber now handles its own position
+            if (window.fishingUi.drawRodLine) window.fishingUi.drawRodLine();
+            if (window.fishingUi.resetBobberAnimation) window.fishingUi.resetBobberAnimation(); // Ensure not biting
         } else {
-            console.warn("fishingGameUi not available for castRod visuals.");
+            console.warn("window.fishingUi not available for castRod visuals.");
         }
         // Replace fishingUi.updateStatusText and fishingUi.hideCatchPreview if those are to be self-contained
         if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateStatusText === 'function') fishingUi.updateStatusText("Waiting for a bite...");
@@ -125,8 +126,8 @@ window.fishingMechanics = {
 
         setTimeout(() => {
             if (fishingGameState.isRodCast && !fishingGameState.isReeling && !fishingGameState.hasHookedFish) {
-                if (typeof window.fishingGameUi !== 'undefined' && typeof window.fishingGameUi.updateCatState === 'function') {
-                    window.fishingGameUi.updateCatState('idle');
+                if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.setCatState === 'function') {
+                    window.fishingUi.setCatState('idle');
                 }
             }
         }, 700); // Assuming cat animation duration
@@ -153,11 +154,11 @@ window.fishingMechanics = {
                     fishingGameState.biteTimer = this.biteTimerDuration;
 
                     if (typeof playSound === 'function') playSound('sfx_fishing_bite.mp3');
-                    if (typeof window.fishingGameUi !== 'undefined') {
-                        if (typeof window.fishingGameUi.updateCatState === 'function') window.fishingGameUi.updateCatState('idle'); // Cat is alert
-                        if (typeof window.fishingGameUi.animateBobberBite === 'function') window.fishingGameUi.animateBobberBite(true);
+                    if (typeof window.fishingUi !== 'undefined') {
+                        if (window.fishingUi.setCatState) window.fishingUi.setCatState('idle'); // Cat is alert
+                        if (window.fishingUi.animateBobberBite) window.fishingUi.animateBobberBite();
                     } else {
-                        console.warn("fishingGameUi not available for bite indication.");
+                        console.warn("window.fishingUi not available for bite indication.");
                     }
                      // Replace fishingUi.updateStatusText if that is to be self-contained
                     if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateStatusText === 'function') fishingUi.updateStatusText("BITE! Reel it in!");
@@ -191,11 +192,12 @@ window.fishingMechanics = {
             escapedFish.speedX *= 3; // Increase speed
             escapedFish.speedY *= 3;
         }
+        this.spawnFish(fishingGameState.bitingFishId); // Replace the escaped fish
 
         this.resetFishingState(); // Resets most states
         // Specific UI updates for escape
-        if (typeof window.fishingGameUi !== 'undefined' && typeof window.fishingGameUi.animateBobberBite === 'function') {
-            window.fishingGameUi.animateBobberBite(false);
+        if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.resetBobberAnimation === 'function') {
+            window.fishingUi.resetBobberAnimation();
         }
          // Replace fishingUi.showTemporaryResultMessage if that is to be self-contained
         if (typeof fishingUi !== 'undefined' && typeof fishingUi.showTemporaryResultMessage === 'function') fishingUi.showTemporaryResultMessage("Too slow! The fish got away.");
@@ -213,11 +215,11 @@ window.fishingMechanics = {
 
         fishingGameState.isReeling = true;
 
-        if (typeof window.fishingGameUi !== 'undefined') {
-            if (typeof window.fishingGameUi.animateBobberBite === 'function') window.fishingGameUi.animateBobberBite(false);
-            if (typeof window.fishingGameUi.updateCatState === 'function') window.fishingGameUi.updateCatState('reeling');
+        if (typeof window.fishingUi !== 'undefined') {
+            if (window.fishingUi.resetBobberAnimation) window.fishingUi.resetBobberAnimation();
+            if (window.fishingUi.setCatState) window.fishingUi.setCatState('reeling');
         } else {
-            console.warn("fishingGameUi not available for reelRod visuals.");
+            console.warn("window.fishingUi not available for reelRod visuals.");
         }
          // Replace fishingUi.updateStatusText if that is to be self-contained
         if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateStatusText === 'function') fishingUi.updateStatusText("Reeling it in...");
@@ -242,40 +244,41 @@ window.fishingMechanics = {
                         packIndex: 0 // Single card pack
                     };
 
-                    // Access global variables directly
-                    fishingRewardPackSource = [formattedCard];
-                    isOpeningFishingReward = true;
+                    // Reinstate direct basket addition and temporary display for cards
+                    const cardDataForBasket = {
+                        id: caughtItem.details.cardId,
+                        set: caughtItem.details.set,
+                        name: caughtItem.name || `${caughtItem.details.set} C${caughtItem.details.cardId}`,
+                        rarity: caughtItem.details.rarityKey, // Using 'rarity' as some basket functions might expect this key
+                        rarityKey: caughtItem.details.rarityKey, // Also include rarityKey for consistency
+                        price: caughtItem.details.price,
+                        grade: caughtItem.details.grade,
+                        imagePath: getCardImagePath(caughtItem.details.set, caughtItem.details.cardId), // Ensure getCardImagePath is available
+                        type: 'card', // Generic type for basket filtering
+                        source: 'fishing' // Original source
+                    };
 
-                    if (typeof showScreen === 'function') {
-                        showScreen(SCREENS.PACK_SELECTION);
+                    if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+                        window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
                     } else {
-                        console.error("showScreen function is undefined! Cannot transition to pack opening.");
-                        // Fallback: Add directly to basket if pack opening fails
-                        const cardDataForBasket = {
-                            id: caughtItem.details.cardId,
-                            set: caughtItem.details.set,
-                            name: caughtItem.name || `${caughtItem.details.set} C${caughtItem.details.cardId}`, // Original name logic
-                            rarity: caughtItem.details.rarityKey, // Ensure this matches basket expectations (rarityKey vs rarity)
-                            price: caughtItem.details.price,
-                            grade: caughtItem.details.grade, // Add grade
-                            imagePath: `img/cards/${caughtItem.details.set}/${caughtItem.details.cardId}.png`,
-                            type: 'card', // Generic type 'card' for basket
-                            source: 'fishing_fallback'
-                        };
-                        if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
-                            window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
-                        }
-                         if (typeof showTemporaryCollectedItem === 'function') showTemporaryCollectedItem(caughtItem.details);
+                        console.error("fishingBasket.addCardToBasket function is undefined!");
                     }
-                    // DO NOT add to basket here, it will be done after pack opening screen
-                    // DO NOT call showTemporaryCollectedItem here for cards
+
+                    // Reinstate temporary display
+                    // Prefer showCatchPreview from fishingUi if available for local display
+                    if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+                        // fishingUi.showCatchPreview needs the full caughtItem structure {type, details}
+                        window.fishingUi.showCatchPreview(caughtItem);
+                    } else if (typeof showTemporaryCollectedItem === 'function') {
+                        showTemporaryCollectedItem(caughtItem.details); // Fallback to older global display
+                    }
 
                 } else if (caughtItem.type === 'ticket') {
-                    // Ticket handling remains the same (added directly, shown temporarily)
-                    if (typeof showTemporaryCollectedItem === 'function') {
+                    // Ticket handling remains the same
+                    if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+                        window.fishingUi.showCatchPreview(caughtItem);
+                    } else if (typeof showTemporaryCollectedItem === 'function') {
                         showTemporaryCollectedItem({ name: caughtItem.details.name, imagePath: getSummonTicketImagePath(caughtItem.details.rarityKey) });
-                    } else if (typeof fishingUi !== 'undefined' && typeof fishingUi.showCatchPreview === 'function'){
-                         fishingUi.showCatchPreview(caughtItem);
                     }
                 }
                 // Common success sounds and spawning new fish
@@ -380,12 +383,13 @@ window.fishingMechanics = {
         fishingGameState.hasHookedFish = false;
         fishingGameState.biteTimer = 0;
 
-        if (typeof window.fishingGameUi !== 'undefined') {
-            if (typeof window.fishingGameUi.hideLineAndFloat === 'function') window.fishingGameUi.hideLineAndFloat();
-            if (typeof window.fishingGameUi.animateBobberBite === 'function') window.fishingGameUi.animateBobberBite(false);
-            if (typeof window.fishingGameUi.updateCatState === 'function') window.fishingGameUi.updateCatState('idle');
+        if (typeof window.fishingUi !== 'undefined') {
+            if (window.fishingUi.hideBobber) window.fishingUi.hideBobber();
+            if (window.fishingUi.hideRodLine) window.fishingUi.hideRodLine();
+            if (window.fishingUi.resetBobberAnimation) window.fishingUi.resetBobberAnimation();
+            if (window.fishingUi.setCatState) window.fishingUi.setCatState('idle');
         } else {
-            console.warn("fishingGameUi not available for resetFishingState visuals.");
+            console.warn("window.fishingUi not available for resetFishingState visuals.");
         }
          // Replace fishingUi.updateStatusText if that is to be self-contained
         if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateStatusText === 'function') fishingUi.updateStatusText();

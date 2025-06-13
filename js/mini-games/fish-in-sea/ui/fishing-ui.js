@@ -53,11 +53,15 @@ const fishingUi = {
                         </div>
                     </div>
                     <div id="fishing-ui-panel-right">
-                        <div id="fishing-basket-icon" class="fishing-ui-icon" title="Open Basket">🧺</div>
+                         място за кошницата
                         <div id="fishing-rod-upgrade-icon" class="fishing-ui-icon" title="Upgrade Rod">🎣</div>
                         <div id="fishing-bait-select-icon" class="fishing-ui-icon" title="Select Bait">🐛</div>
                     </div>
                 </div>
+            </div>
+            <div id="fishing-reward-popup" style="display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3000; padding: 20px; background-color: rgba(0,0,0,0.8); border-radius: 10px; text-align: center; box-shadow: 0 0 15px #fff; flex-direction: column; align-items: center;">
+                <img id="fishing-reward-popup-img" src="" alt="Reward" style="max-width: 150px; max-height: 210px; border-radius: 5px; margin-bottom: 10px; border: 2px solid #FFF;">
+                <p id="fishing-reward-popup-text" style="color: white; font-size: 1em; margin: 0; font-family: 'Roboto', sans-serif; font-weight: bold;"></p>
             </div>
         `;
         actualContentArea.insertAdjacentHTML('beforeend', this.getModalHTML());
@@ -385,6 +389,16 @@ const fishingUi = {
     createToolIcons(uiPanelRight) {
         if (!uiPanelRight) return;
 
+        // Add Basket Icon dynamically
+        fishingGameState.ui.basketIcon = document.createElement('div');
+        fishingGameState.ui.basketIcon.id = 'fishing-tool-basket'; // New consistent ID
+        fishingGameState.ui.basketIcon.className = 'fishing-ui-icon';
+        fishingGameState.ui.basketIcon.innerHTML = '🧺';
+        fishingGameState.ui.basketIcon.title = 'Open Basket';
+        // Prepend basket icon so it appears first, or append if order doesn't matter / CSS handles it
+        uiPanelRight.prepend(fishingGameState.ui.basketIcon);
+
+
         fishingGameState.ui.wateringCanIcon = document.createElement('div');
         fishingGameState.ui.wateringCanIcon.id = 'fishing-tool-watering-can';
         fishingGameState.ui.wateringCanIcon.className = 'fishing-ui-icon';
@@ -532,7 +546,40 @@ const fishingUi = {
             });
         }
 
-        if (fishingWateringCanUi && fishingWateringCanUi.addDragListenersToIcon) {
+        // Watering Can Modal Toggle (moved from fishing-watering-can-ui.js)
+        if (ui.wateringCanIcon) {
+            ui.wateringCanIcon.addEventListener('click', () => {
+                // Prevent drag logic from interfering if it's just a click
+                if (fishingGameState.wateringCan && fishingGameState.wateringCan.isIconBeingDragged) return;
+
+                const modal = document.getElementById('watering-can-upgrade-modal');
+                if (modal) {
+                    const isHidden = modal.style.display === 'none' || modal.style.display === '';
+                    modal.style.display = isHidden ? 'flex' : 'none';
+                    if (isHidden && typeof playSound === 'function') playSound('sfx_modal_open.mp3');
+                    else if (!isHidden && typeof playSound === 'function') playSound('sfx_modal_close.mp3');
+
+                    if (isHidden && typeof updateWateringCanUI === 'function') {
+                        updateWateringCanUI(); // This function is from watering-can.js
+                    }
+                }
+            });
+        }
+        // Ensure the modal's own close button works
+        const closeModalButton = document.getElementById('close-watering-can-modal');
+        if (closeModalButton && !closeModalButton.dataset.listenerAttached) {
+            closeModalButton.addEventListener('click', () => {
+                const modal = document.getElementById('watering-can-upgrade-modal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    if (typeof playSound === 'function') playSound('sfx_modal_close.mp3');
+                }
+            });
+            closeModalButton.dataset.listenerAttached = 'true';
+        }
+
+
+        if (fishingWateringCanUi && fishingWateringCanUi.addDragListenersToIcon) { // This should now only contain drag listeners
             fishingWateringCanUi.addDragListenersToIcon(); 
         }
         
@@ -761,5 +808,47 @@ const fishingUi = {
         if (typeof fishingWateringCanUi !== 'undefined' && fishingWateringCanUi.updateIcon) {
            fishingWateringCanUi.updateIcon();
        }
+    },
+
+    showCaughtItemDisplay(cardData) {
+        const popup = document.getElementById('fishing-reward-popup');
+        const imgEl = document.getElementById('fishing-reward-popup-img');
+        const textEl = document.getElementById('fishing-reward-popup-text');
+
+        if (!popup || !imgEl || !textEl) {
+            console.error("Fishing reward popup elements not found.");
+            // Fallback to simpler alert if UI elements are missing
+            if (typeof showCustomAlert === 'function') {
+                showCustomAlert(`You found: ${cardData.name || `${cardData.set} C${cardData.cardId}`}!`, null, 3500);
+            }
+            return;
+        }
+
+        imgEl.src = cardData.imagePath || getCardImagePath(cardData.set, cardData.cardId || cardData.id);
+        imgEl.alt = cardData.name || `${cardData.set} C${cardData.cardId || cardData.id}`;
+
+        // Attempt to get a nicer display name if rarity is available
+        let displayName = cardData.name || `${cardData.set} C${cardData.cardId || cardData.id}`;
+        if (cardData.rarityKey && typeof getRarityTierInfo === 'function') {
+            const rarityInfo = getRarityTierInfo(cardData.rarityKey);
+            if (rarityInfo && rarityInfo.name) {
+                displayName = `${rarityInfo.name} ${displayName}`;
+            }
+        }
+        textEl.textContent = `You found: ${displayName}!`;
+
+        popup.style.display = 'flex';
+
+        // Auto-hide after a delay
+        setTimeout(() => {
+            popup.style.display = 'none';
+        }, 3500);
+
+        // Hide on click
+        popup.onclick = () => {
+            popup.style.display = 'none';
+            // Important: remove the onclick to prevent issues if it's shown again quickly
+            popup.onclick = null;
+        };
     }
 };
