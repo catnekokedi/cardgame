@@ -539,7 +539,11 @@
 
   </div> 
 
-  <!-- DATA DEFINITIONS FIRST -->
+ <!-- CORE CONFIGURATIONS FIRST -->
+<script src="js/core/config.js"></script> <!-- Defines SCREENS etc. -->
+<script src="js/mini-games/fish-in-sea/fish-in-sea-config.js"></script> <!-- Defines FISHING_CONFIG -->
+
+<!-- DATA DEFINITIONS -->
 <script src="js/data/card-definitions.js"></script>
 <script src="js/data/card-rarity-definitions.js"></script>
 <script src="js/data/summon-ticket-definitions.js"></script>
@@ -560,25 +564,25 @@
 <script src="js/ui/components/transitions.js"></script>
 
 <!-- FISHING MINI-GAME (Order within this block is important) -->
-<script src="js/mini-games/fish-in-sea/fish-in-sea-state.js"></script>
+<script src="js/mini-games/fish-in-sea/fish-in-sea-state.js"></script> <!-- Uses FISHING_CONFIG -->
 <script src="js/mini-games/fish-in-sea/ui/fishing-ui.js"></script>
 <script src="js/mini-games/fish-in-sea/fishing-basket.js"></script>
 <script src="js/mini-games/fish-in-sea/ui/fishing-basket-ui.js"></script>
-<script src="js/mini-games/fish-in-sea/ui/fishing-tree-ui.js"></script> <!-- tree-mechanics needs this -->
+<script src="js/mini-games/fish-in-sea/ui/fishing-tree-ui.js"></script>
 <script src="js/mini-games/fish-in-sea/tree-mechanics.js"></script>
-<script src="js/mini-games/fish-in-sea/ui/fishing-rocks-ui.js"></script> <!-- rock-mechanics needs this -->
+<script src="js/mini-games/fish-in-sea/ui/fishing-rocks-ui.js"></script>
 <script src="js/mini-games/fish-in-sea/rock-mechanics.js"></script>
-<script src="js/mini-games/fish-in-sea/watering-can.js"></script> <!-- Often interacts with tree/tree-ui -->
+<script src="js/mini-games/fish-in-sea/watering-can.js"></script>
 <script src="js/mini-games/fish-in-sea/fish-in-sea-mechanics.js"></script>
 <!-- Bird System for Fishing Game -->
 <script src="js/mini-games/fish-in-sea/bird-mechanics.js"></script>
 <script src="js/mini-games/fish-in-sea/ui/bird-ui.js"></script>
 <!-- Main orchestrator for Fishing Game -->
-<script src="js/mini-games/fish-in-sea/fish-in-sea-main.js"></script>
+<script src="js/mini-games/fish-in-sea/fish-in-sea-main.js"></script> <!-- Uses fishingUi, fishingBasket etc. AND SCREENS -->
 
 <!-- OTHER MINI-GAMES (Anvil, Summon, etc.) -->
-<script src="js/mini-games/anvilgame.js"></script>
-<script src="js/mini-games/summongame.js"></script>
+<script src="js/mini-games/anvilgame.js"></script> <!-- Uses SCREENS -->
+<script src="js/mini-games/summongame.js"></script> <!-- Uses SCREENS -->
 <!-- ADD OTHER MINI-GAME JS FILES HERE -->
 <script src="js/mini-games/highorlowgame.js"></script>
 <script src="js/mini-games/offergame.js"></script>
@@ -587,28 +591,28 @@
 
 <!-- IDLE EXHIBITION (if it has multiple files, order them) -->
 <script src="js/idle-exhibition/ie-config.js"></script>
-<script src="js/idle-exhibition/ie-state.js"></script>
+<script src="js/idle-exhibition/ie-state.js"></script> <!-- Uses SCREENS -->
 <script src="js/idle-exhibition/ie-economic-balance.js"></script>
 <script src="js/idle-exhibition/ie-ui.js"></script>
 <script src="js/idle-exhibition/ie-main.js"></script>
 
 <!-- MAIN UI SCREENS & MANAGERS -->
-<script src="js/ui/screens/achievements.js"></script>
-<script src="js/ui/screens/collection.js"></script>
-<script src="js/ui/screens/duplicates.js"></script>
-<script src="js/ui/screens/gallery.js"></script>
-<script src="js/ui/screens/packOpening.js"></script>
-<script src="js/ui/screens/packSelection.js"></script>
-<script src="js/ui/screens/rarityOddsScreen.js"></script>
-<script src="js/ui/screens/stats.js"></script>
-<script src="js/ui/miniGamesHost.js"></script> <!-- Manages loading mini-games -->
+<script src="js/ui/screens/achievements.js"></script> <!-- Uses SCREENS -->
+<script src="js/ui/screens/collection.js"></script> <!-- Uses SCREENS -->
+<script src="js/ui/screens/duplicates.js"></script> <!-- Uses SCREENS -->
+<script src="js/ui/screens/gallery.js"></script> <!-- Uses SCREENS -->
+<script src="js/ui/screens/packOpening.js"></script> <!-- Uses SCREENS -->
+<script src="js/ui/screens/packSelection.js"></script> <!-- Uses SCREENS -->
+<script src="js/ui/screens/rarityOddsScreen.js"></script> <!-- Uses SCREENS -->
+<script src="js/ui/screens/stats.js"></script> <!-- Uses SCREENS -->
+<script src="js/ui/miniGamesHost.js"></script> <!-- Uses SCREENS, and specific mini-game start functions -->
 
 <!-- AUDIO MANAGER -->
 <script src="js/audio/audio-manager.js"></script>
 
 <!-- CORE SAVE/LOAD & MAIN INITIALIZATION (Usually last or very late) -->
-<script src="js/core/saveload.js"></script>
-<script src="js/core/main.js"></script>
-
+<script src="js/core/saveload.js"></script> <!-- Uses SCREENS, anvilgame, summonTickets, fishingGameState etc. -->
+<script src="js/core/main.js"></script> <!-- Uses SCREENS, saveload, miniGamesHost, etc. -->
+  
 </body>
 </html>
