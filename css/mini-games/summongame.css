@@ -1,6 +1,6 @@
 
-/* css/mini-games/summongame.css (Formerly css/screens/summonGameScreen.css) */
-
+/* css/mini-games/summongame.css  */
+/* current version is good, not change this code */
 /* Styles for #summon-game-screen (as a top-level container) are GONE. */
 /* Styles below apply to elements *within* the gameContentEl provided by miniGamesHost.js */
 
@@ -101,7 +101,7 @@
 .ticket-rarity-info { display:flex; align-items:center; gap: 6px; } 
 
 .summon-ticket-balance-item .ticket-dot {
-    /* width: 12px; height: 12px; border-radius:50%; */ /* Removed original dot styling */
+    /* width: 12px; height: 12px; border-radius:50%; */ 
     font-size: 1.1em; /* Control icon size */
     line-height: 1;
     text-align: center;

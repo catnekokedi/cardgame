@@ -65,6 +65,7 @@
 /* --- Rare Cards --- */
 .card.rare {
     background: linear-gradient(135deg, var(--material-surface-2) 70%, color-mix(in srgb, var(--rare-color) 20%, transparent));
+    overflow: visible; /* Allow pseudo-elements to potentially exceed bounds if needed by effects */
 }
 .card.rare::before {
     border: 3px solid var(--rare-color);
@@ -88,7 +89,8 @@
 
 /* --- Foil Cards --- */
 .card.foil {
-    background: var(--foil-color); 
+    background: var(--foil-color);
+    overflow: visible;
 }
 .card.foil::before {
     border: 3px solid color-mix(in srgb, var(--foil-color) 70%, #fff); 
@@ -116,6 +118,7 @@
 /* --- Holo Cards --- */
 .card.holo {
      background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--holo-color) 30%, var(--material-surface-2)), var(--material-surface-2) 70%);
+     overflow: visible;
 }
 .card.holo::before {
     border: 3px solid transparent; 
@@ -140,6 +143,7 @@
 /* --- Star Cards --- */
 .card.star {
     background: radial-gradient(ellipse at center, color-mix(in srgb, var(--star-color) 25%, var(--material-surface-2)), var(--material-surface-2) 75%);
+    overflow: visible;
 }
 .card.star::before {
     border: 3px solid var(--star-color);
@@ -163,6 +167,7 @@
 /* --- Rainy Cards --- */
 .card.rainy {
     background: linear-gradient(-30deg, var(--rainy-color-1), var(--rainy-color-3), var(--rainy-color-2));
+    overflow: visible;
 }
 .card.rainy::before {
     border: 3px solid color-mix(in srgb, var(--rainy-color-2) 60%, #fff);
@@ -185,6 +190,7 @@
 /* --- Gold Cards --- */
 .card.gold {
     background: radial-gradient(ellipse at center, color-mix(in srgb, var(--gold-color) 50%, #B8860B), #8B4513 90%);
+    overflow: visible;
 }
 .card.gold::before {
     border: 4px solid transparent;

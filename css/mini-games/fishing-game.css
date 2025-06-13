@@ -44,8 +44,8 @@
     overflow: hidden;
     background: linear-gradient(to bottom, 
         #c1e7f7 0%,    /* Light Sky Blue for sky */
-        #e0f2f7 70%,   /* Fading Sky Blue */
-        #98FB98 70.1%, /* Pale Green for grass */
+        #e0f2f7 35%,   /* Fading Sky Blue - Sky ends at 35% */
+        #98FB98 35.1%, /* Pale Green for grass - Grass starts at 35.1% */
         #8FBC8F 100%   /* Dark Sea Green for deeper grass */
     );
     display: flex; /* For positioning children */
@@ -78,25 +78,42 @@
 }
 #fishing-cat-svg { width: 100%; height: 100%; overflow: visible; }
 
-@keyframes catRodIdleAnimation { 
-    0%, 100% { transform: rotate(2deg) translateY(0px); }
-    50% { transform: rotate(-1deg) translateY(-0.5px); }
+/* Updated Animations for the new SVG Cat and Rod */
+/* The pivot point is set in JS as transform-origin on #fishing-rod-group */
+
+@keyframes catRodIdleAnimation {
+    0%, 100% { transform: rotate(5deg); } /* Rod slightly angled up */
+    50% { transform: rotate(0deg); }   /* Slight dip */
 }
-@keyframes catRodCastAnimation { 
-    0% { transform: rotate(2deg); }
-    40% { transform: rotate(-75deg) scaleX(1.05) scaleY(0.95); } 
-    100% { transform: rotate(-35deg) scale(1); } 
+
+@keyframes catRodCastAnimation {
+    0% { transform: rotate(-20deg); } /* Start back */
+    50% { transform: rotate(60deg) scaleX(1.05); } /* Swing forward, slight stretch */
+    100% { transform: rotate(45deg); } /* End position after cast */
 }
-@keyframes catRodReelAnimation { 
-    0% { transform: rotate(-35deg); } 
-    25% { transform: rotate(25deg) scaleY(0.92) translateX(-2px); } 
-    50% { transform: rotate(5deg) scaleY(1.03) translateX(0.5px); }
-    75% { transform: rotate(15deg) scaleY(0.95) translateX(-1px); }
-    100% { transform: rotate(10deg) scale(1); } 
+
+@keyframes catRodReelAnimation {
+    0% { transform: rotate(40deg); } /* Rod angled for reeling */
+    25% { transform: rotate(35deg) translateY(1px); } /* Slight pull/bob */
+    50% { transform: rotate(45deg) translateY(-1px); } /* Slight pull/bob */
+    75% { transform: rotate(38deg); }
+    100% { transform: rotate(40deg); }
 }
-#fishing-rod-group.cat-rod-idle { animation: catRodIdleAnimation 2.8s ease-in-out infinite; }
-#fishing-rod-group.cat-rod-casting { animation: catRodCastAnimation 0.6s ease-out forwards; }
-#fishing-rod-group.cat-rod-reeling { animation: catRodReelAnimation 1s ease-in-out forwards; }
+
+/* Apply animations to the #fishing-rod-group (which includes the cat's arm and the rod) */
+#fishing-rod-group.cat-rod-idle {
+    animation: catRodIdleAnimation 3s ease-in-out infinite;
+    transform: rotate(5deg); /* Default resting state */
+}
+
+#fishing-rod-group.cat-rod-casting {
+    animation: catRodCastAnimation 0.7s ease-out forwards;
+}
+
+#fishing-rod-group.cat-rod-reeling {
+    animation: catRodReelAnimation 0.8s linear infinite; /* Changed to linear infinite for continuous reel */
+    transform: rotate(40deg); /* Default reeling angle */
+}
 
 
 #fishing-rod-line-canvas { 
@@ -163,18 +180,27 @@
     pointer-events: none; 
     z-index: 2; 
 }
-.card-fish { 
-    position: absolute; 
-    width: 30px; 
-    height: 30px; 
-    opacity: 0.5; 
-    animation-name: swim; 
-    animation-timing-function: linear; 
-    animation-iteration-count: infinite; 
-    background-color: white;
-    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); 
-    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-} 
+.card-fish {
+    background-image: url('../../gui/fishing_game/fish-back.png');
+    background-size: contain; /* or cover, depending on desired look */
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 50px; /* Adjust as needed */
+    height: 70px; /* Adjust as needed, maintaining aspect ratio if possible */
+    /* Remove any conflicting background properties or star-specific styles */
+    /* Keep existing animation properties if they are still relevant */
+    position: absolute; /* Ensure it's positioned if not already */
+    opacity: 0.7; /* Example opacity, adjust as needed */
+    animation-name: swim; /* Keep existing animation if relevant */
+    animation-timing-function: linear; /* Keep existing animation if relevant */
+    animation-iteration-count: infinite; /* Keep existing animation if relevant */
+    /* Removed background-color: white; */
+    /* Removed clip-path: polygon(...); */
+    /* Removed box-shadow: ...; or adjust if needed for new visual */
+}
+/* The existing @keyframes swim might need adjustment if the new fish visual behaves differently */
+/* For instance, the scaleX(-1) for direction change might look odd if fish-back.png is not symmetrical. */
+/* For now, keeping the keyframes as is. */
 @keyframes swim { 
     0%   { transform: translateX(-100%) translateY(0px) rotate(0deg) scaleX(1); opacity: 0.4; }
     20%  { transform: translateX(calc(20% + var(--random-x-offset, 0px))) translateY(calc(10px + var(--random-y-offset, 0px))) rotate(10deg) scaleX(1); }
@@ -188,15 +214,20 @@
 
 
 #fishing-ui-panel-right {
-    display: flex; flex-direction: column; align-items: center; justify-content: flex-start; 
-    padding: 6px; gap: 6px; 
+    display: flex;
+    flex-direction: row; /* CHANGED to row */
+    align-items: center;
+    justify-content: flex-start; /* Or center/flex-end depending on desired alignment within panel */
+    padding: 6px;
+    gap: 8px; /* Adjusted gap for horizontal layout */
     position: absolute; 
-    right: 8px; top: 8px; 
+    right: 8px;
+    bottom: 8px; /* CHANGED from top: 8px */
     background-color: rgba(255, 255, 255, 0.65); 
     border-radius: 4px; 
     box-shadow: 0 1px 2.5px rgba(0,0,0,0.1); 
     z-index: 20;
-    max-height: calc(100% - 16px); 
+    /* max-height is likely not needed for a horizontal panel, or could be adjusted to max-width if it wraps */
 }
 .fishing-ui-icon {
     width: 30px; height: 30px; border: 1.5px solid #a8a8a8; 
@@ -209,6 +240,14 @@
 }
 .fishing-ui-icon:hover { background-color: #dadada; transform: scale(1.08); box-shadow: 0 1px 2.5px rgba(0,0,0,0.1); }
 .fishing-ui-icon.selected-tool { background-color: var(--material-primary); color: white; border-color: var(--material-primary-variant); transform: scale(1.08); }
+
+/* Style for any active tool, including pickaxe */
+.fishing-ui-icon.active-tool {
+    background-color: var(--material-accent, #FFC107); /* Default to a bright yellow if accent not defined */
+    color: var(--material-text-primary-dark, #212121); /* Dark text on light accent */
+    border-color: var(--material-accent-dark, #FFA000);
+    box-shadow: 0 0 8px var(--material-accent-light, #FFD54F);
+}
 
 
 .fishing-game-modal-overlay {
@@ -452,4 +491,179 @@
     #fishing-shop-modal .fishing-shop-items-grid-area .card { width: 38px; height: 53px; }
     #fishing-basket-modal .fishing-basket-controls { flex-direction: column; align-items: stretch; }
     #card-detail-fishingbasket-modal .detail-image-container-frameless { max-width: 70vw; }
+}
+
+
+/* === New Styles for Core Fishing Mechanics (Fish Movement, Float, etc.) === */
+
+#fishing-sea-container {
+    position: absolute;
+    /* This container holds the dynamically moving fish.
+       It should be positioned within the conceptual "water area" (right 60% of screen).
+       The actual water background might be on #fishing-water-area or #fish-in-sea-screen itself.
+    */
+    position: absolute;
+    left: 40%; /* Start after the 40% land area */
+    top: 25%;  /* Start below the 25% sky area */
+    width: 60%; /* Take the remaining 60% width */
+    height: 75%; /* Take the remaining 75% height */
+    background-color: rgba(20, 120, 220, 0.1); /* Slight blue tint for visibility if water bg is elsewhere */
+    overflow: hidden;
+    z-index: 2;
+}
+
+.fish-card-in-sea {
+    position: absolute; /* Positioned by JS using left/top */
+    width: 50px; /* Adjust as needed */
+    height: 30px; /* Adjust as needed */
+    background-image: url('../../gui/fishing_game/fish_card_placeholder.png'); /* Placeholder */
+    background-size: contain;
+    background-repeat: no-repeat;
+    /* transition: transform 0.5s linear; /* For smooth rotation if fish changes direction */
+    z-index: 3; /* Above sea background, potentially below float */
+}
+
+#fishing-cat-boat {
+    position: absolute;
+    bottom: 55%; /* Example: On the water surface, adjust based on #fishing-water-area layout */
+    left: 10%;   /* Example: Position on the left side of the water area */
+    width: 120px; /* Adjust based on image */
+    height: 100px; /* Adjust based on image */
+    z-index: 15; /* Above water, sea container, and fish */
+}
+#fishing-cat-boat img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+#fishing-cat-boat.reeling {
+    animation: catReelAnimation 0.5s infinite alternate; /* Simple reeling animation */
+}
+@keyframes catReelAnimation {
+    0% { transform: translateY(0px) rotate(-2deg); }
+    100% { transform: translateY(-2px) rotate(2deg); }
+}
+
+
+#fishing-float {
+    position: absolute; /* Positioned by JS */
+    width: 20px;
+    height: 20px;
+    z-index: 20; /* Should be above fish and water, line might be tricky */
+    display: none; /* Initially hidden */
+}
+#fishing-float img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+#fishing-float.bite {
+    animation: floatBiteAnimation 0.5s infinite;
+}
+@keyframes floatBiteAnimation {
+    0% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(5px) scale(0.9); }
+    100% { transform: translateY(0px) scale(1); }
+}
+
+
+#fishing-line {
+    position: absolute;
+    height: 2px; /* Line thickness */
+    background-color: #333; /* Dark line color */
+    transform-origin: 0 50%; /* Rotate from one end (rod tip) */
+    z-index: 19; /* Below float, above fish/water */
+    display: none; /* Initially hidden */
+    pointer-events: none; /* Line should not interfere with clicks */
+}
+
+/* Styles for NEW self-contained fishing rig elements */
+#fishing-cat-boat {
+    position: absolute;
+    /* Default position, can be overridden by specific game layout CSS */
+    left: 15%; /* Example: Positioned on the left part of the water area */
+    bottom: 58%; /* Example: Positioned near the conceptual water line */
+    width: 100px;
+    height: 80px;
+    z-index: 10; /* Above water, below line/float usually */
+    /* Placeholder styling if no image */
+    background-color: #8B4513; /* Brown for boat */
+    border: 1px solid #5a2d0c;
+}
+#fishing-cat-boat img { /* If an img tag is used inside */
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+/* Cat states for animation/visual change */
+#fishing-cat-boat.cat-idle { /* border-color: green; */ }
+#fishing-cat-boat.cat-casting { /* border-color: blue; animation: catCastAnim 0.5s; */ }
+#fishing-cat-boat.cat-reeling { /* border-color: red; animation: catReelAnim 0.5s; */ }
+
+
+#fishing-line-element { /* This is the new div for the line */
+    position: absolute;
+    height: 2px;
+    background-color: #111; /* Dark line */
+    transform-origin: 0% 50%; /* Rotate from the start of the line (rod tip) */
+    z-index: 19;
+    pointer-events: none;
+    display: none; /* Initially hidden */
+}
+
+#fishing-bobber-element { /* This is the new div for the bobber */
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: #ff4747; /* Red top */
+    border: 1px solid #c00000;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    z-index: 20; /* Above line and water */
+    display: none; /* Initially hidden */
+}
+#fishing-bobber-element::after { /* Bottom white part of bobber */
+    content: '';
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 100%;
+    height: 45%;
+    background-color: #f0f0f0;
+    border-radius: 0 0 6px 6px;
+}
+
+#fishing-bobber-element.bobber-biting {
+    animation: bobberBiteAnimationInternal 0.6s infinite ease-in-out;
+}
+
+@keyframes bobberBiteAnimationInternal {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  25% { transform: translateY(3px) scale(0.95); }
+  50% { transform: translateY(-2px) scale(1.05); }
+  75% { transform: translateY(2px) scale(0.9); }
+}
+
+/* New Local Fishing Reward Popup Styles */
+#fishing-reward-popup {
+    /* Base styles are set inline in JS: display, position, transform, z-index, padding, background-color, border-radius, text-align, box-shadow, flex-direction, align-items */
+    border: 3px solid #5D9CEC; /* Example watery blue border */
+    background: linear-gradient(135deg, #4A90E2, #78B9F2); /* Example gradient */
+    /* flex-direction: column; /* This is already set inline */
+    /* align-items: center; /* This is already set inline */
+    cursor: pointer; /* To indicate it's clickable to dismiss */
+}
+
+#fishing-reward-popup-img {
+    /* Base styles are set inline in JS: max-width, max-height, border-radius, margin-bottom, border */
+    /* border: 2px solid #FFF; */ /* This is already set inline */
+    object-fit: contain; /* Ensure the image content is not distorted */
+}
+
+#fishing-reward-popup-text {
+    /* Base styles are set inline in JS: color, font-size, margin, font-family, font-weight */
+    /* font-family: 'Arial', sans-serif; */ /* Example font, already set to Roboto inline */
+    /* font-weight: bold; */ /* Already set inline */
+    margin-top: 10px; /* Ensure there's a margin if not overridden by inline */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* Add a little shadow for better readability */
 }

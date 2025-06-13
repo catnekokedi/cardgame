@@ -1,0 +1,46 @@
+/* css/components/global-item-display.css */
+
+#temp-collected-item-display {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8); /* Initial state for entry animation */
+    z-index: 2500; /* Very high to be on top of everything */
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+    pointer-events: none; /* Don't block interactions below when hidden */
+}
+
+#temp-collected-item-display.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+}
+
+#temp-collected-item-display img {
+    width: auto; /* Maintain aspect ratio */
+    height: auto; /* Maintain aspect ratio */
+    max-width: 40vw; /* Max width relative to viewport width */
+    max-height: 70vh; /* Max height relative to viewport height */
+    min-width: 280px; /* Ensure it's reasonably large on smaller viewports if vw is too small */
+    min-height: 392px; /* Approx 280 * 1.4 for aspect ratio */
+    object-fit: contain;
+    border-radius: 10px; /* Consistent with detail modal */
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+#temp-collected-item-display p {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}

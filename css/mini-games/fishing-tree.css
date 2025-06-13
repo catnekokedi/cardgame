@@ -1,137 +1,118 @@
-
-/* css/mini-games/fishing-tree.css */
+/* Styles for the Fishing Tree in Fish in Sea mini-game */
 
 #fishing-tree-container {
-    position: relative; /* Changed from absolute, will be positioned by flex in land-area */
-    width: 130px; 
-    height: 150px; 
-    /* left: 30%; transform: translateX(-50%); /* Centered-ish in land panel */
-    /* bottom: 5%; /* Sits on the grass of land panel */
-    margin-bottom: 10px; /* Space from bottom of land panel */
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
+    position: absolute;
+    /* Centered in the left 40% "land" area, significantly higher */
+    left: calc(28% - 175px); /* Centering 350px tree in left 40% area - MOVED 8% RIGHT */
+    width: 350px;
+    top: 8%;  /* Moved up significantly - MOVED 7% HIGHER */
+    height: 70%; /* Adjusted height */
+    max-height: 550px; /* Adjusted max-height */
+    background-image: url('../../gui/fishing_game/tree_placeholder.png');
+    background-color: transparent; /* CHANGED to transparent */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 5px; /* CHANGED to 5px */
+    padding: 10px 15px 20px 15px; /* CHANGED padding */
+    box-sizing: border-box;
     align-items: center;
+    justify-items: center;
 }
-#fishing-tree-container.drag-over-active { 
-    outline: 3px dashed var(--material-primary);
-    outline-offset: 2px;
-    border-radius: 5px;
-}
+/* REMOVED #fishing-tree-container::before rule */
 
-#fishing-tree-svg {
-    width: 100%;
-    height: 100%;
-    max-height: 100%; 
-    display: block;
-    margin-bottom: 2px; 
-}
-
-#fishing-tree-moisture-bar-container {
-    width: 80px; 
-    height: 8px; 
-    background-color: #A0522D; 
-    border: 1px solid #5C3317;
-    border-radius: 3px; 
-    overflow: hidden;
-    margin-top: 0;
-    position: relative;
-    z-index: 3;
-    box-shadow: inset 0 0.5px 0.5px rgba(0,0,0,0.1);
-}
-#fishing-tree-moisture-bar {
-    height: 100%;
-    width: 0%;
-    background-color: #5F9EA0; 
-    border-radius: 2px; 
-    transition: width 0.25s ease-out;
+.tree-card-slot {
+    width: 40px; /* Smaller slots */
+    height: 56px; /* Smaller slots (7:5 ratio) */
+    border: 1px solid #7a3d0f;
+    background-color: rgba(0,0,0,0.2);
     display: flex;
-    align-items: center;
+    border-radius: 50%; /* Circular display */
+    overflow: hidden; /* Clip image to circle */
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.2);
     justify-content: center;
-    font-size: 0.55rem; 
-    color: white;
-    text-shadow: 0 0 1px rgba(0,0,0,0.6);
-    line-height: 1;
-    overflow: hidden;
-    white-space: nowrap;
-}
-
-#fishing-fruit-slots-container {
-    position: absolute;
-    width: 100%; 
-    height: 60%; 
-    top: 10%;    
-    left: 0;
-    pointer-events: none; 
-}
-.fishing-fruit-slot {
-    position: absolute;
-    width: 20px;  
-    height: 28px; 
-    background-color: transparent;
-    border-radius: 3px;
+    align-items: center;
+    /* margin: 5px; /* Removed, using grid gap now */
+    background-size: cover; /* Changed to cover to fill slot better */
+    background-repeat: no-repeat;
+    background-position: center;
     cursor: pointer;
-    pointer-events: all; 
-    transform-style: preserve-3d;
-}
-.fishing-fruit-slot .fruit-card-container-inner {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
-.fishing-fruit-slot svg,
-.fishing-fruit-slot img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border-radius: 2px;
+.tree-card-slot.closed,
+.tree-card-slot.empty { /* Empty slots also use tree-back */
+    background-image: url('../../gui/fishing_game/tree-back.png');
+    background-color: rgba(0,0,0,0.3); /* Darken the back a bit */
+}
+
+.tree-card-slot.maturing {
+    background-image: url('../../gui/fishing_game/tree-back.png'); /* Still show back when maturing */
+    position: relative; /* For progress bar pseudo-element */
+}
+.tree-card-slot.maturing::after {
+    content: '';
     position: absolute;
-    top: 0; left: 0;
-    backface-visibility: hidden;
-    transition: opacity 0.25s, transform 0.25s;
+    bottom: 2px; /* Position progress bar at the bottom of the slot */
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 8px); /* Slightly inset */
+    height: 6px; /* Height of progress bar */
+    background-color: rgba(0,0,0,0.3); /* Bar background */
+    border-radius: 3px;
+    overflow: hidden; /* Clip progress fill */
 }
-.fishing-fruit-slot .fruit-card-back {
-    transform: rotateY(0deg);
-}
-.fishing-fruit-slot .fruit-card-front {
-    transform: rotateY(180deg);
-}
-.fishing-fruit-slot.growing-visible .fruit-card-back {
-    opacity: 1;
-    transform: scale(1);
-}
-.fishing-fruit-slot.mature .fruit-card-container-inner {
-    transform: rotateY(180deg);
-}
-.fishing-fruit-slot.empty-slot .fruit-card-back,
-.fishing-fruit-slot.empty-slot .fruit-card-front {
-    display: none;
+.tree-card-slot.maturing::before { /* The actual progress fill */
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 4px; /* Align with parent's inset */
+    width: var(--maturation-progress, 0%); /* Controlled by JS via style property */
+    height: 6px;
+    background-color: #4CAF50; /* Green progress */
+    border-radius: 3px;
+    z-index: 1; /* Above the ::after bar background */
+    transition: width 0.2s linear;
 }
 
-.fishing-fruit-slot[data-slot-index="0"] { top: 15%; left: 48%; transform: translateX(-50%) scale(0.9); } 
-.fishing-fruit-slot[data-slot-index="1"] { top: 30%; left: 25%; transform: scale(0.9); } 
-.fishing-fruit-slot[data-slot-index="2"] { top: 30%; left: 65%; transform: scale(0.9); } 
-.fishing-fruit-slot[data-slot-index="3"] { top: 55%; left: 15%; transform: scale(0.9); } 
-.fishing-fruit-slot[data-slot-index="4"] { top: 55%; left: 75%; transform: scale(0.9); } 
-.fishing-fruit-slot[data-slot-index="5"] { top: 50%; left: 48%; transform: translateX(-50%) scale(0.9); } 
-.fishing-fruit-slot[data-slot-index="6"] { top: 75%; left: 35%; transform: scale(0.9); } 
-.fishing-fruit-slot[data-slot-index="7"] { top: 75%; left: 55%; transform: scale(0.9); } 
-
-
-.fishing-fruit-slot:hover:not(.empty-slot) { transform: scale(1.1) translateZ(4px); } 
-
-@media (max-width: 700px) {
-    #fishing-tree-container { width: 110px; height: 125px; /* bottom: 5%; left: 25%; */ } 
-    #fishing-tree-svg { max-height: 100%; }
-    #fishing-tree-moisture-bar-container { width: 70px; height: 7px; }
-    .fishing-fruit-slot { width: 18px; height: 25px; }
+.tree-card-slot.revealed {
+    /* Background image set by JS to actual card art */
+    border: 1px solid gold; /* Highlight revealed card */
 }
-@media (max-width: 480px) {
-    #fishing-tree-container { width: 90px; height: 100px; /* bottom: 5%; left: 20%; */ } 
-    #fishing-tree-svg { max-height: 100%; }
-    #fishing-tree-moisture-bar-container { width: 60px; height: 6px; }
-    .fishing-fruit-slot { width: 16px; height: 22px;} 
+
+
+#tree-moisture-display {
+    position: absolute;
+    /* Centered below the tree container */
+    left: 20%; /* UPDATED */
+    transform: translateX(-50%); /* ADDED/UPDATED */
+    /* Tree top: 15%, Tree height: 70%. Display is below this. */
+    /* top: calc(15% + 70% + 10px); */ /* Original comment, logic changed below */
+                                 /* The tree container has 40px bottom padding, so this needs to be relative to screen bottom or use calc carefully */
+                                 /* Let's use bottom for simplicity if parent is fish-in-sea-screen */
+    /* If #fish-in-sea-screen is 100% height of viewport (or its container): */
+    /* Bottom of tree container is at 15% (top) + 70% (height) = 85% from top of screen */
+    /* So, if moisture display is 5px below this: */
+    /* top: calc(85% + 5px); */ /* Simpler to calculate if tree container height is percentage based and parent is screen */
+    /* A more robust way might be to adjust based on the tree's bottom padding */
+    /* bottom: calc(100% - (15% + 70% + 30px)); */ /* Approx: 100% - (tree.top + tree.height + tree.padding-bottom(rough estimate for visual clearance)) */
+                                             /* This is complex. Let's simplify: place it a fixed distance from screen bottom, aligned with tree center */
+    /* Simplified: */
+    top: 88%; /* CHANGED from bottom: 5% */
+    background-color: rgba(40, 40, 40, 0.85); /* CHANGED background color */
+    color: white;
+    padding: 5px 10px; /* CHANGED padding */
+    border-radius: 5px;
+    font-size: 0.9em;
+    z-index: 10; /* ENSURED z-index */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
+
+/* Example of how slots might be absolutely positioned on a tree image */
+/*
+.tree-card-slot[data-slot-index="0"] { position: absolute; top: 50px; left: 30px; }
+.tree-card-slot[data-slot-index="1"] { position: absolute; top: 50px; right: 30px; }
+... etc. for 8 slots
+*/

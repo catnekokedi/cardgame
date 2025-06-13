@@ -1,68 +1,157 @@
-
 /* css/mini-games/fishing-rocks.css */
 
+/* Styles for #pickaxe-icon and .pickaxe-active cursor are REMOVED */
+
 #fishing-rocks-container {
-    position: relative; /* Changed from absolute, will be positioned by flex in land-area */
-    /* bottom: 2%; left: 50%; transform: translateX(-50%); /* Centered on land panel */
-    width: 70%; /* Relative width for the group of rocks */
-    max-width: 180px; /* Max width for the group */
-    height: 50px; /* Adjusted height */
-    z-index: 1;
+    position: absolute;
+    bottom: 2%; /* Position at the bottom of the land area */
+    left: 1%;   /* Align with tree container's left */
+    width: 38%; /* Fit within 40% land area */
+    height: auto; /* Auto height based on content, or a fixed small height e.g. 100px */
+    min-height: 100px; /* Ensure some space for rocks */
     display: flex;
-    justify-content: space-around; 
-    align-items: flex-end; 
-    pointer-events: none; 
-    margin-top: 5px; /* Space between tree and rocks if tree is above */
-    margin-bottom: 5px; /* Space from bottom of land panel */
+    justify-content: space-around; /* Distribute rocks horizontally */
+    align-items: flex-end; /* Align rocks to the bottom of this container */
+    padding: 10px 5px 5px 5px; /* Padding, less at bottom */
+    gap: 10px;
+    box-sizing: border-box;
+    /* background-color: rgba(0,0,0,0.05); */
 }
-.fishing-rock-wrapper {
-    display: flex; flex-direction: column;
-    align-items: center; 
-    cursor: pointer; 
-    pointer-events: all; 
-    width: 40px; /* Adjusted for smaller group */
-    height: 40px; 
-}
-.fishing-rock-svg { 
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.15));
-    transition: transform 0.1s, opacity 0.2s, filter 0.15s;
-}
-.fishing-rock-wrapper:hover .fishing-rock-svg:not(.mining-effect):not(.cooldown) {
-    transform: scale(1.08);
-    filter: drop-shadow(1px 1px 4px rgba(0,0,0,0.28)) brightness(1.08);
-}
-.fishing-rock-svg.cooldown { opacity: 0.4; filter: grayscale(70%); cursor: default; }
-.fishing-rock-svg.mining-effect { animation: rockBreakEffectSVG 0.25s ease-out; }
 
-@keyframes rockBreakEffectSVG { 
-    0% { transform: scale(1) rotate(0deg); opacity: 1; }
-    25% { transform: scale(1.1) rotate(-5deg); }
-    50% { transform: scale(0.9) rotate(5deg); opacity: 0.7; }
-    100% { transform: scale(0.5) rotate(0deg); opacity: 0; }
-}
-.rock-name-display { 
-    font-size: 0.45rem; 
-    color: #fff; 
-    text-shadow: 0.5px 0.5px 0.5px #333; 
-    margin-top:1px; 
+.rock-instance {
+    width: 80px;
+    height: 80px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: relative;
+    transition: transform 0.1s ease-out;
+    /* Default cursor will be overridden by .pickaxe-active on parent if pickaxe selected */
     text-align: center;
-    width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.2; /* For text if image fails */
+    font-size: 10px;
+    color: white;
+    word-break: break-word;
+}
+.rock-instance::before { /* For displaying text if image fails */
+    content: attr(data-rock-type); /* Set by JS */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none; /* Hidden by default, shown if no background image */
+}
+.rock-instance:not([style*="background-image"])::before {
+    display: block;
 }
 
-@media (max-width: 700px) {
-    #fishing-rocks-container { width: 75%; height: 45px; } 
-    .fishing-rock-wrapper { width: 35px; height: 35px; }
+
+.rock-instance:not(.rock-empty-slot):not(.rock-respawning):hover {
+    transform: scale(1.05); /* Hover effect only on actual rocks */
+    cursor: pointer; /* Show pointer on hover for clickable rocks */
 }
-@media (max-width: 480px) {
-    #fishing-rocks-container { width: 80%; } 
-    .fishing-rock-wrapper { width: 30px; height: 30px; }
-    .rock-name-display { font-size: 0.38rem; }
+
+
+/* Base images are set in JS, these are fallbacks or can be used if JS doesn't set image */
+.rock-rarity-common { background-image: url('../../gui/fishing_game/rock_common.png'); }
+.rock-rarity-uncommon { background-image: url('../../gui/fishing_game/rock_uncommon.png'); }
+.rock-rarity-rare { background-image: url('../../gui/fishing_game/rock_rare.png'); }
+.rock-rarity-legendary { background-image: url('../../gui/fishing_game/rock_legendary.png'); }
+
+.rock-hp-display {
+    position: absolute;
+    bottom: -20px; /* Adjusted for better visibility below rock */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 3px 6px;
+    font-size: 0.8em;
+    border-radius: 4px;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.rock-respawning {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(51, 51, 51, 0.8);
+    color: #fff;
+    border-radius: 8px; /* Rounded corners for the slot */
+    text-align: center;
+    width: 80px; /* Match rock instance size */
+    height: 80px; /* Match rock instance size */
+    border: 1px dashed #777;
+}
+.rock-respawn-timer-text {
+    font-size: 0.85em;
+    margin-bottom: 6px;
+}
+.rock-respawn-bar-container {
+    width: 70%; /* Slightly smaller bar */
+    height: 12px; /* Thicker bar */
+    background-color: #444; /* Darker background for bar */
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid #555;
+}
+.rock-respawn-bar {
+    height: 100%;
+    background-color: #76c7c0; /* A teal/blue progress color */
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+
+.rock-empty-slot {
+    background-color: rgba(0,0,0,0.1);
+    border: 2px dashed #666;
+    border-radius: 8px;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.7em;
+    color: #555;
+    /* content: "Empty"; /* This won't work directly, use JS to add text or a pseudo-element */
+}
+.rock-empty-slot::before {
+    content: "Next Rock...";
+    opacity: 0.6;
+}
+
+
+.rock-error {
+    background-color: #ff4d4d; /* Brighter red */
+    color: white;
+    text-align: center;
+    font-size: 0.9em;
+    padding: 10px;
+    border-radius: 5px;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Pickaxe cursor logic REMOVED from here, will be part of hover effect on rock itself if desired */
+
+.rock-hover-pickaxe {
+    display: none; /* Hidden by default, shown on rock hover via JS */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 28px; /* Size of the pickaxe emoji */
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 0 5px black;
+    pointer-events: none; /* So it doesn't interfere with clicking the rock itself */
+    z-index: 5; /* Ensure it's above rock texture but below HP bar potentially */
+}
+.rock-hover-pickaxe::before {
+    content: "⛏️"; /* Pickaxe emoji */
 }

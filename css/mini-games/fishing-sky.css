@@ -1,0 +1,44 @@
+/* css/mini-games/fishing-sky.css */
+
+#fishing-sky-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 25%; /* Adjusted height for sky area */
+    background: linear-gradient(to bottom,
+        #c1e7f7 0%,    /* Light Sky Blue for sky */
+        #e0f2f7 100%   /* Fading Sky Blue */
+    );
+    overflow: hidden;
+    z-index: 1;
+}
+
+.bird-in-sky {
+    position: absolute; /* Positioned by JS */
+    width: 40px;  /* Adjust based on bird sprite */
+    height: 30px; /* Adjust based on bird sprite */
+    background-image: url('../../gui/fishing_game/bird_type1.png'); /* Default placeholder */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-color: rgba(100, 100, 100, 0.7); /* Fallback color if image fails */
+    border: 1px solid #333; /* Fallback border */
+    text-align: center;
+    line-height: 30px; /* Match height */
+    font-size: 10px;
+    color: white;
+    cursor: pointer;
+    z-index: 2; /* Above the sky background */
+    transition: opacity 0.3s ease; /* For fade out on click, if desired */
+}
+.bird-in-sky::before { /* Show bird type if image fails */
+    content: attr(data-bird-type); /* Set data-bird-type in JS if needed, or just "Bird" */
+}
+
+/* Example for different bird types if needed */
+/* .bird-in-sky.bird-type2 { background-image: url('../../gui/fishing_game/bird_type2.png'); } */
+
+/* Add a class for when bird is clicked, if visual feedback beyond removal is needed */
+.bird-in-sky.clicked {
+    opacity: 0; /* Example: fade out */
+}

@@ -115,46 +115,116 @@
     justify-content: center;
     font-family: 'Times New Roman', Times, serif; 
 }
-.collection-grid .card::before { z-index: 2; }
-.collection-grid .card::after { z-index: 3;}
+.collection-grid .card::before { z-index: 2; /* Original intent: border or primary effect */ }
+.collection-grid .card::after { z-index: 3; /* Original intent: text symbol overlay */ }
+/* Ensure ::after doesn't fully block ::before if both have backgrounds, adjust display or background properties as needed. */
+/* By default, content: "" is set in global, so these will inherit that unless overridden by specific content below. */
 
 
 .collection-grid .card.base { box-shadow: 0 0 4px color-mix(in srgb, var(--base-color, #B0BEC5) 25%, transparent); }
 .collection-grid .card.base::before { border: 3px solid var(--base-color, #B0BEC5); border-radius: inherit; }
-.collection-grid .card.base::after { content: '●'; font-size: 18px; color: color-mix(in srgb, var(--base-color, #B0BEC5) 50%, transparent); opacity: 0.6; position: absolute; bottom: 5px; right: 7px; text-shadow: 0 0 2px rgba(0,0,0,0.2); }
+/* .collection-grid .card.base::after { content: '●'; font-size: 18px; color: color-mix(in srgb, var(--base-color, #B0BEC5) 50%, transparent); opacity: 0.6; position: absolute; bottom: 5px; right: 7px; text-shadow: 0 0 2px rgba(0,0,0,0.2); } */
+.collection-grid .card::before {
+    z-index: 2;
+    /* Make sure this doesn't have conflicting background if global ::before should show */
+    /* Most collection ::before rules are for borders or added content, so they might be fine */
+}
+.collection-grid .card::after {
+    z-index: 1; /* Lowered z-index to allow global ::after to potentially show through if not fully opaque */
+    /* This pseudo-element was primarily used for text symbols. Now that content is '',
+       we need to ensure its other properties (background, opacity, animation)
+       do not conflict with the main effect from cards-global.css if that's desired.
+    */
+}
+
+/* Example: Holo - global .card.holo::after has the pattern.
+   Collection .card.holo::after had text and an animated gradient.
+   If we want global pattern + collection border animation:
+*/
+
+.collection-grid .card.base { box-shadow: 0 0 4px color-mix(in srgb, var(--base-color, #B0BEC5) 25%, transparent); }
+.collection-grid .card.base::before { border: 3px solid var(--base-color, #B0BEC5); border-radius: inherit; }
+.collection-grid .card.base::after { content: ''; /* Text symbol removed */ /* Other styling removed to ensure it doesn't obscure global effects if any */ }
 
 .collection-grid .card.rare { border: 3px solid transparent; border-image: linear-gradient(145deg, #C0C0C0, #909090, #B0B0B0, #C0C0C0) 1; box-shadow: 0 0 5px color-mix(in srgb, #A9A9A9 35%, transparent); }
-.collection-grid .card.rare::after { content: '♦'; font-size: 28px; font-weight: bold; color: var(--rare-color, #42A5F5); opacity: 0.8; text-shadow: 1px 1px 3px rgba(0,0,0,0.3); position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); }
+.collection-grid .card.rare::after { content: ''; /* Text symbol removed */ /* Ensure this doesn't have a background that hides global .card.rare::after */ }
 
 .collection-grid .card.foil { border: 3px solid transparent; border-image: linear-gradient(145deg, #CD7F32, #8C7853, #B87333, #CD7F32) 1; box-shadow: 0 0 6px color-mix(in srgb, #B87333 35%, transparent); }
+/* Collection .card.foil::before adds a paper texture. This is a collection-specific enhancement and can stay. */
 .collection-grid .card.foil::before { background-image: url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 50 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpattern id='paperTexture' patternUnits='userSpaceOnUse' width='50' height='50'%3E%3Crect width='50' height='50' fill='hsl(30, 20%, 85%)'/%3E%3Crect width='50' height='50' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='50' height='50' fill='url(%23paperTexture)'/%3E%3C/svg%3E"); background-color: rgba(200, 160, 120, 0.08); mix-blend-mode: overlay; opacity: 0.5; z-index: 2; }
-.collection-grid .card.foil::after { content: '𝓕'; font-family: 'Georgia', serif; font-size: 32px; font-weight: bold; color: color-mix(in srgb, #CD7F32 80%, #5A3A1F); opacity: 0.85; text-shadow: 1px 1px 0px #fff, -1px -1px 0px color-mix(in srgb, #8C7853 50%, black); position: absolute; top: 5px; left: 8px; transform: rotate(-10deg); z-index: 3; }
+.collection-grid .card.foil::after { content: ''; /* Text symbol removed */ /* Ensure this doesn't have a background that hides global .card.foil::after sheen */ }
 .collection-grid .card.foil img { mix-blend-mode: luminosity; filter: sepia(0.05) contrast(1.05) brightness(1.02); }
 
+
 @keyframes collectionHoloBorderAnimation { 0% { border-image-source: conic-gradient(from 0deg, #FF0000, #FFFF00, #00FF00, #00FFFF, #0000FF, #FF00FF, #FF0000); } 100% { border-image-source: conic-gradient(from 360deg, #FF0000, #FFFF00, #00FF00, #00FFFF, #0000FF, #FF00FF, #FF0000); } }
-@keyframes collectionHoloReflectionAndTextAnimation { 0%, 100% { background-position: -120% -120%; opacity: 0; color: transparent; } 20% { opacity: 0.3; color: rgba(255, 255, 220, 0.4); } 50% { color: rgba(220, 255, 255, 0.5); } 80% { opacity: 0.3; color: rgba(255, 220, 255, 0.4); } }
+/* Keep collection animated border for Holo cards */
 .collection-grid .card.holo { border: 4px solid transparent; border-image-slice: 1; animation: collectionHoloBorderAnimation 6s linear infinite; box-shadow: 0 0 8px color-mix(in srgb, var(--holo-color, #FFEE58) 35%, transparent); }
-.collection-grid .card.holo::after { content: '✧✨✧'; font-size: 26px; text-shadow: 0 0 5px white, 0 0 10px var(--holo-color, #FFEE58); background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.35) 48%, rgba(255, 255, 255, 0.35) 52%, transparent 70%); background-size: 350% 350%; animation: collectionHoloReflectionAndTextAnimation 4.5s ease-in-out infinite alternate; opacity: 0; backdrop-filter: blur(0.3px); mix-blend-mode: screen; z-index: 3; display: flex; align-items: center; justify-content: center; }
+/* Remove conflicting background and animation from collection's ::after to let global Holo effect show */
+.collection-grid .card.holo::after {
+    content: ''; /* Text symbol removed */
+    /* background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.35) 48%, rgba(255, 255, 255, 0.35) 52%, transparent 70%); /* REMOVED */
+    /* background-size: 350% 350%; /* REMOVED */
+    /* animation: collectionHoloReflectionAndTextAnimation 4.5s ease-in-out infinite alternate; /* REMOVED */
+    /* opacity: 0; /* REMOVED - let global control opacity */
+    /* backdrop-filter: blur(0.3px); /* Keep if desired, or remove if it interferes */
+    /* mix-blend-mode: screen; /* Keep if it aligns with global or enhances */
+    /* Ensure other properties don't conflict. Global ::after has its own opacity and mix-blend-mode. */
+}
+
 
 .collection-grid .card.star { border: 3px solid var(--star-color, #FFA726); box-shadow: 0 0 7px color-mix(in srgb, var(--star-color, #FFA726) 35%, transparent); }
-.collection-grid .card.star::before { content: '★'; position: absolute; top: 2px; left: 4px; font-size: 18px; font-weight: bold; color: var(--star-color, #FFA726); text-shadow: 0 0 3px white, 0 0 6px color-mix(in srgb, var(--star-color, #FFA726) 70%, transparent); z-index: 4; transform: rotate(-12deg); }
-.collection-grid .card.star::after { content: '✦'; position: absolute; bottom: 2px; right: 4px;  font-size: 20px; font-weight: bold; color: white; text-shadow: 0 0 4px var(--star-color, #FFA726), 0 0 8px var(--star-color, #FFA726); z-index: 4; transform: rotate(8deg); }
+/* Collection's ::before and ::after for star were only for text symbols. Removing content is enough. */
+.collection-grid .card.star::before { content: ''; /* Text symbol removed */ }
+.collection-grid .card.star::after { content: ''; /* Text symbol removed */ }
+
 
 @keyframes collectionRainyBorderAnimation { 0%, 100% { border-image-source: linear-gradient(160deg, hsl(210, 50%, 50%), hsl(230, 40%, 45%)); } 50% { border-image-source: linear-gradient(160deg, #FF7B7B, #FFDD7B, #7BFF8D, #7BC9FF, #A87BFF, #FF7BF5); } }
-@keyframes collectionRainyOverlayAndTextAnimation { 0%, 45%, 100% { background-image: repeating-linear-gradient(0deg, rgba(173, 216, 230, 0.15) 0px, rgba(173, 216, 230, 0.15) 1px, transparent 1px, transparent 6px); opacity: 0.4; color: color-mix(in srgb, var(--rainy-color-1, hsl(210,70%,60%)) 70%, white); } 50% { opacity: 0; color: transparent; } 55%, 95% { background-image: linear-gradient(to bottom, rgba(255, 123, 123, 0.15) 0%, rgba(255, 221, 123, 0.15) 20%, rgba(123, 255, 141, 0.15) 40%, rgba(123, 201, 255, 0.15) 60%, rgba(168, 123, 255, 0.15) 80%, rgba(255, 123, 245, 0.15) 100%); opacity: 0.35; color: color-mix(in srgb, #FFDD7B 60%, white); } }
+/* Keep collection animated border for Rainy cards */
 .collection-grid .card.rainy { border: 3px solid transparent; border-image-slice: 1; animation: collectionRainyBorderAnimation 9s linear infinite; box-shadow: 0 0 7px color-mix(in srgb, var(--rainy-color-1, hsl(210,70%,60%)) 30%, transparent); }
-.collection-grid .card.rainy::after { content: 'Aqua💧'; font-family: 'Comic Sans MS', cursive, sans-serif; font-size: 20px; font-weight: bold; text-shadow: 0 0 3px rgba(255,255,255,0.5); animation: collectionRainyOverlayAndTextAnimation 9s linear infinite; z-index: 3; display: flex; align-items: center; justify-content: center; text-align: center; padding: 5px; }
+/* Remove conflicting background/animation from collection's ::after to let global Rainy effect show */
+.collection-grid .card.rainy::after {
+    content: ''; /* Text symbol removed */
+    /* animation: collectionRainyOverlayAndTextAnimation 9s linear infinite; /* REMOVED */
+    /* The global .card.rainy::after has its own background-image.
+       Ensure any remaining properties here don't conflict or are desired additions.
+       The collection's animation changed background-image and opacity. Removing it should restore global.
+    */
+}
+
 
 .collection-grid .card.gold { border: 4px solid transparent; border-image: linear-gradient(145deg, #FFF8DC, var(--gold-color, #FFCA28) 25% 75%, #B8860B) 1; box-shadow: 0 0 10px color-mix(in srgb, var(--gold-color, #FFCA28) 45%, transparent); }
+/* Collection .card.gold::before adds a gradient. This is a collection-specific enhancement and can stay. */
 .collection-grid .card.gold::before { background: linear-gradient(135deg, rgba(255, 223, 0, 0.15) 0%, rgba(218, 165, 32, 0.2) 50%, rgba(184, 134, 11, 0.25) 100% ); mix-blend-mode: color-dodge; opacity: 0.6; z-index: 2; }
-.collection-grid .card.gold::after { content: '⚜ Au ⚜'; font-family: 'Trajan Pro', 'Palatino Linotype', serif; font-size: 24px; font-weight: bold; color: #EAB92E; opacity: 0.9; text-shadow: 1px 1px 0px #fff, -1px -1px 0px #A47C0F, 0 0 8px rgba(255,215,0,0.5); z-index: 3; display: flex; align-items: center; justify-content: center; }
+/* Collection .card.gold::after had text and a custom background. Remove its background to let global ::after show. */
+.collection-grid .card.gold::after {
+    content: ''; /* Text symbol removed */
+    /* background-image: radial-gradient(...); /* REMOVED - this was the placeholder enhancement */
+    /* Ensure other properties are minimal or compatible if global .card.gold::after is to show its pattern. */
+}
 .collection-grid .card.gold img { filter: contrast(1.05) brightness(1.03) saturate(1.05); }
 
+
 @keyframes collectionShinyBorderAnimation { 0%, 100% { border-image-source: conic-gradient(from 45deg, #ffffff, var(--shiny-color, #C5CAE9), #e0e0ff, #d1fff8, var(--shiny-color, #C5CAE9), #ffffff); } 50% { border-image-source: conic-gradient(from 225deg, #ffffff, var(--shiny-color, #C5CAE9), #e0e0ff, #d1fff8, var(--shiny-color, #C5CAE9), #ffffff); } }
-@keyframes collectionShinySparkleAndTextAnimation { 0%, 100% { opacity: 0.4; transform: scale(0.8) rotate(-5deg); filter: brightness(1.2); color: rgba(230,230,255,0.7); } 20% { opacity: 0.9; transform: scale(1.1) rotate(5deg); filter: brightness(1.8); color: white; } 40% { opacity: 0.5; transform: scale(0.9) rotate(0deg); filter: brightness(1.3); color: rgba(210,220,255,0.8); } 60% { opacity: 1.0; transform: scale(1.0) rotate(0deg); filter: brightness(2.0) drop-shadow(0 0 8px white); color: white; } 80% { opacity: 0.6; transform: scale(0.95) rotate(-2deg); filter: brightness(1.5); color: rgba(220,230,255,0.9); } }
+/* Keep collection animated border for Shiny cards */
 .collection-grid .card.shiny { border: 4px solid transparent; border-image-slice: 1; animation: collectionShinyBorderAnimation 7s linear infinite; box-shadow: 0 0 12px color-mix(in srgb, var(--shiny-color, #C5CAE9) 55%, white); }
-.collection-grid .card.shiny::before { background-image: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.02) 3px, rgba(255,255,255,0.02) 4px), repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(255,255,255,0.02) 3px, rgba(255,255,255,0.02) 4px); opacity: 0.7; z-index: 2; }
-.collection-grid .card.shiny::after { content: '💎'; font-family: 'Arial', sans-serif; font-size: 38px; text-shadow: 0 0 5px white, 0 0 10px var(--shiny-color, #C5CAE9), 0 0 15px var(--shiny-color, #C5CAE9); animation: collectionShinySparkleAndTextAnimation 3s ease-in-out infinite; opacity: 0; z-index: 3; display: flex; align-items: center; justify-content: center; }
+/* Collection .card.shiny::before adds a pattern. This is a collection-specific enhancement and can stay. */
+.collection-grid .card.shiny::before {
+    background-image:
+        radial-gradient(ellipse at center, rgba(255,255,255,0.2) 0%, transparent 70%),
+        repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.02) 3px, rgba(255,255,255,0.02) 4px),
+        repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(255,255,255,0.02) 3px, rgba(255,255,255,0.02) 4px);
+    opacity: 0.7;
+    z-index: 2;
+    mix-blend-mode: screen; /* Soften the effect */
+}
+/* Collection .card.shiny::after had text and its own animation/background. Remove these to let global ::after (animated glint) show. */
+.collection-grid .card.shiny::after {
+    content: ''; /* Text symbol removed */
+    /* background: radial-gradient(...); /* REMOVED - this was placeholder enhancement */
+    /* animation: collectionShinyPlaceholderAnimation 3s ease-in-out infinite alternate; /* REMOVED */
+    /* opacity: 0; /* REMOVED */
+    /* Ensure other properties are minimal. Global shiny::after has content:"", width, height, bg, animation etc for the glint */
+}
 .collection-grid .card.shiny img { filter: brightness(1.03) contrast(1.08); }
 
 .collection-grid .card:hover {

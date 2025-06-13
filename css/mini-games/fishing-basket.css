@@ -1,0 +1,159 @@
+/* css/mini-games/fishing-basket.css */
+
+#fishing-basket-icon {
+    position: absolute;
+    /* Example positioning: near other tools or corner of screen */
+    right: 140px; /* Adjust to fit alongside other icons like pickaxe, watering can */
+    top: 20px;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    z-index: 1050; /* Consistent with other tool icons */
+    transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
+    filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+    /* Fallback styling if image src is broken */
+    background-color: #ddd; /* Light grey background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #aaa;
+}
+#fishing-basket-icon::before {
+    content: "🧺"; /* Basket emoji or text */
+    font-size: 24px; /* Adjust size of emoji/text */
+    color: #333;
+}
+
+
+#fishing-basket-icon:hover {
+    transform: scale(1.1);
+}
+#fishing-basket-icon.has-items { /* Style when basket has items */
+    filter: drop-shadow(2px 2px 5px gold);
+}
+.basket-count-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 3px 6px;
+    font-size: 0.7em;
+    font-weight: bold;
+    pointer-events: none; /* So it doesn't interfere with icon click */
+}
+
+
+/* Basket Modal uses .custom-modal-overlay, .custom-modal-content from style.css */
+#fishing-basket-modal .custom-modal-content {
+    max-width: 700px; /* Wider for card grid */
+    max-height: 80vh;
+    /* background-color: #f0eada;  Slightly earthy tone */
+}
+#fishing-basket-modal .custom-modal-header h3 {
+    /* color: #5a3a22; */ /* Darker brown for title */
+}
+
+.fishing-basket-controls {
+    padding: 10px 15px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    background-color: #f9f9f9;
+}
+.fishing-basket-controls label {
+    font-size: 0.9em;
+}
+#fishing-basket-rarity-filter {
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 0.9em;
+}
+
+#basket-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Adjust minmax for card size */
+    gap: 15px;
+    padding: 15px;
+    overflow-y: auto;
+    flex-grow: 1; /* Takes available space */
+    background-color: #e9e9e9; /* Light grey background for the grid area */
+    min-height: 200px; /* Ensure it has some height even if empty */
+}
+
+.basket-card-item {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    position: relative; /* For lock icon */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.basket-card-item:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+.basket-card-item.locked {
+    border-left: 4px solid #c0392b; /* Red accent for locked items */
+}
+
+.basket-card-image {
+    width: 80px; /* Adjust as needed */
+    height: 110px; /* Adjust as needed */
+    object-fit: contain; /* Or cover, depending on image aspect ratios */
+    margin-bottom: 8px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+.basket-card-name {
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #333;
+}
+.basket-card-quantity {
+    font-size: 0.8em;
+    color: #555;
+    margin-bottom: 4px;
+}
+.basket-card-rarity {
+    font-size: 0.75em;
+    color: #777;
+    text-transform: capitalize;
+}
+.basket-card-lock-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 1.2em; /* Larger lock icon */
+    color: #c0392b;
+}
+
+.basket-empty-message {
+    width: 100%;
+    text-align: center;
+    padding: 20px;
+    color: #777;
+    font-style: italic;
+}
+
+.fishing-basket-bulk-actions {
+    padding: 10px 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    border-top: 1px solid #ddd;
+    background-color: #f9f9f9;
+}
+.fishing-basket-bulk-actions .game-button {
+    padding: 8px 15px;
+}

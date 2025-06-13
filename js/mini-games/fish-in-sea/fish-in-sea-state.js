@@ -13,25 +13,21 @@ function initializeFishingGameState() {
         currentRodLevel: 1,
         currentBaitId: "none",
         currentBaitUsesLeft: Infinity,
-        basket: [], // Items here should now include a 'locked' property
+        // basket: [], // Replaced by basketData below
         gameLoopIntervalId: null,
         isReeling: false,
         bobberPosition: { x: 0, y: 0 },
         rodLineElement: null,
         ui: {},
 
-        treeMoistureLevel: FISHING_CONFIG.TREE_CONFIG.MAX_MOISTURE_LEVEL / 2,
-        fruitSlots: Array(FISHING_CONFIG.TREE_CONFIG.FRUIT_SLOTS).fill(null).map(() => ({
-            item: null,
-            targetRarityKey: null, 
-            growthProgress: 0,
-            isMature: false,
-            ripeningTime: 0
-        })),
-        lastTreeUpdateTime: Date.now(),
+        treeData: null, // Managed by tree-mechanics.js
+        wateringCanUpgradeData: null, // Managed by watering-can.js for upgrades
+        rockData: null, // Managed by rock-mechanics.js
+        basketData: null, // Managed by fishing-basket.js
 
-        rocks: [],
-        nextRockSpawnTime: Date.now() + Math.random() * 5000 + 5000,
+        // Old rock properties below are removed as rockData will handle them
+        // rocks: [],
+        // nextRockSpawnTime: Date.now() + Math.random() * 5000 + 5000,
 
         wateringCan: {
             waterLevel: 0,
@@ -61,24 +57,15 @@ function getPersistentFishingState() {
         currentRodLevel: fishingGameState.currentRodLevel,
         currentBaitId: fishingGameState.currentBaitId,
         currentBaitUsesLeft: fishingGameState.currentBaitUsesLeft,
-        basket: fishingGameState.basket.map(item => ({ ...item, locked: item.locked || false })), // Ensure 'locked' is saved
-        treeMoistureLevel: fishingGameState.treeMoistureLevel,
-        fruitSlots: fishingGameState.fruitSlots.map(slot => ({
-            item: slot.item,
-            targetRarityKey: slot.targetRarityKey,
-            growthProgress: slot.growthProgress,
-            isMature: slot.isMature,
-            ripeningTime: slot.ripeningTime
-        })),
-        rocks: fishingGameState.rocks.map(rock => ({
-            instanceId: rock.instanceId,
-            rockTypeId: rock.rockTypeId,
-            currentClicks: rock.currentClicks,
-            lastMinedTime: rock.lastMinedTime,
-            isReadyToMine: rock.isReadyToMine,
-            position: rock.position
-        })),
-        nextRockSpawnTime: fishingGameState.nextRockSpawnTime,
+        // basket: fishingGameState.basket.map(item => ({ ...item, locked: item.locked || false })), // Replaced by basketData
+        // Tree data is now handled by tree-mechanics.js
+        treeData: typeof getTreeDataForSave === 'function' ? getTreeDataForSave() : null,
+        wateringCanUpgradeData: typeof getWateringCanDataForSave === 'function' ? getWateringCanDataForSave() : null,
+        rockData: typeof getRockDataForSave === 'function' ? getRockDataForSave() : null,
+        basketData: typeof fishingBasket !== 'undefined' && typeof fishingBasket.getBasketDataForSave === 'function' ? fishingBasket.getBasketDataForSave() : null,
+        // Old rock properties below are removed
+        // rocks: fishingGameState.rocks.map(rock => ({...})),
+        // nextRockSpawnTime: fishingGameState.nextRockSpawnTime,
         wateringCanWaterLevel: fishingGameState.wateringCan.waterLevel,
         shopProgress: fishingGameState.shopProgress || { fish: {}, fruit: {}, minerals: {} }, // Save new structure
         selectedItemInBasket: fishingGameState.selectedItemInBasket,
@@ -94,46 +81,44 @@ function loadPersistentFishingState(savedState) {
 
     fishingGameState.currentRodLevel = savedState.currentRodLevel || 1;
     fishingGameState.currentBaitId = savedState.currentBaitId || "none";
-    fishingGameState.basket = Array.isArray(savedState.basket) ? savedState.basket.map(item => ({ ...item, locked: item.locked || false })) : [];
-    fishingGameState.treeMoistureLevel = typeof savedState.treeMoistureLevel === 'number' ? savedState.treeMoistureLevel : (FISHING_CONFIG.TREE_CONFIG.MAX_MOISTURE_LEVEL / 2);
+    // fishingGameState.basket = Array.isArray(savedState.basket) ? savedState.basket.map(item => ({ ...item, locked: item.locked || false })) : []; // Replaced by basketData
 
+    // Load tree data using tree-mechanics.js
+    if (savedState.treeData && typeof loadTreeData === 'function') {
+        loadTreeData(savedState.treeData);
+    } else if (typeof initializeTree === 'function') {
+        // If no saved tree data, or loadTreeData doesn't exist, initialize the tree
+        console.log("No tree data in save or loadTreeData not found, initializing tree.");
+        initializeTree();
+    }
 
-    if (Array.isArray(savedState.fruitSlots) && savedState.fruitSlots.length <= FISHING_CONFIG.TREE_CONFIG.FRUIT_SLOTS) {
-        fishingGameState.fruitSlots = Array(FISHING_CONFIG.TREE_CONFIG.FRUIT_SLOTS).fill(null).map((_, index) => {
-            const savedSlot = savedState.fruitSlots[index];
-            return savedSlot ? {
-                item: savedSlot.item || null,
-                targetRarityKey: savedSlot.targetRarityKey || null,
-                growthProgress: savedSlot.growthProgress || 0,
-                isMature: savedSlot.isMature || false,
-                ripeningTime: savedSlot.ripeningTime || 0
-            } : { item: null, targetRarityKey: null, growthProgress: 0, isMature: false, ripeningTime: 0 };
-        });
+    // Load watering can upgrade data using watering-can.js
+    if (savedState.wateringCanUpgradeData && typeof loadWateringCanData === 'function') {
+        loadWateringCanData(savedState.wateringCanUpgradeData);
     } else {
-        fishingGameState.fruitSlots = Array(FISHING_CONFIG.TREE_CONFIG.FRUIT_SLOTS).fill(null).map(() => ({ item: null, targetRarityKey: null, growthProgress: 0, isMature: false, ripeningTime: 0 }));
+        // If no saved data, wateringCanUpgrades in watering-can.js should retain its default values.
+        // initializeWateringCan() called in fish-in-sea-main.js will set up defaults if no load data.
+        console.log("No watering can upgrade data in save or loadWateringCanData not found. Defaults will be used.");
     }
 
-
-    fishingGameState.rocks = [];
-    if (Array.isArray(savedState.rocks)) {
-        savedState.rocks.forEach(sr => {
-            const rockDef = FISHING_CONFIG.ROCK_DEFINITIONS.find(def => def.id === sr.rockTypeId);
-            if (rockDef) {
-                fishingGameState.rocks.push({
-                    instanceId: sr.instanceId,
-                    rockTypeId: sr.rockTypeId,
-                    definition: rockDef,
-                    currentClicks: sr.currentClicks || 0,
-                    lastMinedTime: sr.lastMinedTime || 0,
-                    isReadyToMine: sr.isReadyToMine === undefined ? true : sr.isReadyToMine,
-                    isBeingMined: false,
-                    miningProgress: 0,
-                    position: sr.position || { x: Math.random() * 70 + 15, y: Math.random() * 30 + 5 }
-                });
-            }
-        });
+    // Load rock data using rock-mechanics.js
+    if (savedState.rockData && typeof loadRockData === 'function') {
+        loadRockData(savedState.rockData);
+    } else if (typeof initializeRocks === 'function') {
+        // If no saved rock data, or loadRockData doesn't exist, initialize rocks.
+        console.log("No rock data in save or loadRockData not found, initializing rocks.");
+        initializeRocks();
     }
-    fishingGameState.nextRockSpawnTime = savedState.nextRockSpawnTime || (Date.now() + Math.random() * 5000 + 5000);
+    // Old rock loading logic is removed.
+
+    // Load basket data using fishing-basket.js
+    if (savedState.basketData && typeof fishingBasket !== 'undefined' && typeof fishingBasket.loadBasketData === 'function') {
+        fishingBasket.loadBasketData(savedState.basketData);
+    } else if (typeof fishingBasket !== 'undefined' && typeof fishingBasket.initializeBasket === 'function') {
+        // If no saved basket data, initialize an empty basket via its own logic (already called in main)
+        console.log("No basket data in save or loadBasketData not found. fishingBasket.initializeBasket will ensure defaults.");
+    }
+
     fishingGameState.wateringCan.waterLevel = savedState.wateringCanWaterLevel || 0;
     
     // Initialize transient drag states
@@ -171,7 +156,7 @@ function loadPersistentFishingState(savedState) {
         fishingGameState.currentBait = FISHING_CONFIG.BAIT_TYPES.find(b => b.id === "none");
         fishingGameState.currentBaitUsesLeft = Infinity;
     }
-    fishingGameState.lastTreeUpdateTime = Date.now();
+    // lastTreeUpdateTime is removed as tree-mechanics.js handles its own state and timing
 }
 
 // Initialize on load

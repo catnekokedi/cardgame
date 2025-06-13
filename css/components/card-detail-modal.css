@@ -45,26 +45,39 @@
     perspective: 1200px; 
 }
 
-.detail-image-container-frameless .detail-image.card {
-    /* Base state - already defined in cards-global.css, ensure it has transition */
-    transition: box-shadow 0.25s ease-out; /* Keep shadow transition, JS handles transform */
+.detail-image-container-frameless .card { /* Targeting the new div.card wrapper */
+    width: 100%;  /* Fill the container's width constraint */
+    height: 100%; /* Fill the container's height constraint */
+    /* Inherits .card styles from cards-global.css including its default small size.
+       The 100% here makes it fill its parent (.detail-image-container-frameless),
+       which has the actual max-width/max-height constraints.
+       Ensure cards-global.css .card doesn't have !important on width/height.
+    */
+    display: flex; /* Ensure it behaves as a flex container if children need alignment (like the img) */
+    justify-content: center;
+    align-items: center;
+    transition: box-shadow 0.25s ease-out, transform 0.05s linear; /* Keep shadow transition, transform is JS driven */
 }
 
-/* This CSS hover will be overridden by JS applying inline styles for transform. */
-.detail-image-container-frameless:hover .detail-image.card {
-    transform: scale(1.03) translateY(-4px); /* Fallback or base enhancement */
-    box-shadow: 0 10px 20px rgba(0,0,0,0.25), 0 6px 6px rgba(0,0,0,0.20); 
+/* This CSS hover might not be needed if JS handles all hover transforms.
+   If kept as a fallback, it should also target the new .card wrapper. */
+.detail-image-container-frameless:hover > .card {
+    /* transform: scale(1.03) translateY(-4px); /* JS primarily controls this */
+    /* box-shadow: 0 10px 20px rgba(0,0,0,0.25), 0 6px 6px rgba(0,0,0,0.20); */
 }
 
-.detail-image { 
-    display: block; max-width: 100%; max-height: 100%;
-    width: auto; height: auto; object-fit: contain;
-    cursor: pointer; border-radius: 10px;
-    /* transition: transform 0.25s ease-out, box-shadow 0.2s ease-out; */ /* JS now handles transform transition */
-    transition: box-shadow 0.2s ease-out; /* Keep shadow transition */
-    position: relative; z-index: 0;
-    box-shadow: var(--elevation-dp4);
-    border: 1px solid var(--material-border-dark);
+.detail-image-container-frameless .card img.detail-image { /* Styling for the actual <img> tag */
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 5px; /* Match border-radius of .card from global if needed, or inherit */
+    cursor: pointer;
+    position: relative;
+    z-index: 1; /* Ensure image is above card background effects but below ::before overlays */
+    /* Remove box-shadow and border if they are meant to be on the wrapper .card */
+    box-shadow: none;
+    border: none;
 }
 
 .detail-info-panel-frameless { 

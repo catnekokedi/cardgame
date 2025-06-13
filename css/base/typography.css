@@ -73,13 +73,13 @@ body {
 
 
 /* Rarity Text Colors */
-.rarity-text-base { color: var(--base-color); font-weight: bold; }
-.rarity-text-rare { color: var(--rare-color); font-weight: bold; }
-.rarity-text-foil { color: var(--foil-color); font-weight: bold; }
-.rarity-text-holo { color: var(--holo-color); font-weight: bold; }
-.rarity-text-star { color: var(--star-color); font-weight: bold; }
-.rarity-text-rainy { color: var(--rainy-color-1); font-weight: bold; }
-.rarity-text-gold { color: var(--gold-color); font-weight: bold; }
-.rarity-text-shiny { color: var(--shiny-color); font-weight: bold; }
+.rarity-text-base { color: var(--base-color); font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+.rarity-text-rare { color: var(--rare-color); font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+.rarity-text-foil { color: var(--foil-color); font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+.rarity-text-holo { color: var(--holo-color); font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); } /* Slightly stronger shadow for potentially very bright/varied holo colors */
+.rarity-text-star { color: var(--star-color); font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); } /* Stronger shadow for yellow/gold */
+.rarity-text-rainy { color: var(--rainy-color-1); font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+.rarity-text-gold { color: var(--gold-color); font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); } /* Stronger shadow for gold */
+.rarity-text-shiny { color: var(--shiny-color); font-weight: bold; text-shadow: 1px 1px 3px rgba(0,0,0,0.7), 0 0 5px rgba(0,0,0,0.5); } /* More pronounced shadow for very light/shiny text */
 
 .loading-indicator { font-style: italic; color: var(--material-text-secondary-dark); margin-top: 5px; }

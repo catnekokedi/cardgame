@@ -6,10 +6,16 @@ const fishingWateringCanUi = {
         fishingGameState.ui.waterDropArea = parentElement.querySelector('#fishing-water-panel'); 
         
         if (fishingGameState.ui.wateringCanIcon) {
+            // Drag listeners remain
             fishingGameState.ui.wateringCanIcon.addEventListener('dragstart', (e) => this.handleDragStart(e));
             fishingGameState.ui.wateringCanIcon.addEventListener('dragend', (e) => this.handleDragEnd(e));
+
+            // Click listener for opening modal is REMOVED from here (now in fishing-ui.js)
         }
-        // console.log('[WC UI] Initialized. Watering Can Icon Element:', fishingGameState.ui.wateringCanIcon);
+
+        // Click listener for the modal's close button is REMOVED from here (now in fishing-ui.js)
+
+        // console.log('[WC UI] Initialized. Drag listeners attached. Click listeners are now in fishing-ui.js.');
     },
 
     handleDragStart(event) {
