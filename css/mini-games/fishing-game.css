@@ -44,8 +44,8 @@
     overflow: hidden;
     background: linear-gradient(to bottom, 
         #c1e7f7 0%,    /* Light Sky Blue for sky */
-        #e0f2f7 70%,   /* Fading Sky Blue */
-        #98FB98 70.1%, /* Pale Green for grass */
+        #e0f2f7 35%,   /* Fading Sky Blue - Sky ends at 35% */
+        #98FB98 35.1%, /* Pale Green for grass - Grass starts at 35.1% */
         #8FBC8F 100%   /* Dark Sea Green for deeper grass */
     );
     display: flex; /* For positioning children */
