@@ -508,6 +508,29 @@ const fishingUi = {
             });
         }
 
+        // Pickaxe Icon Click Listener
+        if (ui.pickaxeIcon) {
+            ui.pickaxeIcon.addEventListener('click', () => {
+                fishingGameState.pickaxeSelected = !fishingGameState.pickaxeSelected;
+                if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.updatePickaxeIconState === 'function') {
+                    fishingRocksUi.updatePickaxeIconState();
+                } else {
+                    // Fallback direct styling if function not available
+                    ui.pickaxeIcon.classList.toggle('active-tool', fishingGameState.pickaxeSelected);
+                }
+                if (typeof playSound === 'function') playSound(fishingGameState.pickaxeSelected ? 'sfx_tool_select.mp3' : 'sfx_tool_deselect.mp3');
+
+                // Deselect watering can if pickaxe is selected
+                if (fishingGameState.pickaxeSelected && fishingGameState.wateringCan && fishingGameState.wateringCan.isToolSelected) {
+                    // Assuming a similar deselection logic for watering can if it exists
+                    // fishingGameState.wateringCan.isToolSelected = false;
+                    // if (typeof fishingWateringCanUi !== 'undefined' && fishingWateringCanUi.updateIconState === 'function') {
+                    //     fishingWateringCanUi.updateIconState();
+                    // }
+                }
+                 this.updateStatusText(); // Update status text to reflect tool selection or default state
+            });
+        }
 
         if (fishingWateringCanUi && fishingWateringCanUi.addDragListenersToIcon) {
             fishingWateringCanUi.addDragListenersToIcon(); 

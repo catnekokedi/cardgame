@@ -253,8 +253,10 @@ function renderAnvilScreen() {
 
             cardElement.className = `card ${card.rarityKey}`;
             cardElement.style.cursor = anvilIsProcessing ? 'not-allowed' : 'pointer';
-            cardElement.title = `${card.setIdentifier}-C${card.cardId} (${displayNameRarity}, G${card.grade})\nValue: ${formatCurrency(card.price)}\nClick to return to Gallery`;
-            cardElement.innerHTML = `<img src="${cardImgSrc}" alt="${card.setIdentifier}-C${card.cardId}" onerror="this.src='https://placehold.co/60x84/cccccc/000000?text=${card.setIdentifier}C${card.cardId}'">`;
+            const altText = `${card.setIdentifier}-C${card.cardId}`;
+            cardElement.title = `${altText} (${displayNameRarity}, G${card.grade})\nValue: ${formatCurrency(card.price)}\nClick to return to Gallery`;
+            // Standardized onerror logic, using specific default dimensions 60x84 for anvil cards
+            cardElement.innerHTML = `<img src="${cardImgSrc}" alt="${altText}" onerror="this.src='https://placehold.co/' + (this.naturalWidth||this.width||60) + 'x' + (this.naturalHeight||this.height||84) + '/333333/cccccc?text=' + encodeURIComponent(this.alt || 'Missing'); this.onerror=null;">`;
             if (!anvilIsProcessing) { 
                 cardElement.onclick = (e) => { e.stopPropagation(); removeCardFromAnvil(card.instanceId); };
             }

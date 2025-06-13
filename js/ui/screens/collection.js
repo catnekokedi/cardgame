@@ -95,11 +95,17 @@ function showSetCollection(page = 1) {
         if (cardInfo.isOwned) {
             const img = document.createElement('img');
             img.src = getCardImagePath(cardInfo.setIdentifier, cardInfo.cardId);
-            img.alt = `Card ${cardInfo.setIdentifier}-C${cardInfo.cardId}`;
-            img.onerror = function() { this.src = `https://placehold.co/130x182/42A5F5/333333?text=${cardInfo.setIdentifier}-C${cardInfo.cardId}`; this.alt = `[Missing: ${cardInfo.setIdentifier}-C${cardInfo.cardId}]`; this.onerror = null; };
-            img.className = `card ${cardInfo.rarityKey}`;
-            img.onclick = () => showCardDetail(cardInfo.setIdentifier, cardInfo.cardId, cardInfo.rarityKey, 'collection', null, cardInfo.grade);
-            cardDivContainer.appendChild(img);
+            img.alt = `Card ${cardInfo.setIdentifier}-C${cardInfo.cardId} (${displayRarityName})`; // Added rarity to alt
+            // Standardized onerror logic
+            img.onerror = function(){this.src=`https://placehold.co/${this.naturalWidth||this.width||130}x${this.naturalHeight||this.height||182}/333333/cccccc?text=${encodeURIComponent(this.alt || 'Missing Image')}`; this.onerror=null;};
+            img.className = 'collection-grid-card-image'; // New class for just the image
+
+            const cardWrapper = document.createElement('div');
+            cardWrapper.className = `card ${cardInfo.rarityKey}`; // This div gets the 'card' and rarity class for effects
+            cardWrapper.onclick = () => showCardDetail(cardInfo.setIdentifier, cardInfo.cardId, cardInfo.rarityKey, 'collection', null, cardInfo.grade);
+
+            cardWrapper.appendChild(img);
+            cardDivContainer.appendChild(cardWrapper); // Append wrapper to the container
 
             const p = document.createElement('p');
             const rarityTextClass = `rarity-text-${cardInfo.rarityKey}`;

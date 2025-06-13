@@ -173,11 +173,41 @@ window.skyMechanics = { // Ensure it's explicitly on window
                 };
             }
 
-            if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
-                window.fishingBasket.addCardToBasket(generatedCardData, 1);
-                if (typeof showCustomModal === 'function') showCustomModal(`A bird dropped a ${generatedCardData.name}!`, "success");
-            } else {
-                console.warn("fishingBasket.addCardToBasket function not found. Card from bird not added.");
+            // Check if it's a collectible card to send to pack opening
+            if (generatedCardData && generatedCardData.type === 'collectible_card' && generatedCardData.set) {
+                const isNew = !collection[generatedCardData.set]?.[generatedCardData.id] || collection[generatedCardData.set][generatedCardData.id].count === 0;
+                const formattedCardObject = {
+                    set: generatedCardData.set,
+                    cardId: generatedCardData.id,
+                    rarityKey: generatedCardData.rarity, // Assuming 'rarity' in bird card is 'rarityKey'
+                    grade: generatedCardData.grade || getFixedGradeAndPrice(generatedCardData.set, generatedCardData.id)?.grade || 'S',
+                    price: generatedCardData.price || getFixedGradeAndPrice(generatedCardData.set, generatedCardData.id)?.price || 0,
+                    revealed: false,
+                    isNew: isNew,
+                    packIndex: 0
+                };
+
+                fishingRewardPackSource = [formattedCardObject];
+                isOpeningFishingReward = true;
+
+                if (typeof showScreen === 'function') {
+                    showScreen(SCREENS.PACK_SELECTION);
+                } else {
+                    console.error("showScreen function is undefined! Cannot transition to pack opening for bird reward.");
+                    // Fallback: Add directly to basket
+                    if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+                        window.fishingBasket.addCardToBasket(generatedCardData, 1); // Use original generatedCardData for basket
+                        if (typeof showCustomModal === 'function') showCustomModal(`A bird dropped a ${generatedCardData.name}! (Fallback to basket)`, "success");
+                    }
+                }
+            } else if (generatedCardData) {
+                // It's a material (like a feather) or other non-collectible, add directly to basket
+                if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+                    window.fishingBasket.addCardToBasket(generatedCardData, 1);
+                    if (typeof showCustomModal === 'function') showCustomModal(`A bird dropped a ${generatedCardData.name}!`, "success");
+                } else {
+                    console.warn("fishingBasket.addCardToBasket function not found. Material from bird not added.");
+                }
             }
         } else { // Ticket reward
             const ticketType = (bird.type === 'type2' && Math.random() < 0.3) ? "rare_summon_ticket" : "common_summon_ticket"; // type2 bird has a chance for rare ticket

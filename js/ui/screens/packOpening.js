@@ -7,7 +7,7 @@ openingpack.currentSet = null;
 openingpack.currentSetPackPrice = 100;
 openingpack.currentPack = []; // Stores { set, cardId, rarityKey, grade, price, revealed, isNew, packIndex }
 openingpack.revealedCardIndices = new Set(); // Tracks indices of cards *manually* revealed by click
-openingpack.packOpeningSource = 'standard'; // 'standard', 'anvil', 'summon'
+openingpack.packOpeningSource = 'standard'; // 'standard', 'anvil', 'summon', 'fishing'
 
 openingpack.areAllCardsInPackRevealed = function() {
     return openingpack.currentPack.length === 0 || openingpack.currentPack.every(card => card.revealed);
@@ -117,6 +117,24 @@ openingpack.prepareForSummonGamePack = function() {
     }
 };
 
+openingpack.prepareForFishingRewardPack = function() {
+    // Access global variables directly
+    if (isOpeningFishingReward && fishingRewardPackSource && fishingRewardPackSource.length > 0) {
+        this.currentPack = [...fishingRewardPackSource];
+        this.currentSet = 'fishing_reward';
+        this.currentSetPackPrice = 0; // No price for reward packs
+        this.revealedCardIndices.clear();
+        this.packOpeningSource = 'fishing'; // Set source for fishing reward
+        this.showCorrectPackOpeningUI();
+        isOpeningFishingReward = false;
+        // fishingRewardPackSource is cleared in fish-in-sea-main.js after processing lastFishingReward
+    } else {
+        // If called incorrectly, navigate back to fishing game or a safe default
+        console.warn("prepareForFishingRewardPack called without valid fishing reward state.");
+        this.handleNextAfterResults('fishing');
+    }
+};
+
 openingpack.getAnimationDurationByRarity = function(rarityKey) { 
     switch (rarityKey) {
         case 'base': return 800; 
@@ -162,6 +180,8 @@ openingpack.showPackOpeningUI_Desktop = function() {
     } else if (this.currentSet === 'summon_result') {
         const cardCount = this.currentPack.length;
         setName = `Summon Results (${cardCount} card${cardCount > 1 ? 's' : ''})`;
+    } else if (this.currentSet === 'fishing_reward') {
+        setName = "Treasure Uncovered!";
     } else {
         setName = `Opening: ${getSetMetadata(this.currentSet)?.name || 'Pack'}`;
     }
@@ -191,7 +211,8 @@ openingpack.showPackOpeningUI_Desktop = function() {
         img.alt = card.revealed ? `${card.set}-C${card.cardId}` : 'Card Back';
         // img no longer needs .card or rarity class, but might need a class for specific img styling
         img.className = 'pack-opening-card-image';
-        img.onerror = function() { this.src = `https://placehold.co/130x182/cccccc/000000?text=Error`; this.onerror = null; };
+        // Standardized onerror logic
+        img.onerror = function(){this.src=`https://placehold.co/${this.naturalWidth||this.width||130}x${this.naturalHeight||this.height||182}/333333/cccccc?text=${encodeURIComponent(this.alt || 'Missing Image')}`; this.onerror=null;};
 
         // Click handler: can be on cardImageWrapper or img. If on wrapper, good. If on img, ensure wrapper doesn't block.
         // For now, let's make the wrapper clickable for reveal, and img clickable for detail after reveal.
@@ -296,7 +317,7 @@ openingpack.updateDesktopControls = function() {
     if (revealAllButton) revealAllButton.disabled = allRevealed;
     
     if (openAnotherButton) {
-        if (this.packOpeningSource === 'anvil' || this.packOpeningSource === 'summon') {
+        if (this.packOpeningSource === 'anvil' || this.packOpeningSource === 'summon' || this.packOpeningSource === 'fishing') {
             openAnotherButton.style.display = 'none';
         } else {
             openAnotherButton.style.display = 'inline-flex';
@@ -310,6 +331,8 @@ openingpack.updateDesktopControls = function() {
             backButton.textContent = "Back to Anvil";
         } else if (this.packOpeningSource === 'summon') {
             backButton.textContent = "Back to Summon";
+        } else if (this.packOpeningSource === 'fishing') {
+            backButton.textContent = "Back to Fishing";
         } else {
             backButton.textContent = "Back to Selection";
         }
@@ -362,6 +385,13 @@ openingpack.backToSourceDesktop = function() {
 
 // --- Common Logic for Pack Opening ---
 openingpack.processRevealedCard = function(cardData) {
+    if (this.packOpeningSource === 'fishing') {
+        // Access global variable directly
+        lastFishingReward = cardData; // Store the revealed card data
+        // Do not add to collection here; it will be added to fishing basket later
+        return;
+    }
+
     if (!collection[cardData.set]) {
         collection[cardData.set] = {};
     }
@@ -397,6 +427,13 @@ openingpack.handleNextAfterResults = function(context = 'standard') {
     } else if (context === 'summon') {
         showScreen(SCREENS.GAMES); 
         if (typeof loadMiniGame === 'function') loadMiniGame(SCREENS.SUMMON_GAME); 
+    } else if (context === 'fishing') {
+        // Navigate back to the fishing game
+        if (typeof loadMiniGame === 'function') {
+            loadMiniGame(SCREENS.FISHING_GAME); // This should handle showing SCREENS.GAMES first if needed
+        } else {
+            showScreen(SCREENS.FISHING_GAME); // Fallback if loadMiniGame is not available
+        }
     } else { 
         showScreen(SCREENS.PACK_SELECTION);
     }

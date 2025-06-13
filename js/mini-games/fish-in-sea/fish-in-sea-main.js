@@ -1,6 +1,33 @@
 // js/mini-games/fishing-game/fishing-main.js
 
 function startFishingGame(gameContentEl, gameResultEl) {
+    // Process any card revealed on pack opening screen from previous fishing session
+    // Ensure global variables are accessed safely (e.g., check if they exist)
+    if (typeof lastFishingReward !== 'undefined' && lastFishingReward && typeof lastFishingReward.set === 'string') {
+        if (window.fishingBasket && typeof window.fishingBasket.addCardToBasket === 'function') {
+            const cardDataForBasket = {
+                id: lastFishingReward.cardId, // Ensure fishingBasket uses 'id' for cardId
+                set: lastFishingReward.set,
+                name: `${lastFishingReward.set} C${lastFishingReward.cardId}`, // Consistent name
+                rarityKey: lastFishingReward.rarityKey, // Pass rarityKey
+                rarity: lastFishingReward.rarityKey, // fishingBasket might expect 'rarity'
+                price: lastFishingReward.price,
+                grade: lastFishingReward.grade,
+                imagePath: getCardImagePath(lastFishingReward.set, lastFishingReward.cardId), // Generate image path
+                type: 'card', // Generic type for basket filtering
+                source: 'fishing_reward_pack_opened'
+            };
+            window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
+            if (typeof showCustomAlert === 'function') {
+                showCustomAlert(`${cardDataForBasket.name} added to your fishing basket!`, null, 2000);
+            }
+        }
+        lastFishingReward = null; // Clear after processing
+        if (typeof fishingRewardPackSource !== 'undefined') {
+            fishingRewardPackSource = []; // Clear source pack data
+        }
+    }
+
     if (!gameContentEl) {
         console.error("Fishing Game: gameContentEl is null.");
         return;

@@ -85,3 +85,8 @@ window.summonTickets = {}; // This is state. The definition of rarities is data.
 // For time-based ticket rewards
 // Stores the accumulated active playtime (in ms) at which the last reward for a given ticket type was granted.
 window.lastTicketRewardTimes = {}; // e.g., { 'rare': 120000, 'foil': 300000, ... }
+
+// For Fishing Game rewards integration with Pack Opening screen
+let fishingRewardPackSource = [];
+let isOpeningFishingReward = false;
+let lastFishingReward = null;

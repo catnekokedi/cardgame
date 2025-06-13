@@ -161,30 +161,70 @@ function collectCardFromTree(slotIndex) {
         return null;
     }
 
-    const card = treeSlots[slotIndex];
-    if (card && card.state === "revealed") {
-        // Define cardData for the basket
-        // The 'type' field in 'card' can determine the specific fruit.
-        // For now, a generic fruit card.
-        const cardData = {
-            id: card.type || `fruit_slot_${slotIndex}`, // Use card.type or a fallback
-            set: 'fish_in_sea_fruit', // A made-up set for these items
-            name: `${card.type ? (card.type.charAt(0).toUpperCase() + card.type.slice(1)) : 'Mystic'} Fruit`,
-            rarity: 'common', // Placeholder, could depend on fruit type
-            price: 15,        // Placeholder price
-            imagePath: `gui/fishing_game/${card.type || 'fruit_placeholder'}.png`, // Placeholder image path
-            source: 'tree'
-        };
+    const slot = treeSlots[slotIndex]; // Renamed for clarity from 'card' to 'slot'
+    if (slot && slot.state === "revealed" && slot.card) {
+        const collectedCardDetails = slot.card; // This is the object with set, id, rarity, price, type
 
-        console.log(`Collecting card from slot ${slotIndex}:`, cardData);
+        // Check if the collected item is a 'collectible_card' to send to pack opening
+        if (collectedCardDetails.type === 'collectible_card' && collectedCardDetails.set && collectedCardDetails.id) {
+            const isNew = !collection[collectedCardDetails.set]?.[collectedCardDetails.id] || collection[collectedCardDetails.set][collectedCardDetails.id].count === 0;
+            const formattedCardObject = {
+                set: collectedCardDetails.set,
+                cardId: collectedCardDetails.id,
+                rarityKey: collectedCardDetails.rarity, // Assuming 'rarity' in tree card is 'rarityKey'
+                grade: collectedCardDetails.grade || getFixedGradeAndPrice(collectedCardDetails.set, collectedCardDetails.id)?.grade || 'S', // Get grade or default
+                price: collectedCardDetails.price || getFixedGradeAndPrice(collectedCardDetails.set, collectedCardDetails.id)?.price || 0, // Get price or default
+                revealed: false,
+                isNew: isNew,
+                packIndex: 0
+            };
 
-        if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
-            window.fishingBasket.addCardToBasket(cardData, 1);
+            // Access global variables directly
+            fishingRewardPackSource = [formattedCardObject];
+            isOpeningFishingReward = true;
+
+            if (typeof showScreen === 'function') {
+                showScreen(SCREENS.PACK_SELECTION);
+            } else {
+                console.error("showScreen function is undefined! Cannot transition to pack opening for tree reward.");
+                // Fallback: Add directly to basket if pack opening fails
+                if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+                     // Need to adapt 'formattedCardObject' or 'collectedCardDetails' to basket format
+                    const cardDataForBasketFallback = {
+                        id: formattedCardObject.cardId,
+                        set: formattedCardObject.set,
+                        name: collectedCardDetails.name || `${formattedCardObject.set} C${formattedCardObject.cardId}`,
+                        rarity: formattedCardObject.rarityKey,
+                        price: formattedCardObject.price,
+                        grade: formattedCardObject.grade,
+                        imagePath: getCardImagePath(formattedCardObject.set, formattedCardObject.cardId),
+                        type: 'card',
+                        source: 'tree_fallback'
+                    };
+                    window.fishingBasket.addCardToBasket(cardDataForBasketFallback, 1);
+                }
+            }
         } else {
-            console.warn("fishingBasket.addCardToBasket function not found. Card not added to basket.");
+            // It's a generic fruit or other non-collectible card, add directly to basket
+            const cardDataForBasket = {
+                id: collectedCardDetails.id || collectedCardDetails.type || `fruit_slot_${slotIndex}`,
+                set: collectedCardDetails.set || 'fish_in_sea_fruit',
+                name: collectedCardDetails.name || `${collectedCardDetails.type ? (collectedCardDetails.type.charAt(0).toUpperCase() + collectedCardDetails.type.slice(1)) : 'Mystic'} Fruit`,
+                rarity: collectedCardDetails.rarity || 'common',
+                price: collectedCardDetails.price || 15,
+                imagePath: collectedCardDetails.imagePath || `gui/fishing_game/${collectedCardDetails.type || 'fruit_placeholder'}.png`,
+                source: 'tree_direct',
+                type: collectedCardDetails.type || 'fruit_card' // ensure a type for basket
+            };
+            console.log(`Collecting generic item from slot ${slotIndex} directly to basket:`, cardDataForBasket);
+            if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+                window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
+            } else {
+                console.warn("fishingBasket.addCardToBasket function not found. Card not added to basket.");
+            }
         }
 
-        // Clear the slot
+        // Clear the slot regardless of how it was processed
         treeSlots[slotIndex] = null;
         maturationProgress[slotIndex] = 0; // Reset progress
         slotTimers[slotIndex] = 0;         // Reset spawn timer

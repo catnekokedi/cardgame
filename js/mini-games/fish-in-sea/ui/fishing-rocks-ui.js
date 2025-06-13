@@ -87,13 +87,20 @@ window.fishingRocksUi = {
                     return; // continue to next rock
                 }
 
-                let rockImage = `gui/fishing_game/${definition.image || 'rock_common.png'}`;
-                if (rockData.cracks > 0 && definition.crackImages && definition.crackImages.length > 0) {
-                    const crackImageIndex = Math.min(rockData.cracks, definition.crackImages.length) - 1;
-                    if (crackImageIndex >= 0) {
-                         rockImage = `gui/fishing_game/${definition.crackImages[crackImageIndex]}`;
+                let rockImage = `gui/fishing_game/${definition.image || 'rock_common.png'}`; // Base image
+                // If damaged (hp < maxHp) but not destroyed (hp > 0), and crack images are available, use the first one.
+                if (rockData.hp < rockData.maxHp && rockData.hp > 0) {
+                    if (definition.crackImages && definition.crackImages.length > 0) {
+                        rockImage = `gui/fishing_game/${definition.crackImages[0]}`; // Always use the first crack image
                     }
+                    // Optional: else if no definition.crackImages, use a generic crack image if one existed.
+                    // else { rockImage = `gui/fishing_game/rock_generic_crack.png`; }
+                    // If neither specific nor generic crack image, it will show the base image.
                 }
+                // If hp <= 0 (destroyed), it will be handled by the 'rock-respawning' or 'rock-empty-slot' logic later,
+                // so no explicit image change here for the destroyed state before it becomes 'respawning'.
+                // The base image is already set if not damaged or if no crack image applies.
+
                 rockDiv.style.backgroundImage = `url('${rockImage}')`;
 
                 const hpDisplay = document.createElement('div');
@@ -130,6 +137,22 @@ window.fishingRocksUi = {
     // updatePickaxeCursor function removed as global cursor change is no longer used.
     // Hover effects will be handled by CSS on individual rocks if needed,
     // or a small pickaxe icon will appear on the rock itself.
+
+    /**
+     * Updates the visual state of the pickaxe icon.
+     */
+    updatePickaxeIconState: function() {
+        const pickaxeIcon = fishingGameState.ui.pickaxeIcon; // Assumes pickaxeIcon is stored in fishingGameState.ui
+        if (pickaxeIcon) {
+            if (fishingGameState.pickaxeSelected) {
+                pickaxeIcon.classList.add('active-tool');
+            } else {
+                pickaxeIcon.classList.remove('active-tool');
+            }
+        } else {
+            console.warn("updatePickaxeIconState: Pickaxe icon element not found in fishingGameState.ui.");
+        }
+    }
 };
 
 window.fishingRocksUi = fishingRocksUi;

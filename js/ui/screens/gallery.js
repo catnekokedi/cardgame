@@ -119,10 +119,16 @@ function showGallery(page = 1) {
         const displayNameRarity = rarityTierInfo ? rarityTierInfo.name : card.rarityKey;
 
         img.alt = `Card ${card.setIdentifier}-C${card.id} (${displayNameRarity})`;
-        img.onerror=function(){this.src=`https://placehold.co/130x182/42A5F5/333333?text=${card.setIdentifier}-C${card.id}`;this.alt=`[Missing: ${card.setIdentifier}-C${card.id}]`; this.onerror=null;};
-        img.className = `card ${card.rarityKey}`;
-        img.onclick = () => showCardDetail(card.setIdentifier, card.id, card.rarityKey, 'gallery', card.instanceId, card.grade);
-        cardDivContainer.appendChild(img);
+        // Standardized onerror logic
+        img.onerror=function(){this.src=`https://placehold.co/${this.naturalWidth||this.width||130}x${this.naturalHeight||this.height||182}/333333/cccccc?text=${encodeURIComponent(this.alt || 'Missing Image')}`; this.onerror=null;};
+        img.className = 'gallery-grid-card-image'; // New class for just the image
+
+        const cardWrapper = document.createElement('div');
+        cardWrapper.className = `card ${card.rarityKey}`; // This div gets the 'card' and rarity class for effects
+        cardWrapper.onclick = () => showCardDetail(card.setIdentifier, card.id, card.rarityKey, 'gallery', card.instanceId, card.grade);
+
+        cardWrapper.appendChild(img);
+        cardDivContainer.appendChild(cardWrapper); // Append wrapper to the container
 
         const pInfo = document.createElement('div');
         pInfo.className = 'gallery-card-details';

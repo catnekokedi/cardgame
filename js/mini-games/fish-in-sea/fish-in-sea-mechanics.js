@@ -229,33 +229,56 @@ window.fishingMechanics = {
                 const caughtItem = this.determineCatch(fishingGameState.bitingFishId);
 
                 if (caughtItem.type === 'card') {
-                    const cardDataForBasket = {
-                        id: caughtItem.details.cardId,
+                    // Prepare for pack opening screen
+                    const isNew = !collection[caughtItem.details.set]?.[caughtItem.details.cardId] || collection[caughtItem.details.set][caughtItem.details.cardId].count === 0;
+                    const formattedCard = {
                         set: caughtItem.details.set,
-                        name: caughtItem.name || `${caughtItem.details.set} ${caughtItem.details.cardId}`,
-                        rarity: caughtItem.details.rarityKey,
+                        cardId: caughtItem.details.cardId,
+                        rarityKey: caughtItem.details.rarityKey,
+                        grade: caughtItem.details.grade,
                         price: caughtItem.details.price,
-                        imagePath: `img/cards/${caughtItem.details.set}/${caughtItem.details.cardId}.png`,
-                        type: 'fish',
-                        source: 'fishing'
+                        revealed: false, // Pack opening screen will handle reveal
+                        isNew: isNew,
+                        packIndex: 0 // Single card pack
                     };
-                    if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
-                        window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
+
+                    // Access global variables directly
+                    fishingRewardPackSource = [formattedCard];
+                    isOpeningFishingReward = true;
+
+                    if (typeof showScreen === 'function') {
+                        showScreen(SCREENS.PACK_SELECTION);
                     } else {
-                        console.error("fishingBasket.addCardToBasket function is undefined!");
+                        console.error("showScreen function is undefined! Cannot transition to pack opening.");
+                        // Fallback: Add directly to basket if pack opening fails
+                        const cardDataForBasket = {
+                            id: caughtItem.details.cardId,
+                            set: caughtItem.details.set,
+                            name: caughtItem.name || `${caughtItem.details.set} C${caughtItem.details.cardId}`, // Original name logic
+                            rarity: caughtItem.details.rarityKey, // Ensure this matches basket expectations (rarityKey vs rarity)
+                            price: caughtItem.details.price,
+                            grade: caughtItem.details.grade, // Add grade
+                            imagePath: `img/cards/${caughtItem.details.set}/${caughtItem.details.cardId}.png`,
+                            type: 'card', // Generic type 'card' for basket
+                            source: 'fishing_fallback'
+                        };
+                        if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+                            window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
+                        }
+                         if (typeof showTemporaryCollectedItem === 'function') showTemporaryCollectedItem(caughtItem.details);
+                    }
+                    // DO NOT add to basket here, it will be done after pack opening screen
+                    // DO NOT call showTemporaryCollectedItem here for cards
+
+                } else if (caughtItem.type === 'ticket') {
+                    // Ticket handling remains the same (added directly, shown temporarily)
+                    if (typeof showTemporaryCollectedItem === 'function') {
+                        showTemporaryCollectedItem({ name: caughtItem.details.name, imagePath: getSummonTicketImagePath(caughtItem.details.rarityKey) });
+                    } else if (typeof fishingUi !== 'undefined' && typeof fishingUi.showCatchPreview === 'function'){
+                         fishingUi.showCatchPreview(caughtItem);
                     }
                 }
-                // Ticket is handled by determineCatch
-
-                // Replace fishingUi.showCatchPreview with global showTemporaryCollectedItem or similar
-                if (caughtItem.type === 'card' && typeof showTemporaryCollectedItem === 'function') {
-                    showTemporaryCollectedItem(caughtItem.details); // Assuming details is the card object
-                } else if (caughtItem.type === 'ticket' && typeof showTemporaryCollectedItem === 'function') {
-                     showTemporaryCollectedItem({ name: caughtItem.details.name, imagePath: getSummonTicketImagePath(caughtItem.details.rarityKey) }); // Need a way to get ticket image
-                } else if (typeof fishingUi !== 'undefined' && typeof fishingUi.showCatchPreview === 'function'){
-                     fishingUi.showCatchPreview(caughtItem); // Fallback to old UI if new one can't handle it
-                }
-
+                // Common success sounds and spawning new fish
                 if (typeof playSound === 'function') playSound('sfx_fishing_win.mp3');
                 this.spawnFish(fishingGameState.bitingFishId);
 

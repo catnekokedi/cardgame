@@ -90,7 +90,8 @@ function showCardDetail(setIdentifier, cardId, rarityKey, source, instanceId = n
         console.warn(`Image wrapper 'detail-image-${source}-wrapper' not found. Applying classes to img.`);
         imgElement.className = `detail-image card ${displayRarityKey}`;
     }
-    imgElement.onerror = function() { this.src=`https://placehold.co/300x420/CF6679/FFFFFF?text=${setIdentifier}-C${cardId}`; this.alt=`Error loading image`; this.onerror=null; };
+    // Standardized onerror logic
+    imgElement.onerror = function(){this.src=`https://placehold.co/${this.naturalWidth||this.width||300}x${this.naturalHeight||this.height||420}/333333/cccccc?text=${encodeURIComponent(this.alt || 'Missing Image')}`; this.onerror=null;};
     // Ensure the img itself doesn't have .card if wrapper exists, to avoid confusion or double styling if CSS targets img.card
     if (imgWrapper && imgElement.classList.contains('card')) {
         imgElement.classList.remove('card', displayRarityKey); // Remove general card style classes, keep 'detail-image'

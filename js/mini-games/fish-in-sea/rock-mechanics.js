@@ -90,10 +90,12 @@ function spawnNewRock(slotIndex, initialDelay = 0) {
  * @param {number} rockSlotIndex The index of the rock slot.
  */
 function hitRock(rockSlotIndex) {
-    // if (!pickaxeSelected) { // Removed check for global pickaxe state
-    //     if(typeof showCustomModal === 'function') showCustomModal("Select the pickaxe tool first!", "info");
-    //     return;
-    // }
+    if (!fishingGameState.pickaxeSelected) {
+        if(typeof showCustomAlert === 'function') { // Changed to showCustomAlert
+            showCustomAlert("Select the pickaxe tool first!", null, 1500);
+        }
+        return;
+    }
     const rock = rockSlots[rockSlotIndex];
     if (!rock || rock.isRespawning) {
         console.log("No active rock in this slot or rock is respawning.");
@@ -202,27 +204,48 @@ function grantRockRewards(rockDef) {
         }
     }
 
-    if (generatedCardData) {
-        console.log("Rock dropped collectible card:", generatedCardData);
+    if (generatedCardData && generatedCardData.type === 'collectible_card' && generatedCardData.set) {
+        // This is a collectible card, send to pack opening screen
+        console.log("Rock dropped collectible card, preparing for pack opening:", generatedCardData);
+        const isNew = !collection[generatedCardData.set]?.[generatedCardData.id] || collection[generatedCardData.set][generatedCardData.id].count === 0;
+        const formattedCardObject = {
+            set: generatedCardData.set,
+            cardId: generatedCardData.id,
+            rarityKey: generatedCardData.rarity, // Assuming 'rarity' in rock card is 'rarityKey'
+            grade: generatedCardData.grade || getFixedGradeAndPrice(generatedCardData.set, generatedCardData.id)?.grade || 'S',
+            price: generatedCardData.price || getFixedGradeAndPrice(generatedCardData.set, generatedCardData.id)?.price || 0,
+            revealed: false,
+            isNew: isNew,
+            packIndex: 0
+        };
+
+        fishingRewardPackSource = [formattedCardObject];
+        isOpeningFishingReward = true;
+
+        if (typeof showScreen === 'function') {
+            showScreen(SCREENS.PACK_SELECTION);
+        } else {
+            console.error("showScreen function is undefined! Cannot transition to pack opening for rock reward.");
+            // Fallback: Add directly to basket
+            if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+                window.fishingBasket.addCardToBasket(generatedCardData, 1); // Use original generatedCardData for basket
+            }
+        }
+    } else if (generatedCardData) {
+        // This is another type of item (e.g., fallback mineral), add directly to basket
+        console.log("Rock dropped non-collectible item (e.g., mineral), adding to basket:", generatedCardData);
         if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
             window.fishingBasket.addCardToBasket(generatedCardData, 1);
         } else {
-            console.warn("fishingBasket.addCardToBasket function not found. Card not added to basket.");
+            console.warn("fishingBasket.addCardToBasket function not found. Item from rock not added to basket.");
         }
     } else {
-        // Fallback: if no collectible card generated, drop a generic mineral as before
-        const fallbackMineral = {
-            id: `mineral_fallback_${rockDef.rarity}_${Date.now()}`, set: 'fish_in_sea_mineral',
-            name: `${rockDef.name} Generic Shard`, type: "mineral", rarity: rockDef.rarity,
-            price: rockDef.hp, imagePath: `gui/fishing_game/mineral_${rockDef.rarity}.png`, source: "mining_fallback"
-        };
-        console.log("Rock failed to drop collectible card, granting fallback mineral:", fallbackMineral);
-        if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
-            window.fishingBasket.addCardToBasket(fallbackMineral, 1);
-        }
+         // No card/item was generated (e.g. if all conditions failed in the generation logic)
+        console.log("No specific item generated from rock break (neither collectible nor fallback).");
     }
 
-    // Ticket chance remains
+
+    // Ticket chance remains, handled independently of the card/mineral drop
     if (Math.random() < rockDef.ticketChance) {
         const ticketType = "common_summon_ticket"; // Placeholder, could also be biased by rockDef.rarity
         console.log(`Granted Summon Ticket: ${ticketType}`);

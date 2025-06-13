@@ -236,6 +236,14 @@
 .fishing-ui-icon:hover { background-color: #dadada; transform: scale(1.08); box-shadow: 0 1px 2.5px rgba(0,0,0,0.1); }
 .fishing-ui-icon.selected-tool { background-color: var(--material-primary); color: white; border-color: var(--material-primary-variant); transform: scale(1.08); }
 
+/* Style for any active tool, including pickaxe */
+.fishing-ui-icon.active-tool {
+    background-color: var(--material-accent, #FFC107); /* Default to a bright yellow if accent not defined */
+    color: var(--material-text-primary-dark, #212121); /* Dark text on light accent */
+    border-color: var(--material-accent-dark, #FFA000);
+    box-shadow: 0 0 8px var(--material-accent-light, #FFD54F);
+}
+
 
 .fishing-game-modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
