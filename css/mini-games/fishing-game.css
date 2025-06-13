@@ -78,25 +78,42 @@
 }
 #fishing-cat-svg { width: 100%; height: 100%; overflow: visible; }
 
-@keyframes catRodIdleAnimation { 
-    0%, 100% { transform: rotate(2deg) translateY(0px); }
-    50% { transform: rotate(-1deg) translateY(-0.5px); }
+/* Updated Animations for the new SVG Cat and Rod */
+/* The pivot point is set in JS as transform-origin on #fishing-rod-group */
+
+@keyframes catRodIdleAnimation {
+    0%, 100% { transform: rotate(5deg); } /* Rod slightly angled up */
+    50% { transform: rotate(0deg); }   /* Slight dip */
 }
-@keyframes catRodCastAnimation { 
-    0% { transform: rotate(2deg); }
-    40% { transform: rotate(-75deg) scaleX(1.05) scaleY(0.95); } 
-    100% { transform: rotate(-35deg) scale(1); } 
+
+@keyframes catRodCastAnimation {
+    0% { transform: rotate(-20deg); } /* Start back */
+    50% { transform: rotate(60deg) scaleX(1.05); } /* Swing forward, slight stretch */
+    100% { transform: rotate(45deg); } /* End position after cast */
 }
-@keyframes catRodReelAnimation { 
-    0% { transform: rotate(-35deg); } 
-    25% { transform: rotate(25deg) scaleY(0.92) translateX(-2px); } 
-    50% { transform: rotate(5deg) scaleY(1.03) translateX(0.5px); }
-    75% { transform: rotate(15deg) scaleY(0.95) translateX(-1px); }
-    100% { transform: rotate(10deg) scale(1); } 
+
+@keyframes catRodReelAnimation {
+    0% { transform: rotate(40deg); } /* Rod angled for reeling */
+    25% { transform: rotate(35deg) translateY(1px); } /* Slight pull/bob */
+    50% { transform: rotate(45deg) translateY(-1px); } /* Slight pull/bob */
+    75% { transform: rotate(38deg); }
+    100% { transform: rotate(40deg); }
 }
-#fishing-rod-group.cat-rod-idle { animation: catRodIdleAnimation 2.8s ease-in-out infinite; }
-#fishing-rod-group.cat-rod-casting { animation: catRodCastAnimation 0.6s ease-out forwards; }
-#fishing-rod-group.cat-rod-reeling { animation: catRodReelAnimation 1s ease-in-out forwards; }
+
+/* Apply animations to the #fishing-rod-group (which includes the cat's arm and the rod) */
+#fishing-rod-group.cat-rod-idle {
+    animation: catRodIdleAnimation 3s ease-in-out infinite;
+    transform: rotate(5deg); /* Default resting state */
+}
+
+#fishing-rod-group.cat-rod-casting {
+    animation: catRodCastAnimation 0.7s ease-out forwards;
+}
+
+#fishing-rod-group.cat-rod-reeling {
+    animation: catRodReelAnimation 0.8s linear infinite; /* Changed to linear infinite for continuous reel */
+    transform: rotate(40deg); /* Default reeling angle */
+}
 
 
 #fishing-rod-line-canvas { 
@@ -163,18 +180,27 @@
     pointer-events: none; 
     z-index: 2; 
 }
-.card-fish { 
-    position: absolute; 
-    width: 30px; 
-    height: 30px; 
-    opacity: 0.5; 
-    animation-name: swim; 
-    animation-timing-function: linear; 
-    animation-iteration-count: infinite; 
-    background-color: white;
-    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); 
-    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-} 
+.card-fish {
+    background-image: url('../../gui/fishing_game/fish-back.png');
+    background-size: contain; /* or cover, depending on desired look */
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 50px; /* Adjust as needed */
+    height: 70px; /* Adjust as needed, maintaining aspect ratio if possible */
+    /* Remove any conflicting background properties or star-specific styles */
+    /* Keep existing animation properties if they are still relevant */
+    position: absolute; /* Ensure it's positioned if not already */
+    opacity: 0.7; /* Example opacity, adjust as needed */
+    animation-name: swim; /* Keep existing animation if relevant */
+    animation-timing-function: linear; /* Keep existing animation if relevant */
+    animation-iteration-count: infinite; /* Keep existing animation if relevant */
+    /* Removed background-color: white; */
+    /* Removed clip-path: polygon(...); */
+    /* Removed box-shadow: ...; or adjust if needed for new visual */
+}
+/* The existing @keyframes swim might need adjustment if the new fish visual behaves differently */
+/* For instance, the scaleX(-1) for direction change might look odd if fish-back.png is not symmetrical. */
+/* For now, keeping the keyframes as is. */
 @keyframes swim { 
     0%   { transform: translateX(-100%) translateY(0px) rotate(0deg) scaleX(1); opacity: 0.4; }
     20%  { transform: translateX(calc(20% + var(--random-x-offset, 0px))) translateY(calc(10px + var(--random-y-offset, 0px))) rotate(10deg) scaleX(1); }

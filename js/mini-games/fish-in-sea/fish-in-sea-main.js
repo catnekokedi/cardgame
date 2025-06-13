@@ -26,7 +26,7 @@ function startFishingGame(gameContentEl, gameResultEl) {
     // Core fishing mechanics (fish movement, bite logic)
     if (typeof window.fishingMechanics !== 'undefined' && typeof window.fishingMechanics.initializeFishingMechanics === 'function') window.fishingMechanics.initializeFishingMechanics(); else console.warn("fishingMechanics.initializeFishingMechanics function not found.");
     // UI for new core fishing game elements (sea container, fish rendering)
-    if (typeof window.fishingGameUi !== 'undefined' && typeof window.fishingGameUi.initializeFishingUIElements === 'function') window.fishingGameUi.initializeFishingUIElements(); else console.warn("fishingGameUi.initializeFishingUIElements function not found.");
+    // if (typeof window.fishingGameUi !== 'undefined' && typeof window.fishingGameUi.initializeFishingUIElements === 'function') window.fishingGameUi.initializeFishingUIElements(); else console.warn("fishingGameUi.initializeFishingUIElements function not found."); // Commented out as per task
 
     // Sky Mechanics and UI
     if (typeof window.skyMechanics !== 'undefined' && typeof window.skyMechanics.initializeSkyMechanics === 'function') window.skyMechanics.initializeSkyMechanics(); else console.warn("skyMechanics.initializeSkyMechanics function not found.");

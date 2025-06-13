@@ -181,7 +181,6 @@ function renderSummonGameScreen(containerElement) {
 
         const ticketsNeeded = currentSelectedSummonQuantity;
         const ticketsOwned = getSummonTicketBalance(currentSelectedSummonRarity);
-        const ticketsOwned = getSummonTicketBalance(currentSelectedSummonRarity);
         const canSummon = ticketsOwned >= ticketsNeeded;
 
         packSlotEl.classList.toggle('active', canSummon);

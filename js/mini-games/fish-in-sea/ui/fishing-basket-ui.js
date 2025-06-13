@@ -1,6 +1,6 @@
 // js/mini-games/fish-in-sea/ui/fishing-basket-ui.js
 
-const fishingBasketUi = {
+window.fishingBasketUi = {
     modalElement: null,
     basketIconElement: null,
     cardsContainerElement: null,
@@ -245,6 +245,6 @@ const fishingBasketUi = {
 };
 
 // Make globally available
-// window.fishingBasketUi = fishingBasketUi;
+window.fishingBasketUi = fishingBasketUi;
 
 console.log("fishing-basket-ui.js loaded");

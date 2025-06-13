@@ -267,7 +267,7 @@ function loadTreeData(data) {
 
 // Export functions if using modules, otherwise they are global.
 // For this project structure, they are likely global.
-// window.initializeTree = initializeTree;
+window.initializeTree = initializeTree;
 // window.setConstantMoistureSupply = setConstantMoistureSupply;
 // window.updateTreeFruitGrowth = updateTreeFruitGrowth;
 // window.getTreeSlotsData = getTreeSlotsData;

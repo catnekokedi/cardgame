@@ -180,4 +180,7 @@ function loadWateringCanData(data) {
     console.log("Watering Can data loaded:", wateringCanUpgrades);
 }
 
+// Make initializeWateringCan globally accessible
+window.initializeWateringCan = initializeWateringCan;
+
 console.log("watering-can.js loaded");

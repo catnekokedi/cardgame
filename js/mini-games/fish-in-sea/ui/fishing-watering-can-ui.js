@@ -8,6 +8,34 @@ const fishingWateringCanUi = {
         if (fishingGameState.ui.wateringCanIcon) {
             fishingGameState.ui.wateringCanIcon.addEventListener('dragstart', (e) => this.handleDragStart(e));
             fishingGameState.ui.wateringCanIcon.addEventListener('dragend', (e) => this.handleDragEnd(e));
+
+            // Add click listener for the watering can icon to toggle the upgrade modal
+            fishingGameState.ui.wateringCanIcon.addEventListener('click', () => {
+                const modal = document.getElementById('watering-can-upgrade-modal');
+                if (modal) {
+                    const isHidden = modal.style.display === 'none' || modal.style.display === '';
+                    modal.style.display = isHidden ? 'flex' : 'none';
+                    if (isHidden && typeof playSound === 'function') playSound('sfx_modal_open.mp3');
+                    else if (!isHidden && typeof playSound === 'function') playSound('sfx_modal_close.mp3');
+
+                    // If opening, ensure UI inside modal is up-to-date
+                    if (isHidden && typeof updateWateringCanUI === 'function') {
+                        updateWateringCanUI();
+                    }
+                }
+            });
+        }
+
+        // Add click listener for the modal's close button
+        const closeModalButton = document.getElementById('close-watering-can-modal');
+        if (closeModalButton) {
+            closeModalButton.addEventListener('click', () => {
+                const modal = document.getElementById('watering-can-upgrade-modal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    if (typeof playSound === 'function') playSound('sfx_modal_close.mp3');
+                }
+            });
         }
         // console.log('[WC UI] Initialized. Watering Can Icon Element:', fishingGameState.ui.wateringCanIcon);
     },

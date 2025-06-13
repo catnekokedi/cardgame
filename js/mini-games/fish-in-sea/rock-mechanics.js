@@ -293,4 +293,7 @@ function loadRockData(data) {
     console.log("Rock data loaded.");
 }
 
+// Make initializeRocks globally accessible
+window.initializeRocks = initializeRocks;
+
 console.log("rock-mechanics.js loaded");

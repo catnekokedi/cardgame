@@ -1,6 +1,6 @@
 // js/mini-games/fishing-game/fishing-mechanics.js
 
-const fishingMechanics = {
+window.fishingMechanics = {
     activeFish: [],
     maxActiveFish: 4, // Can be adjusted
     seaBoundaries: { minX: 50, maxX: 350, minY: 50, maxY: 250 }, // Example, adjust based on UI

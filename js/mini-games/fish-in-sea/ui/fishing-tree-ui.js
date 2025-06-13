@@ -57,8 +57,8 @@ const fishingTreeUi = {
                         slotDiv.classList.add('revealed-collectible');
                     } else {
                         // Fallback if card data or imagePath is missing for a revealed card
-                        slotDiv.style.backgroundImage = `url('gui/fishing_game/fish-back.png')`; // Generic fallback
-                        console.warn("Revealed tree card missing cardData or imagePath, using fallback.", slot);
+                        slotDiv.style.backgroundImage = `url('https://placehold.co/40x56/8B4513/FFFFFF?text=Fruit')`; // Distinct placeholder
+                        console.warn("Revealed tree card missing cardData or imagePath, using fallback placeholder.", slot);
                     }
                     slotDiv.onclick = () => {
                         if (typeof collectCardFromTree === 'function') {

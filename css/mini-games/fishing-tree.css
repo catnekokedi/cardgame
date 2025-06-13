@@ -3,37 +3,26 @@
 #fishing-tree-container {
     position: absolute;
     /* Centered in the left 40% "land" area, significantly higher */
-    left: calc(20% - 175px); /* Centering 350px tree in left 40% area */
+    left: calc(28% - 175px); /* Centering 350px tree in left 40% area - MOVED 8% RIGHT */
     width: 350px;
-    top: 15%;  /* Moved up significantly */
+    top: 8%;  /* Moved up significantly - MOVED 7% HIGHER */
     height: 70%; /* Adjusted height */
     max-height: 550px; /* Adjusted max-height */
     background-image: url('../../gui/fishing_game/tree_placeholder.png');
-    background-color: #8B4513;
+    background-color: transparent; /* CHANGED to transparent */
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 8px; /* Slightly reduced gap for smaller cards */
-    padding: 15px 20px 40px 20px; /* Reduced top padding to move slots higher */
+    gap: 5px; /* CHANGED to 5px */
+    padding: 10px 15px 20px 15px; /* CHANGED padding */
     box-sizing: border-box;
     align-items: center;
     justify-items: center;
 }
-#fishing-tree-container::before {
-    content: 'Tree'; /* Simpler text */
-    position: absolute;
-    top: 8px; /* Adjusted */
-    left: 50%;
-    transform: translateX(-50%);
-    color: rgba(255,255,255,0.1); /* Very subtle, almost invisible if image loads */
-    font-size: 1.1em; /* Adjusted */
-    font-weight: bold;
-    z-index: 0;
-    pointer-events: none;
-}
+/* REMOVED #fishing-tree-container::before rule */
 
 .tree-card-slot {
     width: 40px; /* Smaller slots */
@@ -97,27 +86,27 @@
 #tree-moisture-display {
     position: absolute;
     /* Centered below the tree container */
-    left: calc(20% - 175px + (350px / 2)); /* Aligns with center of tree container */
-    transform: translateX(-50%);
+    left: 20%; /* UPDATED */
+    transform: translateX(-50%); /* ADDED/UPDATED */
     /* Tree top: 15%, Tree height: 70%. Display is below this. */
-    top: calc(15% + 70% + 10px); /* 5px below tree container's bottom edge (considering no border/padding) */
+    /* top: calc(15% + 70% + 10px); */ /* Original comment, logic changed below */
                                  /* The tree container has 40px bottom padding, so this needs to be relative to screen bottom or use calc carefully */
                                  /* Let's use bottom for simplicity if parent is fish-in-sea-screen */
     /* If #fish-in-sea-screen is 100% height of viewport (or its container): */
     /* Bottom of tree container is at 15% (top) + 70% (height) = 85% from top of screen */
     /* So, if moisture display is 5px below this: */
-    /* top: calc(85% + 5px); /* Simpler to calculate if tree container height is percentage based and parent is screen */
+    /* top: calc(85% + 5px); */ /* Simpler to calculate if tree container height is percentage based and parent is screen */
     /* A more robust way might be to adjust based on the tree's bottom padding */
-    bottom: calc(100% - (15% + 70% + 30px)); /* Approx: 100% - (tree.top + tree.height + tree.padding-bottom(rough estimate for visual clearance)) */
+    /* bottom: calc(100% - (15% + 70% + 30px)); */ /* Approx: 100% - (tree.top + tree.height + tree.padding-bottom(rough estimate for visual clearance)) */
                                              /* This is complex. Let's simplify: place it a fixed distance from screen bottom, aligned with tree center */
     /* Simplified: */
-    bottom: 5%; /* 5% from the bottom of the fish-in-sea-screen */
-    background-color: rgba(0, 0, 0, 0.75);
+    top: 88%; /* CHANGED from bottom: 5% */
+    background-color: rgba(40, 40, 40, 0.85); /* CHANGED background color */
     color: white;
-    padding: 4px 8px; /* Slightly smaller padding */
+    padding: 5px 10px; /* CHANGED padding */
     border-radius: 5px;
     font-size: 0.9em;
-    z-index: 10;
+    z-index: 10; /* ENSURED z-index */
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 

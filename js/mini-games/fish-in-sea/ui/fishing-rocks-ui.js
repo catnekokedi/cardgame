@@ -1,6 +1,6 @@
 // js/mini-games/fish-in-sea/ui/fishing-rocks-ui.js
 
-const fishingRocksUi = {
+window.fishingRocksUi = {
     // pickaxeIconElement: null, // Removed
     rocksContainerElement: null,
 

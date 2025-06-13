@@ -39,7 +39,7 @@ const fishingUi = {
                                 <span class="exclamation-mark" style="display:none;">❗</span>
                             </div>
                             <div id="fishing-card-display-area">
-                                ${Array(5).fill(null).map((_, i) => `<div class="card-fish" alt="Card Fish ${i+1}" style="animation-duration: ${12 + Math.random()*6}s; animation-delay: ${Math.random()*5}s; top: ${10 + Math.random()*80}%; left: ${5 + Math.random()*90}%;"></div>`).join('')}
+                                ${Array(5).fill(null).map((_, i) => `<div class="card-fish" alt="Fish ${i+1}" style="animation-duration: ${12 + Math.random()*6}s; animation-delay: ${Math.random()*5}s; top: ${10 + Math.random()*80}%; left: ${5 + Math.random()*90}%;"></div>`).join('')}
                             </div>
                         </div>
                     </div>
@@ -158,92 +158,134 @@ const fishingUi = {
     createSVGCat() {
         const catContainer = fishingGameState.ui.catContainer;
         if (!catContainer) return;
+        catContainer.innerHTML = ''; // Clear previous SVG if any
 
         const svgNS = "http://www.w3.org/2000/svg";
         const svg = document.createElementNS(svgNS, "svg");
         svg.setAttribute("id", "fishing-cat-svg");
-        svg.setAttribute("viewBox", "0 0 70 100"); 
-        svg.setAttribute("width", "100%"); 
+        svg.setAttribute("viewBox", "0 0 100 100"); // Adjusted viewBox for new design
+        svg.setAttribute("width", "100%");
         svg.setAttribute("height", "100%");
-        svg.style.overflow = "visible"; 
+        svg.style.overflow = "visible";
 
+        // Boat
         const boat = document.createElementNS(svgNS, "path");
-        boat.setAttribute("d", "M5 80 Q15 70 35 72 T65 80 L60 90 L10 90 Z"); 
-        boat.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.boatFill);
-        boat.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.boatStroke);
+        boat.setAttribute("id", "cat-boat");
+        // A slightly more spacious boat design:
+        boat.setAttribute("d", "M10 85 Q20 75 50 77 T90 85 L80 95 L20 95 Z");
+        boat.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.boatFill || "#A0522D"); // Sienna
+        boat.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.boatStroke || "#5A2D0C"); // Darker Brown
         boat.setAttribute("stroke-width", "2");
         svg.appendChild(boat);
 
+        // Cat Group (for potential whole-cat animation, though rod is separate)
+        const catGroup = document.createElementNS(svgNS, "g");
+        catGroup.setAttribute("id", "cat-character-group");
 
+        // Body
         const body = document.createElementNS(svgNS, "ellipse");
-        body.setAttribute("cx", "35"); body.setAttribute("cy", "65"); 
-        body.setAttribute("rx", "12"); body.setAttribute("ry", "15"); 
-        body.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.catBody); 
-        body.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.catOutline); 
+        body.setAttribute("id", "cat-body");
+        body.setAttribute("cx", "50"); body.setAttribute("cy", "65"); // Centered in new boat
+        body.setAttribute("rx", "10"); body.setAttribute("ry", "12"); // Slightly slimmer
+        body.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.catBody || "#D2B48C"); // Tan
+        body.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.catOutline || "#8B4513"); // SaddleBrown
         body.setAttribute("stroke-width", "1.5");
-        svg.appendChild(body);
+        catGroup.appendChild(body);
 
+        // Head
         const head = document.createElementNS(svgNS, "circle");
-        head.setAttribute("cx", "35"); head.setAttribute("cy", "45"); 
-        head.setAttribute("r", "10"); 
-        head.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.catBody); 
-        head.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.catOutline); 
+        head.setAttribute("id", "cat-head");
+        head.setAttribute("cx", "50"); head.setAttribute("cy", "48"); // On top of body
+        head.setAttribute("r", "8");
+        head.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.catBody || "#D2B48C");
+        head.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.catOutline || "#8B4513");
         head.setAttribute("stroke-width", "1.5");
-        svg.appendChild(head);
+        catGroup.appendChild(head);
 
+        // Eyes
         const eyeLeft = document.createElementNS(svgNS, "circle");
-        eyeLeft.setAttribute("cx", "31"); eyeLeft.setAttribute("cy", "43"); eyeLeft.setAttribute("r", "1.5");
-        eyeLeft.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.catEyes);
-        svg.appendChild(eyeLeft);
+        eyeLeft.setAttribute("cx", "47"); eyeLeft.setAttribute("cy", "47"); eyeLeft.setAttribute("r", "1.2");
+        eyeLeft.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.catEyes || "black");
+        catGroup.appendChild(eyeLeft);
 
         const eyeRight = document.createElementNS(svgNS, "circle");
-        eyeRight.setAttribute("cx", "39"); eyeRight.setAttribute("cy", "43"); eyeRight.setAttribute("r", "1.5");
-        eyeRight.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.catEyes);
-        svg.appendChild(eyeRight);
-        
+        eyeRight.setAttribute("cx", "53"); eyeRight.setAttribute("cy", "47"); eyeRight.setAttribute("r", "1.2");
+        eyeRight.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.catEyes || "black");
+        catGroup.appendChild(eyeRight);
+
+        // Ears
         const earLeft = document.createElementNS(svgNS, "path");
-        earLeft.setAttribute("d", "M27 37 Q25 30 32 35 Z"); 
-        earLeft.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.catBody); 
-        earLeft.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.catOutline); 
+        earLeft.setAttribute("d", "M42 41 Q40 35 46 39 Z"); // Pointy ear
+        earLeft.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.catBody || "#D2B48C");
+        earLeft.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.catOutline || "#8B4513");
         earLeft.setAttribute("stroke-width", "1.5");
-        svg.appendChild(earLeft);
+        catGroup.appendChild(earLeft);
 
         const earRight = document.createElementNS(svgNS, "path");
-        earRight.setAttribute("d", "M43 37 Q45 30 38 35 Z"); 
-        earRight.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.catBody); 
-        earRight.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.catOutline); 
+        earRight.setAttribute("d", "M58 41 Q60 35 54 39 Z"); // Pointy ear
+        earRight.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.catBody || "#D2B48C");
+        earRight.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.catOutline || "#8B4513");
         earRight.setAttribute("stroke-width", "1.5");
-        svg.appendChild(earRight);
+        catGroup.appendChild(earRight);
 
+        // Tail (optional, simple curve)
+        const tail = document.createElementNS(svgNS, "path");
+        tail.setAttribute("id", "cat-tail");
+        tail.setAttribute("d", "M60 75 Q65 70 68 60"); // Simple curved tail
+        tail.setAttribute("fill", "none");
+        tail.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.catOutline || "#8B4513");
+        tail.setAttribute("stroke-width", "2");
+        catGroup.appendChild(tail);
+
+        svg.appendChild(catGroup); // Add cat character to SVG
+
+        // Fishing Rod Group (for animation - includes arm)
         const rodGroup = document.createElementNS(svgNS, "g");
-        rodGroup.setAttribute("id", "fishing-rod-group");
-        const pivotX = 38; 
-        const pivotY = 60; 
-        rodGroup.setAttribute("transform-origin", `${pivotX}px ${pivotY}px`); 
+        rodGroup.setAttribute("id", "fishing-rod-group"); // Crucial ID for existing animation logic
+        const pivotX = 52; // Cat's right side (viewer's left)
+        const pivotY = 60; // Cat's shoulder height
+        rodGroup.setAttribute("transform-origin", `${pivotX}px ${pivotY}px`);
+
+        // Cat's Arm (holding the rod)
+        const arm = document.createElementNS(svgNS, "path");
+        arm.setAttribute("id", "cat-arm");
+        arm.setAttribute("d", `M${pivotX-3} ${pivotY+2} L${pivotX+5} ${pivotY-5} L${pivotX+10} ${pivotY-3}`); // Simple bent arm
+        arm.setAttribute("fill", "none");
+        arm.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.catOutline || "#8B4513");
+        arm.setAttribute("stroke-width", "3");
+        arm.setAttribute("stroke-linecap", "round");
+        rodGroup.appendChild(arm);
+
+        // Fishing Rod
+        const rodBaseX = pivotX + 8; // Start rod near hand
+        const rodBaseY = pivotY - 4;
+        const rodTipX = rodBaseX + 30; // Rod length
+        const rodTipY = rodBaseY - 60; // Rod angle upwards
 
         const rodLineSvg = document.createElementNS(svgNS, "line");
-        rodLineSvg.setAttribute("id", "fishing-rod-svg-line");
-        rodLineSvg.setAttribute("x1", pivotX); rodLineSvg.setAttribute("y1", pivotY); 
-        rodLineSvg.setAttribute("x2", pivotX + 45); rodLineSvg.setAttribute("y2", pivotY - 95); 
-        rodLineSvg.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.rod); 
-        rodLineSvg.setAttribute("stroke-width", "3");
+        rodLineSvg.setAttribute("id", "fishing-rod-svg-line"); // ID for the rod itself
+        rodLineSvg.setAttribute("x1", `${rodBaseX}`); rodLineSvg.setAttribute("y1", `${rodBaseY}`);
+        rodLineSvg.setAttribute("x2", `${rodTipX}`); rodLineSvg.setAttribute("y2", `${rodTipY}`);
+        rodLineSvg.setAttribute("stroke", FISHING_CONFIG.SVG_COLORS.rod || "#8B4513"); // Brown rod
+        rodLineSvg.setAttribute("stroke-width", "2.5");
         rodLineSvg.setAttribute("stroke-linecap", "round");
         rodGroup.appendChild(rodLineSvg);
 
+        // Rod Tip Element (for line attachment)
         const rodTip = document.createElementNS(svgNS, "circle");
-        rodTip.setAttribute("id", "rod-tip"); 
-        rodTip.setAttribute("cx", pivotX + 45); rodTip.setAttribute("cy", pivotY - 95); 
-        rodTip.setAttribute("r", "1.5");
-        rodTip.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.rodTip);
+        rodTip.setAttribute("id", "rod-tip"); // CRUCIAL ID for drawRodLine()
+        rodTip.setAttribute("cx", `${rodTipX}`); rodTip.setAttribute("cy", `${rodTipY}`);
+        rodTip.setAttribute("r", "1"); // Small, can be invisible if fill is 'none'
+        rodTip.setAttribute("fill", FISHING_CONFIG.SVG_COLORS.rodTip || "red");
         rodGroup.appendChild(rodTip);
-        
-        svg.appendChild(rodGroup);
+
+        svg.appendChild(rodGroup); // Add rod group to SVG
+
         catContainer.appendChild(svg);
         fishingGameState.ui.catSvg = svg;
     },
 
-
-    getModalHTML() { 
+    getModalHTML() {
         return `
             <div id="fishing-basket-modal" class="fishing-game-modal-overlay" style="display:none;">
                 <div class="fishing-game-modal-content fishing-basket-content">
