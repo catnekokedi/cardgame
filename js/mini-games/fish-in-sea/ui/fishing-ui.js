@@ -18,7 +18,7 @@ const fishingUi = {
                     <span id="fishing-bait-name">Bait: None</span>
                     <span id="fishing-status-text">Press Space to cast!</span>
                 </div>
-                <div id="fishing-main-panel"> {/* Changed from class="fishing-game-content-wrapper" */}
+                <div id="fishing-main-panel"> 
                     <div id="fishing-land-area">
                         <div id="fishing-tree-container">
                             <svg id="fishing-tree-svg" viewBox="0 0 130 150"></svg> 
@@ -43,8 +43,8 @@ const fishingUi = {
                             </div>
                         </div>
                     </div>
-                     <p id="fishing-result-message"></p> {/* Moved out of water-area for general messages */}
-                     <div id="fishing-catch-preview" style="display:none;"> {/* Moved out of water-area for general messages */}
+                     <p id="fishing-result-message"></p> 
+                     <div id="fishing-catch-preview" style="display:none;"> 
                         <img id="fishing-catch-preview-img" src="" alt="Caught Item">
                         <div id="fishing-catch-preview-details">
                             <p id="fishing-catch-preview-name"></p>
@@ -53,7 +53,6 @@ const fishingUi = {
                         </div>
                     </div>
                     <div id="fishing-ui-panel-right">
-                         място за кошницата
                         <div id="fishing-rod-upgrade-icon" class="fishing-ui-icon" title="Upgrade Rod">🎣</div>
                         <div id="fishing-bait-select-icon" class="fishing-ui-icon" title="Select Bait">🐛</div>
                     </div>
