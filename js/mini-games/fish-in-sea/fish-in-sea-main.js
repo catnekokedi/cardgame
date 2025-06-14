@@ -61,18 +61,41 @@ function startFishingGame(gameContentEl, gameResultEl) {
     // Old Sky Mechanics and UI calls have been removed as they are replaced by the new bird system.
 
     // Initialize Bird Mechanics and UI
-    const skyElementForBirds = document.getElementById('fishing-sky-container'); // As defined in fishing-ui.js HTML
+    const skyElementForBirds = document.getElementById('fishing-sky-container'); // This is the bird's movement canvas
+    const waterPanelElement = fishingGameState.ui.waterDropArea; // Reference to the water panel
+
     let birdSkyBoundaries = { xMin: 0, xMax: 600, yMin: 0, yMax: 150 }; // Default fallback
-    if (skyElementForBirds) {
-        birdSkyBoundaries.xMax = skyElementForBirds.offsetWidth;
-        // Use only a portion of the sky container for bird flight, e.g., upper 75-80% to avoid overlap with other UI
-        birdSkyBoundaries.yMax = skyElementForBirds.offsetHeight * 0.80;
+
+    if (skyElementForBirds && waterPanelElement) {
+        const skyRect = skyElementForBirds.getBoundingClientRect();
+        const waterRect = waterPanelElement.getBoundingClientRect();
+
+        // Calculate X boundaries for birds to be over the water, relative to the skyElement.
+        // This assumes skyElementForBirds and waterPanelElement share a common positioning context
+        // or that their absolute positions can be used to find relative positions.
+        // For simplicity, let's assume skyRect.left is the 0 for bird X coordinates.
+        birdSkyBoundaries.xMin = Math.max(0, waterRect.left - skyRect.left);
+        birdSkyBoundaries.xMax = Math.min(skyRect.width, waterRect.right - skyRect.left);
+
+        // Y boundaries: a band within the sky container, e.g., upper half or a fixed height.
+        // This part of the logic makes birds fly in the upper part of their sky container.
+        // To be "over the water", the sky container itself should be positioned appropriately,
+        // or yMin/yMax should be calculated based on waterRect.top - skyRect.top.
+        // For this subtask, let's keep yMin as 0 (top of sky container) and yMax as a portion of sky container height.
+        birdSkyBoundaries.yMin = 0; // Top of the sky container
+        birdSkyBoundaries.yMax = skyElementForBirds.offsetHeight * 0.75; // Fly in upper 75% of sky container
+
+        console.log(`[BirdMechanics Init] Calculated bird boundaries: xMin=${birdSkyBoundaries.xMin}, xMax=${birdSkyBoundaries.xMax}, yMin=${birdSkyBoundaries.yMin}, yMax=${birdSkyBoundaries.yMax}`);
+        console.log(`[BirdMechanics Init] SkyRect: L=${skyRect.left}, R=${skyRect.right}, T=${skyRect.top}, W=${skyRect.width}, H=${skyRect.height}`);
+        console.log(`[BirdMechanics Init] WaterRect: L=${waterRect.left}, R=${waterRect.right}, T=${waterRect.top}, W=${waterRect.width}, H=${waterRect.height}`);
+
     } else {
-        console.warn("Bird Mechanics: #fishing-sky-container not found for precise boundary setup. Using defaults.");
+        console.warn("Bird Mechanics: #fishing-sky-container or water panel element not found for precise boundary setup. Using defaults.", birdSkyBoundaries);
     }
 
     if (window.birdMechanics && typeof window.birdMechanics.initialize === 'function') {
-        window.birdMechanics.initialize(birdSkyBoundaries); // Re-initialize with actual boundaries
+        window.birdMechanics.initialize(birdSkyBoundaries);
+        console.log("[BirdMechanics Init] Bird mechanics initialized with boundaries:", birdSkyBoundaries);
     }
     if (window.birdUi && typeof window.birdUi.initialize === 'function') {
         window.birdUi.initialize('#fishing-sky-container'); // UI uses selector

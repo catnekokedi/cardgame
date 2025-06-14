@@ -11,24 +11,24 @@
         #e0f2f7 100%   /* Fading Sky Blue */
     );
     overflow: hidden;
-    z-index: 1;
+    z-index: 0; /* Lowered to be the base background layer */
 }
 
 .bird-in-sky {
     position: absolute; /* Positioned by JS */
     width: 40px;  /* Adjust based on bird sprite */
     height: 30px; /* Adjust based on bird sprite */
-    background-image: url('../../gui/fishing_game/bird_type1.png'); /* Default placeholder */
+    background-image: url('../../gui/fishing_game/bird_type1.png'); /* This is a fallback if <img> src is not set, but bird-ui.js sets src. */
     background-size: contain;
     background-repeat: no-repeat;
-    background-color: rgba(100, 100, 100, 0.7); /* Fallback color if image fails */
-    border: 1px solid #333; /* Fallback border */
+    background-color: transparent; /* Ensure no square background */
+    border: none; /* Ensure no border */
     text-align: center;
-    line-height: 30px; /* Match height */
+    line-height: 30px; /* Match height - relevant if text shows due to image fail */
     font-size: 10px;
     color: white;
     cursor: pointer;
-    z-index: 2; /* Above the sky background */
+    z-index: 15; /* Birds fly over most other elements except modals */
     transition: opacity 0.3s ease; /* For fade out on click, if desired */
 }
 .bird-in-sky::before { /* Show bird type if image fails */

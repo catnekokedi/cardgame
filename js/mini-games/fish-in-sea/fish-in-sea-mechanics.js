@@ -103,7 +103,11 @@ window.fishingMechanics = {
     },
 
     castRod() {
-        if (fishingGameState.isRodCast || fishingGameState.isReeling || fishingGameState.hasHookedFish) return;
+        console.log("[Mechanics] castRod: Called. Current state: isRodCast=" + fishingGameState.isRodCast + ", isReeling=" + fishingGameState.isReeling + ", hasHookedFish=" + fishingGameState.hasHookedFish);
+        if (fishingGameState.isRodCast || fishingGameState.isReeling || fishingGameState.hasHookedFish) {
+            console.log("[Mechanics] castRod: Conditions not met, returning.");
+            return;
+        }
 
         // For now, hook position is fixed or uses the default this.hookPosition
         // Later, this could be player controlled.
@@ -118,6 +122,7 @@ window.fishingMechanics = {
         fishingGameState.isReeling = false;
         fishingGameState.bitingFishId = null;
         fishingGameState.hasHookedFish = false;
+        console.log("[Mechanics] castRod: State updated: isRodCast=true, hasHookedFish=false");
         // Note: fishingGameState.bobberPosition is not strictly needed by fishingGameUi if hookPosition is passed directly
 
         if (typeof window.fishingUi !== 'undefined') {
@@ -143,7 +148,10 @@ window.fishingMechanics = {
     },
 
     checkForBite(deltaTime) { // deltaTime in seconds
+        // console.log("[Mechanics] checkForBite: Called with deltaTime=" + deltaTime + ". State: isRodCast=" + fishingGameState.isRodCast + ", isReeling=" + fishingGameState.isReeling + ", hasHookedFish=" + fishingGameState.hasHookedFish);
         if (!fishingGameState.isRodCast || fishingGameState.isReeling || fishingGameState.hasHookedFish) {
+            // This log can be very noisy, enable if needed for detailed debugging.
+            // console.log("[Mechanics] checkForBite: Conditions not met or already hooked, returning early.");
             return;
         }
 
@@ -160,6 +168,7 @@ window.fishingMechanics = {
                     fishingGameState.hasHookedFish = true; // Fish is on the hook!
                     fishingGameState.isRodCast = false; // No longer just "cast", now it's "hooked"
                     fishingGameState.biteTimer = this.biteTimerDuration;
+                    console.log(`[Mechanics] checkForBite: Fish ${fish.id} hooked! hasHookedFish=true. biteTimer initialized to ${fishingGameState.biteTimer}`);
 
                     if (typeof playSound === 'function') playSound('sfx_fishing_bite.mp3');
                     if (typeof window.fishingUi !== 'undefined') {
@@ -182,13 +191,16 @@ window.fishingMechanics = {
         // If a fish is hooked, manage the bite timer
         if (fishingGameState.hasHookedFish && fishingGameState.biteTimer > 0) {
             fishingGameState.biteTimer -= (deltaTime * 1000); // Convert deltaTime to ms for timer
+            // console.log(`[Mechanics] checkForBite: Fish hooked. biteTimer remaining: ${fishingGameState.biteTimer}`);
             if (fishingGameState.biteTimer <= 0) {
+                console.log("[Mechanics] checkForBite: Bite timer expired.");
                 this.handleFishEscape();
             }
         }
     },
 
     handleFishEscape() {
+        console.log("[Mechanics] handleFishEscape: Called. Biting fish ID: " + fishingGameState.bitingFishId);
         if (typeof fishingUi !== 'undefined') fishingUi.showTemporaryResultMessage("Too slow! The fish got away.");
         if (typeof playSound === 'function') playSound('sfx_fishing_lose.mp3');
 
@@ -212,15 +224,19 @@ window.fishingMechanics = {
     },
 
     reelRod() {
+        console.log("[Mechanics] reelRod: Called. Current state: isReeling=" + fishingGameState.isReeling + ", hasHookedFish=" + fishingGameState.hasHookedFish + ", isRodCast=" + fishingGameState.isRodCast);
         if (fishingGameState.isReeling || !fishingGameState.hasHookedFish) {
             if (fishingGameState.isRodCast && !fishingGameState.hasHookedFish) {
                  if (typeof playSound === 'function') playSound('sfx_fishing_reel_empty.mp3');
-                 console.log("Reeling empty hook.");
+                 console.log("[Mechanics] reelRod: Reeling empty hook.");
                  this.resetFishingState();
+            } else {
+                console.log("[Mechanics] reelRod: Conditions not met (already reeling or no hooked fish), returning.");
             }
             return;
         }
 
+        console.log("[Mechanics] reelRod: Proceeding with reeling hooked fish.");
         fishingGameState.isReeling = true;
 
         if (typeof window.fishingUi !== 'undefined') {
@@ -253,10 +269,15 @@ window.fishingMechanics = {
                     };
 
                     // Reinstate direct basket addition and temporary display for cards
+                    const cardDef = (typeof cardData !== 'undefined' && cardData[caughtItem.details.set] && cardData[caughtItem.details.set][caughtItem.details.cardId])
+                                        ? cardData[caughtItem.details.set][caughtItem.details.cardId]
+                                        : null;
+                    const cardName = cardDef ? cardDef.name : `${caughtItem.details.set} Card #${caughtItem.details.cardId}`;
+
                     const cardDataForBasket = {
                         id: caughtItem.details.cardId,
                         set: caughtItem.details.set,
-                        name: caughtItem.name || `${caughtItem.details.set} C${caughtItem.details.cardId}`,
+                        name: cardName, // Use fetched name
                         rarity: caughtItem.details.rarityKey, // Using 'rarity' as some basket functions might expect this key
                         rarityKey: caughtItem.details.rarityKey, // Also include rarityKey for consistency
                         price: caughtItem.details.price,
@@ -272,21 +293,36 @@ window.fishingMechanics = {
                         console.error("fishingBasket.addCardToBasket function is undefined!");
                     }
 
-                    // Reinstate temporary display
-                    // Prefer showCatchPreview from fishingUi if available for local display
+                    // Standardized display call
                     if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
-                        // fishingUi.showCatchPreview needs the full caughtItem structure {type, details}
-                        window.fishingUi.showCatchPreview(caughtItem);
+                        if (caughtItem.type === 'card') {
+                            const previewDetails = {
+                                set: cardDataForBasket.set, // Use data from cardDataForBasket which has resolved name
+                                cardId: cardDataForBasket.id,
+                                rarityKey: cardDataForBasket.rarityKey,
+                                grade: cardDataForBasket.grade,
+                                name: cardDataForBasket.name,
+                                imagePath: cardDataForBasket.imagePath
+                            };
+                            window.fishingUi.showCatchPreview({ type: 'card', details: previewDetails });
+                        } else if (caughtItem.type === 'ticket') {
+                            // caughtItem for tickets is already suitable: { type: 'ticket', details: { rarityKey, name } }
+                            // showCatchPreview will derive imagePath for tickets.
+                            window.fishingUi.showCatchPreview(caughtItem);
+                        }
                     } else if (typeof showTemporaryCollectedItem === 'function') {
-                        showTemporaryCollectedItem(caughtItem.details); // Fallback to older global display
-                    }
-
-                } else if (caughtItem.type === 'ticket') {
-                    // Ticket handling remains the same
-                    if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
-                        window.fishingUi.showCatchPreview(caughtItem);
-                    } else if (typeof showTemporaryCollectedItem === 'function') {
-                        showTemporaryCollectedItem({ name: caughtItem.details.name, imagePath: getSummonTicketImagePath(caughtItem.details.rarityKey) });
+                        // Fallback if showCatchPreview is not available
+                        if (caughtItem.type === 'card') {
+                            showTemporaryCollectedItem(cardDataForBasket); // cardDataForBasket is flat and suitable
+                        } else if (caughtItem.type === 'ticket') {
+                             // showTemporaryCollectedItem needs a flat object with imagePath
+                            showTemporaryCollectedItem({
+                                name: caughtItem.details.name,
+                                imagePath: (typeof getSummonTicketImagePath === 'function' ? getSummonTicketImagePath(caughtItem.details.rarityKey) : ''),
+                                type: 'ticket',
+                                rarityKey: caughtItem.details.rarityKey
+                            });
+                        }
                     }
                 }
                 // Common success sounds and spawning new fish
@@ -385,6 +421,7 @@ window.fishingMechanics = {
     },
 
     resetFishingState() {
+        console.log("[Mechanics] resetFishingState: Called. Resetting fishing states.");
         fishingGameState.isRodCast = false;
         fishingGameState.isReeling = false;
         fishingGameState.bitingFishId = null;

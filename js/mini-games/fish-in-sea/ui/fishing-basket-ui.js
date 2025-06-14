@@ -117,14 +117,29 @@ window.fishingBasketUi = {
             if (item.isLocked) {
                 cardDiv.classList.add('locked');
             }
-            // cardData: { set, id, rarity, price, name, imagePath }
-            const cardImage = getCardImagePath(item.cardData, item.cardData.imagePath); // Use helper or direct path
+            // cardData: { set, id, rarity, price, name, imagePath, type, source }
+            console.log("[FishingBasketUI] Rendering item.cardData:", item.cardData, "Quantity:", item.quantity, "Source:", item.cardData.source);
+
+            let cardImageSrc = 'gui/items/placeholder_icon.png'; // Default fallback
+            if (item.cardData && item.cardData.imagePath) {
+                cardImageSrc = item.cardData.imagePath; // Prioritize direct imagePath if available
+            } else if (item.cardData && item.cardData.set && item.cardData.id && typeof getCardImagePath === 'function') {
+                // This assumes getCardImagePath is a global function that takes set and id
+                cardImageSrc = getCardImagePath(item.cardData.set, item.cardData.id);
+            } else if (item.cardData && item.cardData.type === 'summon_ticket' && item.cardData.rarityKey && typeof getSummonTicketImagePath === 'function') {
+                // Specific fallback for summon tickets if imagePath was missing but rarityKey exists
+                cardImageSrc = getSummonTicketImagePath(item.cardData.rarityKey);
+            }
+            console.log("[FishingBasketUI] Determined cardImageSrc:", cardImageSrc, "for item name:", item.cardData.name);
+
+            const cardName = item.cardData.name || (item.cardData.type ? `Unknown ${item.cardData.type.replace('_', ' ')}` : 'Unknown Item');
+            const cardRarity = item.cardData.rarityKey || item.cardData.rarity || '';
 
             cardDiv.innerHTML = `
-                <img src="${cardImage}" alt="${item.cardData.name || 'Card'}" class="basket-card-image">
-                <div class="basket-card-name">${item.cardData.name || 'Unknown Item'}</div>
+                <img src="${cardImageSrc}" alt="${cardName}" class="basket-card-image">
+                <div class="basket-card-name">${cardName}</div>
                 <div class="basket-card-quantity">x ${item.quantity}</div>
-                <div class="basket-card-rarity ${item.cardData.rarity || ''}">${item.cardData.rarity || ''}</div>
+                <div class="basket-card-rarity ${cardRarity}">${cardRarity}</div>
                 ${item.isLocked ? '<div class="basket-card-lock-icon">🔒</div>' : ''}
             `;
             cardDiv.dataset.instanceId = item.instanceId;

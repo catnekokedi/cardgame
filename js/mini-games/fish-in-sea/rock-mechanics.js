@@ -13,10 +13,10 @@ const BASE_ROCK_RESPAWN_TIME = 20000; // 20 seconds, can be randomized per rock
 
 // Rock Definitions: HP, card drop pool (placeholders), appearance
 const rockDefinitions = {
-    common: { hp: 5, color: '#A0A0A0', cardPool: ['mineral_common_1', 'mineral_common_2'], ticketChance: 0.05, name: "Common Rock", image: "rock_common.png", crackImages: ["rock_common_crack1.png", "rock_common_crack2.png", "rock_common_crack3.png"] },
-    uncommon: { hp: 8, color: '#60A0B0', cardPool: ['mineral_uncommon_1'], ticketChance: 0.1, name: "Uncommon Rock", image: "rock_uncommon.png", crackImages: ["rock_uncommon_crack1.png", "rock_uncommon_crack2.png", "rock_uncommon_crack3.png"] },
-    rare: { hp: 12, color: '#7070FF', cardPool: ['mineral_rare_1'], ticketChance: 0.2, name: "Rare Rock", image: "rock_rare.png", crackImages: ["rock_rare_crack1.png", "rock_rare_crack2.png", "rock_rare_crack3.png"] },
-    legendary: { hp: 20, color: '#FFD700', cardPool: ['mineral_legendary_1'], ticketChance: 0.35, name: "Legendary Rock", image: "rock_legendary.png", crackImages: ["rock_legendary_crack1.png", "rock_legendary_crack2.png", "rock_legendary_crack3.png"] }
+    common: { hp: 1, color: '#A0A0A0', cardPool: ['mineral_common_1', 'mineral_common_2'], ticketChance: 0.05, name: "Common Rock", image: "rock_common.png", crackImages: ["rock_common_crack1.png", "rock_common_crack2.png", "rock_common_crack3.png"] },
+    uncommon: { hp: 2, color: '#60A0B0', cardPool: ['mineral_uncommon_1'], ticketChance: 0.1, name: "Uncommon Rock", image: "rock_uncommon.png", crackImages: ["rock_uncommon_crack1.png", "rock_uncommon_crack2.png", "rock_uncommon_crack3.png"] },
+    rare: { hp: 3, color: '#7070FF', cardPool: ['mineral_rare_1'], ticketChance: 0.2, name: "Rare Rock", image: "rock_rare.png", crackImages: ["rock_rare_crack1.png", "rock_rare_crack2.png", "rock_rare_crack3.png"] },
+    legendary: { hp: 4, color: '#FFD700', cardPool: ['mineral_legendary_1'], ticketChance: 0.35, name: "Legendary Rock", image: "rock_legendary.png", crackImages: ["rock_legendary_crack1.png", "rock_legendary_crack2.png", "rock_legendary_crack3.png"] }
 };
 const rockRarities = Object.keys(rockDefinitions);
 
@@ -260,20 +260,32 @@ function grantRockRewards(rockDef) {
 
     // Ticket chance remains, handled independently of the card/mineral drop
     if (Math.random() < rockDef.ticketChance) {
-        const ticketType = "common_summon_ticket"; // Placeholder, could also be biased by rockDef.rarity
-        // console.log(`Granted Summon Ticket: ${ticketType}`); // Original log
-        if (typeof addSummonTickets === 'function') {
-            const ticketRarityKey = ticketType.replace('_summon_ticket',''); // e.g., "common"
-            addSummonTickets(ticketRarityKey, 1);
-            if(typeof showCustomModal === 'function') {
-                // Construct a more user-friendly name if possible
-                const rarityInfo = typeof getRarityTierInfo === 'function' ? getRarityTierInfo(ticketRarityKey) : null;
-                const ticketDisplayName = rarityInfo ? `${rarityInfo.name} Summon Ticket` : ticketType.replace(/_/g, ' ');
-                showCustomModal(`Found a ${ticketDisplayName}!`, "success");
+        if (typeof summonTicketRarities !== 'undefined' && summonTicketRarities.length > 0 && typeof addSummonTickets === 'function') {
+            const randomTicketRarityKey = summonTicketRarities[Math.floor(Math.random() * summonTicketRarities.length)];
+            addSummonTickets(randomTicketRarityKey, 1); // e.g., addSummonTickets('rare', 1)
+
+            const rarityInfo = typeof getRarityTierInfo === 'function' ? getRarityTierInfo(randomTicketRarityKey) : null;
+            const ticketDisplayName = rarityInfo ? `${rarityInfo.name} Summon Ticket` : `${randomTicketRarityKey} Summon Ticket`;
+            console.log(`Rock granted Summon Ticket: ${ticketDisplayName}`);
+
+            // Display logic for the ticket
+            const ticketDisplayData = {
+                name: ticketDisplayName,
+                imagePath: typeof getSummonTicketImagePath === 'function' ? getSummonTicketImagePath(randomTicketRarityKey) : `gui/summon_tickets/ticket_${randomTicketRarityKey}.png`,
+                type: 'ticket', // Consistent type for display handlers
+                details: { rarityKey: randomTicketRarityKey, name: ticketDisplayName } // For fishingUi.showCatchPreview
+            };
+
+            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+                 window.fishingUi.showCatchPreview(ticketDisplayData);
+            } else if (typeof showTemporaryCollectedItem === 'function') {
+                // showTemporaryCollectedItem might need adjustment if it expects specific fields not in ticketDisplayData directly
+                showTemporaryCollectedItem({ name: ticketDisplayData.name, imagePath: ticketDisplayData.imagePath, type: ticketDisplayData.type });
+            } else if(typeof showCustomModal === 'function') {
+                 showCustomModal(`Found a ${ticketDisplayName}!`, "success");
             }
-            console.log(`Granted Summon Ticket: ${ticketRarityKey} (originally ${ticketType})`);
         } else {
-            console.warn("addSummonTickets function not found. Ticket not granted.");
+            console.warn("summonTicketRarities array not defined/empty, or addSummonTickets function missing. Cannot grant random ticket from rock.");
         }
     }
 }

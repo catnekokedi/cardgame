@@ -27,6 +27,7 @@ window.fishingBasket = { // Ensure it's explicitly on window
      * @param {number} quantity - The number of cards to add.
      */
     addCardToBasket: function(cardData, quantity = 1) {
+        console.log("[FishingBasket] Attempting to add to basket: Name=", cardData.name, "IMG=", cardData.imagePath, "Set=", cardData.set, "ID=", cardData.id, "Source=", cardData.source, "Full Data:", cardData);
         if (!cardData || !cardData.id || !cardData.set) {
             console.error("Invalid cardData provided to addCardToBasket:", cardData);
             return;

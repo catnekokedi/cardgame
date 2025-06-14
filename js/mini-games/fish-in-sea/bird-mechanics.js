@@ -135,51 +135,35 @@ const birdMechanics = {
     },
 
     formatRewardForBasket: function(reward) {
-        // This function needs to ensure the reward object matches what fishingBasket.addCardToBasket expects.
-        // Example: { id, set, name, rarity, price, imagePath, type, source }
-        // For summon tickets, 'set' might be 'summon_tickets', 'id' the ticket type.
-        // Price might be 0 or a configured value.
-        let imagePath = reward.imagePath;
-        if (reward.type === 'card' && (!imagePath && typeof getCardImagePath === 'function')) {
-            imagePath = getCardImagePath(reward.set, reward.id);
-        } else if (reward.type === 'summon_ticket' && (!imagePath && typeof getSummonTicketImagePath === 'function')) {
-            // Assuming a getSummonTicketImagePath function might exist or be needed
-            imagePath = getSummonTicketImagePath(reward.id);
-        }
-
+        // generateReward now includes most necessary fields, including imagePath.
+        // This function primarily ensures structure and defaults.
         return {
             id: reward.id,
-            set: reward.set || (reward.type === 'summon_ticket' ? 'summon_tickets' : 'unknown_cards'),
-            name: reward.name || `${reward.rarity} ${reward.type}`,
-            rarity: reward.rarityKey || reward.rarity,
-            rarityKey: reward.rarityKey || reward.rarity,
-            price: reward.price || 0, // Determine price based on rarity/type if needed
+            set: reward.set || (reward.type === 'summon_ticket' ? 'summon_tickets' : 'unknown_set'),
+            name: reward.name || `${reward.rarityKey || 'Unknown'} ${reward.type}`,
+            rarity: reward.rarityKey || reward.rarity || 'common', // Ensure rarity field exists
+            rarityKey: reward.rarityKey || reward.rarity || 'common',
+            price: reward.price || 0,
             grade: reward.grade, // Mostly for cards
-            imagePath: imagePath || 'gui/items/placeholder_icon.png',
-            type: reward.type, // 'card' or 'summon_ticket'
-            source: 'bird'
+            imagePath: reward.imagePath || 'gui/items/placeholder_icon.png', // Fallback image
+            type: reward.type, // 'collectible_card' or 'summon_ticket'
+            source: reward.source || 'bird' // Ensure source is passed
         };
     },
 
     formatRewardForDisplay: function(reward) {
-        // Adapts reward for showCaughtItemDisplay or showCatchPreview
-        let imagePath = reward.imagePath;
-        if (reward.type === 'card' && (!imagePath && typeof getCardImagePath === 'function')) {
-            imagePath = getCardImagePath(reward.set, reward.id);
-        } else if (reward.type === 'summon_ticket' && (!imagePath && typeof getSummonTicketImagePath === 'function')) {
-             imagePath = getSummonTicketImagePath(reward.id);
-        }
-
+        // generateReward now includes most necessary fields.
+        // This adapts primarily for showCaughtItemDisplay which might have slightly different key expectations.
         return {
-            id: reward.id, // cardId for showCaughtItemDisplay
-            cardId: reward.id, // for showCaughtItemDisplay
-            set: reward.set || (reward.type === 'summon_ticket' ? 'summon_tickets' : 'unknown_cards'),
-            name: reward.name || `${reward.rarity} ${reward.type}`,
-            rarityKey: reward.rarityKey || reward.rarity,
+            id: reward.id, // Expected by showCaughtItemDisplay as cardId sometimes
+            cardId: reward.id, // Explicitly for showCaughtItemDisplay
+            set: reward.set || (reward.type === 'summon_ticket' ? 'summon_tickets' : 'unknown_set'),
+            name: reward.name || `${reward.rarityKey || 'Unknown'} ${reward.type}`,
+            rarityKey: reward.rarityKey || reward.rarity || 'common',
             grade: reward.grade, // Mostly for cards
-            imagePath: imagePath || 'gui/items/placeholder_icon.png',
-            type: reward.type // 'card' or 'summon_ticket'
-            // details: { ... } // if using showCatchPreview
+            imagePath: reward.imagePath || 'gui/items/placeholder_icon.png',
+            type: reward.type === 'collectible_card' ? 'card' : reward.type // showCaughtItemDisplay might expect 'card'
+            // details: reward // if using showCatchPreview, pass the whole reward as details
         };
     },
 
@@ -191,64 +175,106 @@ const birdMechanics = {
     },
 
     generateReward: function(isTicket) {
-        const selectedRarity = this.getRandomRarity();
-        if (!selectedRarity) return null; // Should not happen if weights are correct
+        const targetPullRarityKey = this.getRandomRarity();
+        if (!targetPullRarityKey) {
+            console.error("BirdMechanics: Could not determine target rarity from weights.");
+            return null;
+        }
 
         if (isTicket) {
-            // Find a summon ticket of that rarity
-            // This assumes summonTicketDefinitions is available and structured appropriately
-            if (typeof summonTicketDefinitions !== 'undefined') {
-                const availableTickets = Object.values(summonTicketDefinitions).filter(t => t.rarityKey === selectedRarity);
-                if (availableTickets.length > 0) {
-                    const chosenTicket = availableTickets[Math.floor(Math.random() * availableTickets.length)];
+            if (typeof summonTicketDefinitions !== 'undefined' && typeof getSummonTicketImagePath === 'function') {
+                const ticketsOfTargetRarity = Object.values(summonTicketDefinitions).filter(t => t.rarityKey === targetPullRarityKey);
+                if (ticketsOfTargetRarity.length > 0) {
+                    const chosenTicketDef = ticketsOfTargetRarity[Math.floor(Math.random() * ticketsOfTargetRarity.length)];
                     return {
                         type: 'summon_ticket',
-                        id: chosenTicket.id,
-                        name: chosenTicket.name,
-                        rarity: selectedRarity,
-                        rarityKey: selectedRarity,
-                        // imagePath: chosenTicket.imagePath (if defined in summonTicketDefinitions)
+                        id: chosenTicketDef.id,
+                        name: chosenTicketDef.name,
+                        rarity: targetPullRarityKey, // The determined rarity
+                        rarityKey: targetPullRarityKey,
+                        imagePath: getSummonTicketImagePath(targetPullRarityKey), // Use helper for path
+                        source: 'bird'
                     };
+                } else {
+                    console.warn(`BirdMechanics: No summon tickets found for rarity '${targetPullRarityKey}'. Falling back.`);
+                    // Fallback: try any ticket or a default one if main logic fails
+                    const allTickets = Object.values(summonTicketDefinitions);
+                    if (allTickets.length > 0) {
+                        const fallbackTicket = allTickets[Math.floor(Math.random() * allTickets.length)];
+                         return {
+                            type: 'summon_ticket', id: fallbackTicket.id, name: fallbackTicket.name,
+                            rarity: fallbackTicket.rarityKey, rarityKey: fallbackTicket.rarityKey,
+                            imagePath: getSummonTicketImagePath(fallbackTicket.rarityKey), source: 'bird'
+                        };
+                    }
                 }
             }
-            console.warn(`No summon ticket found for rarity: ${selectedRarity}`);
-            return null; // Or fallback to a card
+            console.error("BirdMechanics: summonTicketDefinitions or getSummonTicketImagePath not available.");
+            return null;
         } else {
-            // Find a card of that rarity from active sets
-            // This assumes getActiveSetDefinitions and cardData are available
-            if (typeof getActiveSetDefinitions === 'function' && typeof cardData !== 'undefined') {
-                const activeSets = getActiveSetDefinitions();
-                const possibleCards = [];
-                activeSets.forEach(setDef => {
+            // Card generation logic (adapted from rock-mechanics)
+            if (typeof getActiveSetDefinitions !== 'function' || typeof cardData === 'undefined' ||
+                typeof getCardIntrinsicRarity !== 'function' || typeof getFixedGradeAndPrice !== 'function' ||
+                typeof getCardImagePath !== 'function') {
+                console.error("BirdMechanics: Missing critical global functions for card generation.");
+                return null;
+            }
+
+            const activeSets = getActiveSetDefinitions();
+            if (!activeSets || activeSets.length === 0) {
+                console.error("BirdMechanics: No active sets available for card generation.");
+                return null;
+            }
+
+            let possibleCards = [];
+            activeSets.forEach(setDef => {
+                if (cardData[setDef.abbr]) {
+                    for (const cardIdKey in cardData[setDef.abbr]) {
+                        const cardIdNum = parseInt(cardIdKey);
+                        if (getCardIntrinsicRarity(setDef.abbr, cardIdNum) === targetPullRarityKey) {
+                            const cardEntry = cardData[setDef.abbr][cardIdKey];
+                            const fixedProps = getFixedGradeAndPrice(setDef.abbr, cardIdNum);
+                            possibleCards.push({
+                                set: setDef.abbr,
+                                id: cardIdNum,
+                                name: cardEntry.name || `${setDef.name} Card #${cardIdNum} (Bird)`,
+                                rarity: fixedProps.rarityKey,
+                                price: fixedProps.price,
+                                grade: fixedProps.grade,
+                                imagePath: getCardImagePath(setDef.abbr, cardIdNum),
+                                type: 'collectible_card',
+                                source: 'bird'
+                            });
+                        }
+                    }
+                }
+            });
+
+            if (possibleCards.length > 0) {
+                return possibleCards[Math.floor(Math.random() * possibleCards.length)];
+            } else {
+                console.warn(`BirdMechanics: No cards found for target rarity '${targetPullRarityKey}'. Trying fallback to 'base'.`);
+                activeSets.forEach(setDef => { // Fallback to 'base'
                     if (cardData[setDef.abbr]) {
-                        for (const cardId in cardData[setDef.abbr]) {
-                            // Assuming cardData[setDef.abbr][cardId] has rarityKey
-                            // And getFixedGradeAndPrice exists to get full card details
-                            if (cardData[setDef.abbr][cardId].rarityKey === selectedRarity) {
-                                if (typeof getFixedGradeAndPrice === 'function') {
-                                     const cardDetails = getFixedGradeAndPrice(setDef.abbr, parseInt(cardId));
-                                     possibleCards.push({
-                                        type: 'card',
-                                        id: parseInt(cardId),
-                                        set: setDef.abbr,
-                                        name: cardData[setDef.abbr][cardId].name || `${setDef.name} Card #${cardId}`,
-                                        rarity: selectedRarity,
-                                        rarityKey: selectedRarity,
-                                        price: cardDetails.price,
-                                        grade: cardDetails.grade,
-                                        // imagePath will be set by formatRewardForBasket/Display
-                                    });
-                                }
+                        for (const cardIdKey in cardData[setDef.abbr]) {
+                            const cardIdNum = parseInt(cardIdKey);
+                            if (getCardIntrinsicRarity(setDef.abbr, cardIdNum) === 'base') {
+                                const cardEntry = cardData[setDef.abbr][cardIdKey];
+                                const fixedProps = getFixedGradeAndPrice(setDef.abbr, cardIdNum);
+                                possibleCards.push({
+                                    set: setDef.abbr, id: cardIdNum, name: cardEntry.name || `${setDef.name} Card #${cardIdNum} (Bird)`,
+                                    rarity: fixedProps.rarityKey, price: fixedProps.price, grade: fixedProps.grade,
+                                    imagePath: getCardImagePath(setDef.abbr, cardIdNum), type: 'collectible_card', source: 'bird'
+                                });
                             }
                         }
                     }
                 });
-
                 if (possibleCards.length > 0) {
                     return possibleCards[Math.floor(Math.random() * possibleCards.length)];
                 }
             }
-            console.warn(`No card found for rarity: ${selectedRarity}`);
+            console.error("BirdMechanics: Failed to generate any card, even fallback 'base' card.");
             return null;
         }
     },

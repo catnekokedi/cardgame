@@ -191,10 +191,13 @@ function updateTreeFruitGrowth(deltaTime) {
                     console.error(`Slot ${i}: Failed to generate card data upon maturation. Assigning generic fallback.`);
                     treeSlots[i].state = "revealed"; // Still reveal, but with fallback
                     treeSlots[i].card = {
-                        type: "generic_fruit_error",
-                        name: "Mysterious Seed",
-                        imagePath: "gui/fishing_game/fruit_placeholder.png", // Generic placeholder
-                        rarity:"common", price:1, set:"fish_in_sea_fruit", id:"error_fruit"
+                        type: "error_card_generation",
+                        name: "Unreadable Card",
+                        imagePath: "gui/fishing_game/tree-back.png",
+                        rarity: "unknown",
+                        price: 0,
+                        set: "fish_in_sea_error",
+                        id: "error_card"
                     };
                 }
                 slotsChanged = true;
@@ -228,9 +231,13 @@ function getTreeSlotsData() {
                 } else { // Fallback for revealed card missing data (e.g. from old save or generation error)
                     console.warn("Revealed slot missing card data or imagePath. Assigning fallback for UI.", slot);
                     slotToReturn.card = {
-                        type: "generic_fruit_fallback", name: "Revealed Fruit",
-                        imagePath: "gui/fishing_game/fruit_placeholder.png",
-                        rarity:"common", price:1, set:"fish_in_sea_fruit", id:"generic_fruit_fallback"
+                        type: "error_card_missing_data",
+                        name: "Corrupted Card Data",
+                        imagePath: "gui/fishing_game/tree-back.png",
+                        rarity: "unknown",
+                        price: 0,
+                        set: "fish_in_sea_error",
+                        id: "error_missing_data"
                     };
                 }
             }
@@ -281,23 +288,24 @@ function collectCardFromTree(slotIndex) {
                 imagePath: cardDataForBasket.imagePath
             };
 
-            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
-                 window.fishingUi.showCaughtItemDisplay(displayData);
-            } else if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+            // Standardize to use showCatchPreview
+            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+                const itemTypeForPreview = (cardDataForBasket.type === 'collectible_card' || cardDataForBasket.type === 'fruit_card' || cardDataForBasket.type === 'mineral_card') ? 'card' : cardDataForBasket.type;
                 const previewItem = {
-                    type: displayData.type === 'fruit_card' || displayData.type === 'collectible_card' ? 'card' : displayData.type,
-                    details: {
-                        set: displayData.set,
-                        cardId: displayData.cardId,
-                        rarityKey: displayData.rarityKey,
-                        grade: displayData.grade,
-                        name: displayData.name,
-                        imagePath: displayData.imagePath
+                    type: itemTypeForPreview,
+                    details: { // cardDataForBasket already has these fields directly
+                        set: cardDataForBasket.set,
+                        cardId: cardDataForBasket.id, // Assuming id is cardId for cards
+                        rarityKey: cardDataForBasket.rarityKey,
+                        grade: cardDataForBasket.grade,
+                        name: cardDataForBasket.name,
+                        imagePath: cardDataForBasket.imagePath
                     }
                 };
                 window.fishingUi.showCatchPreview(previewItem);
-            } else if (typeof showTemporaryCollectedItem === 'function') {
-                showTemporaryCollectedItem(displayData);
+            } else if (typeof showTemporaryCollectedItem === 'function') { // Fallback if showCatchPreview is somehow not available
+                // showTemporaryCollectedItem usually expects a flat structure
+                showTemporaryCollectedItem(cardDataForBasket);
             }
         } else {
             console.warn("fishingBasket.addCardToBasket function not found. Card not added to basket.");

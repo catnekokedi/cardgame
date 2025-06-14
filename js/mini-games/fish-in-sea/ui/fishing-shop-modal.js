@@ -107,7 +107,24 @@ function renderFishingShopItems(tabType = 'fish') { // Renamed from renderShopIt
     exchangeInfoArea.appendChild(progressDiv);
 
     const currentBasketItems = (typeof fishingBasket !== 'undefined' && Array.isArray(fishingBasket.basketContents)) ? fishingBasket.basketContents : [];
-    const itemsToDisplay = currentBasketItems.filter(item => item && item.cardData && item.cardData.type === itemFilterType && !item.isLocked);
+    console.log(`[Shop] Rendering tab "${tabType}", initial filterType (for config) "${itemFilterType}". Total basket items: ${currentBasketItems.length}`);
+
+    let itemsToDisplay;
+    if (tabType === 'fish' || tabType === 'default' || !itemFilterType) { // Default 'fish' tab logic
+        itemsToDisplay = currentBasketItems.filter(item =>
+            item && item.cardData &&
+            (item.cardData.type === 'card' || item.cardData.type === 'collectible_card') &&
+            !item.isLocked
+        );
+    } else { // For 'fruit', 'minerals'
+        itemsToDisplay = currentBasketItems.filter(item =>
+            item && item.cardData &&
+            item.cardData.type === itemFilterType &&
+            !item.isLocked
+        );
+    }
+    console.log(`[Shop] Items to display for "${tabType}":`, itemsToDisplay.length, itemsToDisplay.map(i => ({name: i.cardData.name, type: i.cardData.type, source: i.cardData.source })));
+
 
     if (itemsToDisplay.length === 0) {
         itemsGrid.innerHTML = `<p class="text-center text-xs text-gray-500" style="grid-column: 1 / -1;">No unlocked ${tabType.replace('_',' ')} items in basket for exchange.</p>`;
