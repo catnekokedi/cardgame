@@ -669,8 +669,9 @@
 /* New Local Fishing Reward Popup Styles */
 #fishing-reward-popup {
     /* Base styles are set inline in JS: display, position, transform, z-index, padding, background-color, border-radius, text-align, box-shadow, flex-direction, align-items */
-    border: 3px solid #5D9CEC; /* Example watery blue border */
+    border: 1px solid #5D9CEC; /* Watery blue border, thinned */
     background: linear-gradient(135deg, #4A90E2, #78B9F2); /* Example gradient */
+    padding: 5px !important; /* Override inline JS padding */
     /* flex-direction: column; /* This is already set inline */
     /* align-items: center; /* This is already set inline */
     cursor: pointer; /* To indicate it's clickable to dismiss */
@@ -678,7 +679,8 @@
 
 #fishing-reward-popup-img {
     /* Base styles are set inline in JS: max-width, max-height, border-radius, margin-bottom, border */
-    /* border: 2px solid #FFF; */ /* This is already set inline */
+    border: 1px solid #FFF !important; /* Override inline JS border */
+    margin-bottom: 5px !important; /* Override inline JS margin-bottom */
     object-fit: contain; /* Ensure the image content is not distorted */
 }
 
