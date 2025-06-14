@@ -346,21 +346,23 @@ const fishingUi = {
              <div id="fishing-shop-modal" class="fishing-game-modal-overlay" style="display: none;">
                 <div class="fishing-game-modal-content fishing-shop-modal-content">
                     <div class="fishing-game-modal-header">
-                        <h3>Fishing Exchange</h3>
+                        <h3>Exchange Shop</h3>
                         <button id="fishing-shop-close-btn" class="game-button">&times;</button>
                     </div>
                     <div id="fishing-shop-ticket-balances" class="fishing-shop-ticket-balances-area"></div>
                     <div class="fishing-shop-tabs">
-                        <button class="game-button active" data-tab-type="fish">Fish/Cards</button>
-                        <button class="game-button" data-tab-type="fruit">Fruit</button>
-                        <button class="game-button" data-tab-type="minerals">Minerals</button>
+                        <button class="game-button active" data-tab-type="all">All</button>
+                        <button class="game-button" data-tab-type="fish_card">Fish</button>
+                        <button class="game-button" data-tab-type="fruit_card">Fruit</button>
+                        <button class="game-button" data-tab-type="mineral_card">Rock</button>
+                        <button class="game-button" data-tab-type="bird_reward_card">Bird</button>
                     </div>
                     <div class="fishing-game-modal-scrollable-content">
-                        <div id="fishing-shop-exchange-info" class="fishing-shop-exchange-info-area"></div>
-                        <div id="fishing-shop-items-grid" class="fishing-shop-items-grid-area"></div>
+                        <div id="fishing-shop-items-grid" class="fishing-basket-grid gallery-grid"></div>
+                        <div id="fishing-shop-pagination" class="pagination-controls"></div>
                     </div>
                     <div class="fishing-game-modal-actions">
-                        <button id="fishing-shop-sell-all-btn" class="game-button game-button-variant">Exchange All in Tab</button>
+                        <button id="fishing-shop-sell-all-btn" class="game-button game-button-variant">Exchange All Eligible in Tab</button>
                     </div>
                 </div>
             </div>
@@ -506,7 +508,7 @@ const fishingUi = {
                 tab.addEventListener('click', () => {
                     ui.shopTabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
-                    renderFishingShopItems(tab.dataset.tabType);
+                    renderFishingShopItems(tab.dataset.tabType, 1);
                     playSound('sfx_button_click_subtle.mp3');
                 });
             });

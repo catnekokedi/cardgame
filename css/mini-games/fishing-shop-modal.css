@@ -1,0 +1,134 @@
+/* Styling for the Fishing Exchange Shop Modal */
+
+/* Tabs */
+.fishing-shop-tabs {
+    display: flex;
+    flex-wrap: wrap; /* Allow tabs to wrap to the next line if they don't fit */
+    justify-content: center; /* Center tabs if they don't fill the width */
+    margin-bottom: 10px; /* Space below the tabs */
+}
+
+.fishing-shop-tabs .game-button {
+    margin: 5px; /* Spacing around each tab button */
+    padding: 8px 12px; /* Adjust padding as needed */
+    font-size: 0.9em; /* Slightly smaller font for more tabs */
+}
+
+/* Active tab styling - ensure this is distinct enough */
+.fishing-shop-tabs .game-button.active {
+    background-color: #007bff; /* Example active color, adjust to theme */
+    color: white;
+    border-color: #0056b3;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Pagination Controls */
+#fishing-shop-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 0; /* Increased padding for better spacing */
+    border-top: 1px solid #eee; /* Optional: separator line */
+    margin-top: 10px; /* Space above pagination */
+}
+
+#fishing-shop-pagination button {
+    /* Assuming .game-button styles are available and suitable */
+    /* If not, replicate or create a smaller variant styling here */
+    margin: 0 8px; /* Spacing around pagination buttons */
+    padding: 6px 10px; /* Smaller padding for pagination buttons */
+    font-size: 0.85em;
+}
+
+#fishing-shop-pagination button:disabled,
+#fishing-shop-pagination button.disabled { /* Explicitly target .disabled class as well if used */
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #6c757d; /* Example disabled background */
+    border-color: #545b62;
+}
+
+#fishing-shop-pagination .pagination-info { /* Style for "Page X of Y" text */
+    margin: 0 12px;
+    font-size: 0.9em;
+    color: #333; /* Adjust color as per theme */
+}
+
+/* Card Grid - Relies on existing .fishing-basket-grid and .gallery-grid */
+/* Ensure parent .fishing-game-modal-scrollable-content handles scrolling. */
+/* #fishing-shop-items-grid specific adjustments if needed: */
+#fishing-shop-items-grid {
+    /* The grid itself should not scroll, its parent does. */
+    /* It uses gallery-grid for layout, which should be responsive. */
+    /* min-height can be useful to maintain a certain size before items are loaded */
+    min-height: 150px; /* Example: Ensures the area doesn't collapse when empty */
+}
+
+
+/* Modal Content Area */
+/* .fishing-game-modal-content or .fishing-shop-modal-content */
+.fishing-shop-modal-content {
+    /* max-height is often controlled by .fishing-game-modal-content */
+    /* but ensure the overall structure allows for this. */
+    /* The .fishing-game-modal-scrollable-content inside it is key */
+}
+
+.fishing-game-modal-scrollable-content {
+    /* This class is used in the shop modal HTML for the item grid's container */
+    /* Ensure it has appropriate max-height and overflow */
+    /* These styles might already exist in modals.css or components.css */
+    max-height: 400px; /* Example max-height, adjust as needed */
+    overflow-y: auto;
+    padding-right: 5px; /* For scrollbar spacing */
+}
+
+/* Specific styling for the ticket balances area if needed */
+.fishing-shop-ticket-balances-area {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #eee; /* Separator line */
+    margin-bottom: 10px;
+    font-size: 0.95em;
+}
+.fishing-shop-ticket-balances-area .rarity-text-common,
+.fishing-shop-ticket-balances-area .rarity-text-uncommon,
+.fishing-shop-ticket-balances-area .rarity-text-rare,
+.fishing-shop-ticket-balances-area .rarity-text-epic,
+.fishing-shop-ticket-balances-area .rarity-text-legendary,
+.fishing-shop-ticket-balances-area .rarity-text-mythic,
+.fishing-shop-ticket-balances-area .rarity-text-divine {
+    margin: 0 5px; /* Spacing between different ticket counts */
+    font-weight: bold;
+}
+
+/* Ensure item names and details within cards in the shop are readable */
+#fishing-shop-items-grid .basket-card-item .basket-card-name {
+    font-size: 0.8em; /* Adjust if too small/large */
+}
+#fishing-shop-items-grid .basket-card-item .basket-card-quantity,
+#fishing-shop-items-grid .basket-card-item .basket-card-rarity,
+#fishing-shop-items-grid .basket-card-item .basket-card-grade {
+    font-size: 0.75em; /* Adjust if too small/large */
+}
+
+/* Responsive adjustments for smaller screens if necessary */
+@media (max-width: 600px) {
+    .fishing-shop-tabs .game-button {
+        padding: 6px 8px;
+        font-size: 0.8em;
+    }
+
+    #fishing-shop-pagination button {
+        padding: 5px 8px;
+        font-size: 0.8em;
+    }
+
+    #fishing-shop-pagination .pagination-info {
+        margin: 0 8px;
+        font-size: 0.85em;
+    }
+
+    .fishing-game-modal-scrollable-content {
+        max-height: 300px; /* Adjust for smaller screens */
+    }
+}
