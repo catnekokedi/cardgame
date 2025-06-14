@@ -9,7 +9,7 @@ const birdMechanics = {
     timeSinceLastSpawn: 0,
 
     // Reward probabilities (placeholders, to be refined)
-    dropChance: 0.3, // 30% chance to drop something (was 0.75)
+    dropChance: 0.5, // 30% chance to drop something (was 0.75)
     ticketChance: 0.2, // Of the drops, 20% are tickets, 80% are cards
     rarityWeights: { // For cards and tickets
         common: 60,
