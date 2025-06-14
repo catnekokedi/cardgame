@@ -335,6 +335,12 @@ function collectCardFromTree(slotIndex) {
                         imagePath: cardDataForBasket.imagePath
                     }
                 };
+                // Play sound on collection
+                if (typeof playSound === 'function') {
+                    playSound('sfx/ui_notification_simple.wav');
+                } else {
+                    console.warn("playSound function not found, cannot play collection sound.");
+                }
                 window.fishingUi.showCatchPreview(previewItem);
             }
             // Fallback to showTemporaryCollectedItem removed to ensure single display path.
