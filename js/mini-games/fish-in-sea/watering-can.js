@@ -27,7 +27,6 @@ function initializeWateringCan() {
 
     // Update UI based on loaded data (if any was loaded before this)
     updateWateringCanUI();
-    console.log("Watering Can initialized.");
 }
 
 /**
@@ -172,5 +171,3 @@ function loadWateringCanData(data) {
 
 // Make initializeWateringCan globally accessible
 window.initializeWateringCan = initializeWateringCan;
-
-console.log("watering-can.js loaded");

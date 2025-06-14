@@ -44,8 +44,6 @@ function startFishingGame(gameContentEl, gameResultEl) {
     }
     if (typeof window.fishingBasketUi !== 'undefined' && typeof window.fishingBasketUi.initializeBasketUI === 'function') {
         window.fishingBasketUi.initializeBasketUI();
-    } else {
-        console.warn("fishingBasketUi.initializeBasketUI function not found during main initialization sequence.");
     }
 
     if (typeof window.fishingTreeUi !== 'undefined' && typeof window.fishingTreeUi.initialize === 'function') window.fishingTreeUi.initialize(); else console.warn("fishingTreeUi.initialize function not found.");
@@ -158,7 +156,6 @@ function startFishingGame(gameContentEl, gameResultEl) {
 
     if (gameResultEl) gameResultEl.innerHTML = '';
     fishingGameState.isGameActive = true; // Explicitly set game active on start
-    console.log("Fishing game started. Loop active.");
 }
 
 function updateFishingGameLoop() {

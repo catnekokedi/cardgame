@@ -40,7 +40,6 @@ window.fishingRocksUi = {
              const numSlots = typeof MAX_ROCKS !== 'undefined' ? MAX_ROCKS : 3;
              this.renderRocks(new Array(numSlots).fill(null));
         }
-        console.log("Fishing Rocks UI initialized.");
     },
 
     /**
@@ -156,4 +155,3 @@ window.fishingRocksUi = {
 };
 
 window.fishingRocksUi = fishingRocksUi;
-console.log("fishing-rocks-ui.js loaded and attached to window.");
