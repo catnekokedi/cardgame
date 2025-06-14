@@ -31,7 +31,6 @@ const fishingTreeUi = {
         }
 
         slotsData.forEach((slot, index) => {
-            console.log("TreeSlotUI: Rendering slot", index, "State:", slot ? slot.state : "null", "SlotData:", slot);
             const slotDiv = document.createElement('div');
             slotDiv.classList.add('tree-card-slot');
             slotDiv.dataset.slotIndex = index;
@@ -64,7 +63,6 @@ const fishingTreeUi = {
                         slotDiv.style.backgroundImage = `url('https://placehold.co/40x56/8B4513/FFFFFF?text=Fruit')`; // Distinct placeholder
                         console.warn("Revealed tree card missing cardData or imagePath, using fallback placeholder.", slot);
                     }
-                    console.log("TreeSlotUI: Assigning onclick to revealed slot", index); // Added log
                     slotDiv.onclick = () => {
                         if (typeof collectCardFromTree === 'function') {
                             collectCardFromTree(index);
@@ -122,7 +120,6 @@ const fishingTreeUi = {
         // Also, loadTreeData() in tree-mechanics.js calls renderTreeSlots after loading saved data.
         // To avoid redundant/conflicting renders and warnings, this function is now minimal.
         // It can be used for one-time UI setup if needed in the future (e.g. attaching event listeners not tied to specific slots).
-        console.log("Fishing Tree UI component initialized. (Initial render is handled by tree-mechanics functions).");
     }
 };
 
@@ -133,4 +130,3 @@ window.fishingTreeUi = fishingTreeUi;
 // after all necessary HTML and JS are loaded.
 // For example, after fishingUi.init(gameContentEl); in fish-in-sea-main.js,
 // you could add fishingTreeUi.initialize();
-console.log("fishing-tree-ui.js loaded and attached to window.");
