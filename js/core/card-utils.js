@@ -1,20 +1,20 @@
 
 // js/core/card-utils.js
 
-window.getActiveSetDefinitions = function() {
+function getActiveSetDefinitions() {
     if (typeof window.ALL_SET_DEFINITIONS === 'undefined' || typeof window.currentActiveSetVersion === 'undefined') {
         console.error("getActiveSetDefinitions: Core dependencies (window.ALL_SET_DEFINITIONS or window.currentActiveSetVersion) missing.");
         return [];
     }
     return window.ALL_SET_DEFINITIONS.filter(set => set.version === window.currentActiveSetVersion);
-};
+}
 
-window.getAllSetDefinitionsForCurrentVersion = function() { // Alias for clarity in some contexts
-    return window.getActiveSetDefinitions(); // Use window.getActiveSetDefinitions
-};
+function getAllSetDefinitionsForCurrentVersion() { // Alias for clarity in some contexts
+    return getActiveSetDefinitions(); // Use local getActiveSetDefinitions
+}
 
 
-window.getSetMetadata = function(setAbbrIdentifier) {
+function getSetMetadata(setAbbrIdentifier) {
     if (typeof window.ALL_SET_DEFINITIONS === 'undefined') {
         console.error("getSetMetadata: window.ALL_SET_DEFINITIONS is not available.");
         return { 
@@ -70,9 +70,9 @@ function getCardImagePath(setAbbrIdentifier, cardId) {
     if (!meta || meta.name.startsWith("Unknown Set")) return `https://placehold.co/130x182/CF6679/FFFFFF?text=No+Set+Meta`;
     // Use the specific cardImageFolder from the metadata
     return `${meta.cardImageFolder}/${meta.folderName}/${String(cardId).padStart(3, '0')}.jpg`;
-};
+}
 
-window.initializeSetMappings = function() {
+function initializeSetMappings() {
     if (typeof window.ALL_SET_DEFINITIONS === 'undefined') {
         console.error("initializeSetMappings: window.ALL_SET_DEFINITIONS is not available.");
         return;
@@ -94,14 +94,14 @@ window.initializeSetMappings = function() {
  *          If not provided, they should have been determined and cached by getFixedGradeAndPrice already.
  * @param {number} [countAdjustment=1] - How much to adjust the count by.
  */
-window.updateCollectionSingleCard = function(cardDetails, countAdjustment = 1) {
+function updateCollectionSingleCard(cardDetails, countAdjustment = 1) {
     const { set: setAbbrIdentifier, cardId: cardIdNum } = cardDetails;
 
-    if (typeof window.getFixedGradeAndPrice !== 'function') { // Check window.getFixedGradeAndPrice
+    if (typeof getFixedGradeAndPrice !== 'function') { // Check local/global getFixedGradeAndPrice
         console.error("updateCollectionSingleCard: getFixedGradeAndPrice is not available.");
         return;
     }
-    const meta = getSetMetadata(setAbbrIdentifier);
+    const meta = getSetMetadata(setAbbrIdentifier); // Use local getSetMetadata
     if (!meta || meta.name.startsWith("Unknown Set") || meta.count === 0) {
         console.error("updateCollectionSingleCard: Invalid set or set has 0 cards:", setAbbrIdentifier);
         return;
@@ -120,7 +120,7 @@ window.updateCollectionSingleCard = function(cardDetails, countAdjustment = 1) {
     if (!cardEntry) {
         const { rarityKey, grade, price } = (cardDetails.rarityKey && cardDetails.grade !== undefined && cardDetails.price !== undefined)
             ? { rarityKey: cardDetails.rarityKey, grade: cardDetails.grade, price: cardDetails.price }
-            : window.getFixedGradeAndPrice(setAbbrIdentifier, cardIdNum); // Use window.getFixedGradeAndPrice
+            : getFixedGradeAndPrice(setAbbrIdentifier, cardIdNum); // Use local/global getFixedGradeAndPrice
 
         window.collection[setAbbrIdentifier][cardIdNum] = { // Access via window
             count: Math.max(0, countAdjustment),
@@ -131,9 +131,9 @@ window.updateCollectionSingleCard = function(cardDetails, countAdjustment = 1) {
     } else {
         cardEntry.count = Math.max(0, cardEntry.count + countAdjustment);
     }
-};
+}
 
-window.updateBalance = function() {
+function updateBalance() {
     const numericBalanceStr = window.balance.toLocaleString(); // e.g., "10,000"
 
     const desktopTokiValue = document.getElementById('toki-value');

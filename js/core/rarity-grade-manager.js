@@ -7,6 +7,7 @@
 var rarityFilterOrder = []; // Will be populated in initializeRarityAndGradeSystems
 var stringToRarityInt = {}; // Will be populated
 var intToRarityString = {}; // Will be populated
+var fixedCardProperties = {}; // Moved from window.fixedCardProperties to script scope
 
 function updateRarityMappings() {
     if (typeof RARITY_PACK_PULL_DISTRIBUTION !== 'undefined') {
@@ -190,39 +191,37 @@ function _internal_assignGradeAndPrice(intrinsicRarityKey) {
     return { grade: assignedGradeDetails.grade, price: cardPrice };
 }
 
-window.getFixedGradeAndPrice = function(setAbbrIdentifier, cardIdNum) {
-    if (typeof window.getCardIntrinsicRarity !== 'function') { // Check window.getCardIntrinsicRarity
+function getFixedGradeAndPrice(setAbbrIdentifier, cardIdNum) {
+    if (typeof getCardIntrinsicRarity !== 'function') {
         console.error("CRITICAL: getCardIntrinsicRarity function (from this file) not available.");
         return { grade: 1, price: 1, rarityKey: 'base' };
     }
-    if (typeof window.fixedCardProperties === 'undefined') { // Use window.fixedCardProperties
-        window.fixedCardProperties = {};
+    // fixedCardProperties is now a script-level variable
+
+    if (!fixedCardProperties[setAbbrIdentifier]) {
+        fixedCardProperties[setAbbrIdentifier] = {};
     }
 
-    if (!window.fixedCardProperties[setAbbrIdentifier]) {
-        window.fixedCardProperties[setAbbrIdentifier] = {};
-    }
-
-    if (window.fixedCardProperties[setAbbrIdentifier][cardIdNum]) {
-        return window.fixedCardProperties[setAbbrIdentifier][cardIdNum];
+    if (fixedCardProperties[setAbbrIdentifier][cardIdNum]) {
+        return fixedCardProperties[setAbbrIdentifier][cardIdNum];
     } else {
-        const intrinsicRarityKey = window.getCardIntrinsicRarity(setAbbrIdentifier, cardIdNum); // Use window.getCardIntrinsicRarity
+        const intrinsicRarityKey = getCardIntrinsicRarity(setAbbrIdentifier, cardIdNum); // Use local/global
         const { grade, price } = _internal_assignGradeAndPrice(intrinsicRarityKey);
 
-        window.fixedCardProperties[setAbbrIdentifier][cardIdNum] = { grade, price, rarityKey: intrinsicRarityKey };
-        return window.fixedCardProperties[setAbbrIdentifier][cardIdNum];
+        fixedCardProperties[setAbbrIdentifier][cardIdNum] = { grade, price, rarityKey: intrinsicRarityKey };
+        return fixedCardProperties[setAbbrIdentifier][cardIdNum];
     }
-};
+}
 
 
-window.getCardIntrinsicRarity = function(setAbbrIdentifier, cardIdNum) {
-    if (typeof window.getSetMetadata !== 'function' || typeof window.RARITY_PACK_PULL_DISTRIBUTION === 'undefined' || typeof window.RARITY_SET_COMPOSITION_DISTRIBUTION === 'undefined') {
+function getCardIntrinsicRarity(setAbbrIdentifier, cardIdNum) {
+    if (typeof getSetMetadata !== 'function' || typeof RARITY_PACK_PULL_DISTRIBUTION === 'undefined' || typeof RARITY_SET_COMPOSITION_DISTRIBUTION === 'undefined') {
         console.error("getCardIntrinsicRarity: Missing global getSetMetadata function or RARITY_PACK_PULL_DISTRIBUTION/RARITY_SET_COMPOSITION_DISTRIBUTION.");
-        return window.RARITY_PACK_PULL_DISTRIBUTION[0]?.key || 'base';
+        return RARITY_PACK_PULL_DISTRIBUTION[0]?.key || 'base'; // Assumes RARITY_PACK_PULL_DISTRIBUTION is global
     }
 
-    const setMeta = window.getSetMetadata(setAbbrIdentifier); // Use window.getSetMetadata
-    const defaultRarityKey = window.RARITY_PACK_PULL_DISTRIBUTION[0]?.key || 'base';
+    const setMeta = getSetMetadata(setAbbrIdentifier); // Use local/global
+    const defaultRarityKey = RARITY_PACK_PULL_DISTRIBUTION[0]?.key || 'base';
 
     if (!setMeta || setMeta.name.startsWith("Unknown Set") || !setMeta.count || setMeta.count === 0) {
         return defaultRarityKey;
@@ -386,14 +385,14 @@ window.getCardIntrinsicRarity = function(setAbbrIdentifier, cardIdNum) {
         cardIndexBoundary = tierEnd;
     }
     return defaultRarityKey; 
-};
+}
 
-window.getRarityTierInfo = function(rarityIdentifier) {
-    if (typeof window.RARITY_PACK_PULL_DISTRIBUTION === 'undefined') return null;
+function getRarityTierInfo(rarityIdentifier) {
+    if (typeof RARITY_PACK_PULL_DISTRIBUTION === 'undefined') return null; // Assumes RARITY_PACK_PULL_DISTRIBUTION is global
     if (typeof rarityIdentifier === 'string') {
-        return window.RARITY_PACK_PULL_DISTRIBUTION.find(tier => tier.key === rarityIdentifier) || null;
+        return RARITY_PACK_PULL_DISTRIBUTION.find(tier => tier.key === rarityIdentifier) || null;
     } else if (typeof rarityIdentifier === 'number') {
-        return window.RARITY_PACK_PULL_DISTRIBUTION.find(tier => tier.level === rarityIdentifier) || null;
+        return RARITY_PACK_PULL_DISTRIBUTION.find(tier => tier.level === rarityIdentifier) || null;
     }
     return null;
-};
+}
