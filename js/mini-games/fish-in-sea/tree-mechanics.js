@@ -322,6 +322,7 @@ function collectCardFromTree(slotIndex) {
             window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
 
             // Standardize to use showCatchPreview
+            /*
             if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
                 const itemTypeForPreview = (cardDataForBasket.type === 'collectible_card' || cardDataForBasket.type === 'fruit_card' || cardDataForBasket.type === 'mineral_card') ? 'card' : cardDataForBasket.type;
                 const previewItem = {
@@ -335,7 +336,31 @@ function collectCardFromTree(slotIndex) {
                         imagePath: cardDataForBasket.imagePath
                     }
                 };
+                // Play sound on collection
+                if (typeof playSound === 'function') {
+                    playSound('sfx/ui_notification_simple.wav');
+                } else {
+                    console.warn("playSound function not found, cannot play collection sound.");
+                }
                 window.fishingUi.showCatchPreview(previewItem);
+            }
+            */
+            // Play sound on collection
+            if (typeof playSound === 'function') {
+                playSound('sfx_reward_notification.mp3'); // Use rock's sound
+            } else {
+                console.warn("playSound function not found, cannot play collection sound.");
+            }
+
+            // Use fishingUi.showCaughtItemDisplay for consistency with rock mechanics
+            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
+                // cardDataForBasket is already prepared and suitable
+                window.fishingUi.showCaughtItemDisplay(cardDataForBasket);
+            } else {
+                console.warn("window.fishingUi.showCaughtItemDisplay function not found. Cannot display tree reward via fishingUi.");
+                // Fallback or alternative display if necessary - for now, just warn.
+                // If a fallback to showTemporaryCollectedItem is desired if showCaughtItemDisplay is missing, that could be added here.
+                // However, rock-mechanics.js implies showCaughtItemDisplay should exist.
             }
             // Fallback to showTemporaryCollectedItem removed to ensure single display path.
             // If showCatchPreview is not available, nothing will be shown by this function,

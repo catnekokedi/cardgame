@@ -113,13 +113,31 @@ const birdMechanics = {
                 if (window.birdUi && typeof window.birdUi.showRewardDropped === 'function') {
                     window.birdUi.showRewardDropped(bird, reward);
                 }
-                 // Show temporary display using existing fishing UI
+                // Show temporary display using existing fishing UI
+                /*
                 if (window.fishingUi && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
                     const displayData = this.formatRewardForDisplay(reward);
                     window.fishingUi.showCaughtItemDisplay(displayData);
                 }
+                */
 
+                // basketItem is defined earlier in this block, via this.formatRewardForBasket(reward)
+                // Play sound for bird reward
+                if (typeof playSound === 'function') {
+                    playSound('sfx_reward_notification.mp3'); // Use rock's sound
+                } else {
+                    console.warn("playSound function not found, cannot play bird collection sound.");
+                }
 
+                // Use fishingUi.showCaughtItemDisplay for consistency with rock mechanics
+                if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
+                    // basketItem is already prepared by this.formatRewardForBasket(reward)
+                    // and used for window.fishingBasket.addCardToBasket
+                    window.fishingUi.showCaughtItemDisplay(this.formatRewardForBasket(reward)); // Pass basketItem equivalent
+                } else {
+                    console.warn("window.fishingUi.showCaughtItemDisplay function not found. Cannot display bird reward via fishingUi.");
+                    // Fallback or alternative display if necessary
+                }
             } else {
                 // console.log("Bird dropped nothing."); // INFO - Event driven, okay
                  if (window.birdUi && typeof window.birdUi.showRewardDropped === 'function') {
