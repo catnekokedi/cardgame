@@ -37,7 +37,7 @@ const fishingUi = {
                             <span class="exclamation-mark" style="display:none;">❗</span>
                         </div>
                         <div id="fishing-card-display-area">
-                            ${Array(5).fill(null).map((_, i) => `<img src="${i % 2 === 0 ? 'gui/back.jpg' : 'gui/yuki-back.jpg'}" class="card-fish" alt="Card Fish ${i+1}" style="animation-duration: ${12 + Math.random()*6}s; animation-delay: ${Math.random()*5}s;">`).join('')}
+
                         </div>
                          <p id="fishing-result-message"></p>
                          <div id="fishing-catch-preview" style="display:none;">

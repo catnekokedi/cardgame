@@ -94,12 +94,11 @@ function getCardImagePath(setAbbrIdentifier, cardId, imageType = 'standard', car
         return 'gui/fishing_game/tree-back.png';
     }
 
-    let extension = '.jpg'; // Default extension
-    if (meta.version === 'v2') {
-        extension = '.png';
-    }
-    // Allow specific sets to override if needed (example from previous versions)
-    if (setAbbrIdentifier === "PRE" || (cardDefinition && cardDefinition.extension === '.png')) {
+    let extension = '.jpg'; // Default to .jpg for all sets
+
+    // Allow specific overrides only if a card definition explicitly states a .png extension
+    // or for the special "PRE" set.
+    if ((cardDefinition && cardDefinition.extension === '.png') || setAbbrIdentifier === "PRE") {
         extension = '.png';
     }
 
