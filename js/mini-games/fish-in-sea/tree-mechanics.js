@@ -345,19 +345,22 @@ function collectCardFromTree(slotIndex) {
                 window.fishingUi.showCatchPreview(previewItem);
             }
             */
-            // Play sound on collection (moved here to be before the global display)
+            // Play sound on collection
             if (typeof playSound === 'function') {
-                playSound('sfx/ui_notification_simple.wav');
+                playSound('sfx_reward_notification.mp3'); // Use rock's sound
             } else {
                 console.warn("playSound function not found, cannot play collection sound.");
             }
 
-            // Use global temporary item display for consistency with other rewards
-            if (typeof window.showTemporaryCollectedItem === 'function') {
-                // cardDataForBasket should have name, imagePath, set, id, etc.
-                window.showTemporaryCollectedItem(cardDataForBasket);
+            // Use fishingUi.showCaughtItemDisplay for consistency with rock mechanics
+            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
+                // cardDataForBasket is already prepared and suitable
+                window.fishingUi.showCaughtItemDisplay(cardDataForBasket);
             } else {
-                console.warn("window.showTemporaryCollectedItem function not found. Cannot display tree reward globally.");
+                console.warn("window.fishingUi.showCaughtItemDisplay function not found. Cannot display tree reward via fishingUi.");
+                // Fallback or alternative display if necessary - for now, just warn.
+                // If a fallback to showTemporaryCollectedItem is desired if showCaughtItemDisplay is missing, that could be added here.
+                // However, rock-mechanics.js implies showCaughtItemDisplay should exist.
             }
             // Fallback to showTemporaryCollectedItem removed to ensure single display path.
             // If showCatchPreview is not available, nothing will be shown by this function,

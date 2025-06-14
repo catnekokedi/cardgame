@@ -121,20 +121,22 @@ const birdMechanics = {
                 }
                 */
 
-                // basketItem should have been prepared by this.formatRewardForBasket(reward) earlier in this 'if (reward)' block.
-                // Play sound for bird reward (NEW - for consistency with tree)
+                // basketItem is defined earlier in this block, via this.formatRewardForBasket(reward)
+                // Play sound for bird reward
                 if (typeof playSound === 'function') {
-                    playSound('sfx/ui_notification_simple.wav'); // Match tree reward sound
+                    playSound('sfx_reward_notification.mp3'); // Use rock's sound
                 } else {
                     console.warn("playSound function not found, cannot play bird collection sound.");
                 }
 
-                // Use global temporary item display for consistency
-                if (typeof window.showTemporaryCollectedItem === 'function') {
-                    // basketItem is already formatted and available from the addCardToBasket call block
-                    window.showTemporaryCollectedItem(this.formatRewardForBasket(reward)); // Use the formatted basketItem
+                // Use fishingUi.showCaughtItemDisplay for consistency with rock mechanics
+                if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
+                    // basketItem is already prepared by this.formatRewardForBasket(reward)
+                    // and used for window.fishingBasket.addCardToBasket
+                    window.fishingUi.showCaughtItemDisplay(this.formatRewardForBasket(reward)); // Pass basketItem equivalent
                 } else {
-                    console.warn("window.showTemporaryCollectedItem function not found. Cannot display bird reward globally.");
+                    console.warn("window.fishingUi.showCaughtItemDisplay function not found. Cannot display bird reward via fishingUi.");
+                    // Fallback or alternative display if necessary
                 }
             } else {
                 // console.log("Bird dropped nothing."); // INFO - Event driven, okay
