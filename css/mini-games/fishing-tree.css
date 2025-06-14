@@ -17,8 +17,8 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 20px; /* Adjusted gap to 20px as per new request */
-    padding: 10px 15px 20px 15px; /* Existing padding */
+    gap: 5px; /* Adjusted gap to 5px as per new request */
+    padding: 40px 15px 40px 15px; /* Existing padding */
     box-sizing: border-box;
     align-items: center; /* Aligns items vertically within their cell */
     justify-items: center; /* Aligns items horizontally within their cell */
