@@ -100,35 +100,45 @@ function hitRock(rockSlotIndex) {
     }
     */
     const rock = rockSlots[rockSlotIndex];
-    if (!rock || rock.isRespawning) {
-        console.log("No active rock in this slot or rock is respawning.");
+
+    // Prevent hitting already broken or respawning rocks or invalid slot
+    if (!rock || rock.isRespawning || rock.hp <= 0) {
+        // console.log("Rock already broken/respawning or invalid slot."); // Optional log
         return;
     }
 
+    // Cooldown check (existing logic)
     const now = Date.now();
     if (now - (rockLastHitTime[rockSlotIndex] || 0) < ROCK_HIT_COOLDOWN) {
-        // console.log("Rock hit on cooldown."); // Can be spammy
         return;
     }
     rockLastHitTime[rockSlotIndex] = now;
 
-    rock.hp -= 1; // Player always deals 1 damage per hit for now
-    // Max 3 crack stages. Stage 0 = no cracks, Stage 1 = 1/3 damage, Stage 2 = 2/3 damage, Stage 3 = almost broken
-    rock.cracks = Math.min(3, Math.floor(((rock.maxHp - rock.hp) / rock.maxHp) * 4));
+    rock.hp -= 1; // Player deals 1 damage
 
+    // Clamp HP at 0 if it went below (ensures clean state before break check)
+    if (rock.hp < 0) {
+        rock.hp = 0;
+    }
+
+    // console.log(`Rock slot ${rockSlotIndex} hit. New HP: ${rock.hp}/${rock.maxHp}`); // Optional: for debugging
 
     if (typeof playSound === 'function') playSound('sfx_rock_hit.mp3');
 
-    if (rock.hp <= 0) {
-        console.log(`Rock in slot ${rockSlotIndex} destroyed!`);
-        grantRockRewards(rock.definition);
+    if (rock.hp === 0) { // Changed from <= 0 to === 0 due to clamping above
+        console.log(`Rock in slot ${rockSlotIndex} destroyed! HP reached 0.`);
+        grantRockRewards(rock.definition); // Pass the original definition
 
         rockSlots[rockSlotIndex] = {
             isRespawning: true,
-            respawnTimer: BASE_ROCK_RESPAWN_TIME + (Math.random() * 5000 - 2500) // Add some variance
+            respawnTimer: BASE_ROCK_RESPAWN_TIME + (Math.random() * 5000 - 2500),
+            // No need for hp, definition, etc. for a respawning placeholder
         };
         console.log(`Rock in slot ${rockSlotIndex} will respawn in about ${Math.round(rockSlots[rockSlotIndex].respawnTimer/1000)}s.`);
         if (typeof playSound === 'function') playSound('sfx_rock_destroy.mp3');
+    } else {
+        // Update cracks only if not destroyed
+        rock.cracks = Math.min(3, Math.floor(((rock.maxHp - rock.hp) / rock.maxHp) * 4));
     }
 
     if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.renderRocks === 'function') {

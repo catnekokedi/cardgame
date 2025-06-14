@@ -147,45 +147,50 @@ window.fishingMechanics = {
         console.log("Rod cast at", this.hookPosition);
     },
 
+    },
+
     checkForBite(deltaTime) { // deltaTime in seconds
-        console.log(`%c[Mechanics] checkForBite: ENTERED. deltaTime: ${deltaTime}`, 'color: blue; font-weight: bold;');
-        console.log(`%c[Mechanics] checkForBite: Initial State - isRodCast: ${fishingGameState.isRodCast}, isReeling: ${fishingGameState.isReeling}, hasHookedFish: ${fishingGameState.hasHookedFish}, biteTimer: ${fishingGameState.biteTimer}`, 'color: blue;');
+        // Minimal entry log (if desired, ensure it's not flooding)
+        // console.log(`[Mechanics] checkForBite - RodCast: ${fishingGameState.isRodCast}, Reeling: ${fishingGameState.isReeling}, Hooked: ${fishingGameState.hasHookedFish}`);
 
         if (!fishingGameState.isRodCast || fishingGameState.isReeling || fishingGameState.hasHookedFish) {
-            console.log(`%c[Mechanics] checkForBite: Entered initial 'if' block. Condition was true. (!isRodCast=${!fishingGameState.isRodCast}, isReeling=${fishingGameState.isReeling}, hasHookedFish=${fishingGameState.hasHookedFish})`, 'color: orange;');
-            // This is the path taken if a fish is already hooked (hasHookedFish = true)
-            // or if rod is not cast, or if currently reeling.
-            // The biteTimer management should only happen if a fish is ALREADY hooked.
             if (fishingGameState.hasHookedFish && fishingGameState.biteTimer > 0) {
-                console.log(`%c[Mechanics] checkForBite: Managing bite timer: ${fishingGameState.biteTimer}`, 'color: orange;');
-                fishingGameState.biteTimer -= (deltaTime * 1000); // Ensure deltaTime is valid
+                fishingGameState.biteTimer -= (deltaTime * 1000);
                 if (fishingGameState.biteTimer <= 0) {
-                    console.log(`%c[Mechanics] checkForBite: Bite timer expired. Escaping.`, 'color: red; font-weight: bold;');
                     this.handleFishEscape();
                 }
-            }
-            // Only log EXITING EARLY if not managing an active bite timer that just led to escape
-            if (fishingGameState.biteTimer > 0 || !fishingGameState.hasHookedFish) { // if timer still running, or if we exited for other reasons
-                 console.log(`%c[Mechanics] checkForBite: EXITING EARLY due to initial 'if' condition.`, 'color: orange; font-weight: bold;');
             }
             return;
         }
 
-        console.log(`%c[Mechanics] checkForBite: Proceeding to check activeFish for new bites. Active fish count: ${this.activeFish.length}`, 'color: green;');
-        this.activeFish.forEach(fish => {
-            if (fishingGameState.hasHookedFish) return; // Already a fish on the hook
+        // Log hook position once if it's useful and not logged elsewhere frequently
+        // console.log(`[Mechanics] Hook position: X=${this.hookPosition.x}, Y=${this.hookPosition.y}`);
+
+        let loggedThisCall = false; // Flag to ensure we only log one fish's details per call
+
+        this.activeFish.forEach((fish, fishIndex) => {
+            if (fishingGameState.hasHookedFish) return; // Already a fish on the hook (or processing one)
 
             const dx = fish.x - this.hookPosition.x;
             const dy = fish.y - this.hookPosition.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
+            // Log details for the first fish only in this iteration of activeFish
+            if (!loggedThisCall && fishIndex === 0 && this.activeFish.length > 0) {
+                console.log(`[FishCheck] Fish 0: Pos(${fish.x.toFixed(1)}, ${fish.y.toFixed(1)}), Hook(${this.hookPosition.x.toFixed(1)}, ${this.hookPosition.y.toFixed(1)}), Dist: ${distance.toFixed(1)}, BiteDist: ${this.biteDistance}`);
+                loggedThisCall = true;
+            }
+
             if (distance < this.biteDistance) {
+                // This console log should be very specific to when a fish is actually close enough
+                console.log(`[FishCheck] Fish ${fish.id} is CLOSE. Dist: ${distance.toFixed(1)}`);
                 if (Math.random() < (this.biteChancePerSecond * deltaTime)) {
+                    // This log is critical for when a bite actually occurs
+                    console.log(`%c[FishCheck] Fish ${fish.id} is BITING! Setting hasHookedFish.`, 'color: green; font-weight: bold;');
                     fishingGameState.bitingFishId = fish.id;
-                    fishingGameState.hasHookedFish = true; // Fish is on the hook!
-                    fishingGameState.isRodCast = false; // No longer just "cast", now it's "hooked"
+                    fishingGameState.hasHookedFish = true;
+                    fishingGameState.isRodCast = false; // Rod is no longer just "cast"
                     fishingGameState.biteTimer = this.biteTimerDuration;
-                    console.log(`[Mechanics] checkForBite: Fish ${fish.id} hooked! hasHookedFish=true. biteTimer initialized to ${fishingGameState.biteTimer}`);
 
                     if (typeof playSound === 'function') playSound('sfx_fishing_bite.mp3');
                     if (typeof window.fishingUi !== 'undefined') {
