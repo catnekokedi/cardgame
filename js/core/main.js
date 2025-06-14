@@ -246,26 +246,26 @@ function initGame() {
       return;
   }
 
-  // Verification logs for cardData and ALL_SET_DEFINITIONS
-  console.log('[Verification] typeof window.cardData:', typeof window.cardData);
-  if (typeof window.cardData === 'object' && window.cardData !== null) {
-      console.log('[Verification] window.cardData keys length:', Object.keys(window.cardData).length);
-      if (Object.keys(window.cardData).length < 5 && Object.keys(window.cardData).length > 0) { // Log content only if it's small but not empty
-          try {
-            console.log('[Verification] window.cardData content sample (first key):', JSON.stringify(window.cardData[Object.keys(window.cardData)[0]]));
-          } catch (e) { console.log('[Verification] window.cardData content sample could not be stringified.');}
-      } else if (Object.keys(window.cardData).length === 0) {
-           console.log('[Verification] window.cardData is empty object.');
-      }
-  } else {
-      console.error('[Verification] window.cardData is not an object or is null!');
-  }
-  console.log('[Verification] typeof window.ALL_SET_DEFINITIONS:', typeof window.ALL_SET_DEFINITIONS);
-  if (typeof window.ALL_SET_DEFINITIONS === 'object' && window.ALL_SET_DEFINITIONS !== null && typeof window.ALL_SET_DEFINITIONS.length === 'number') {
-      console.log('[Verification] window.ALL_SET_DEFINITIONS length:', window.ALL_SET_DEFINITIONS.length > 0 ? window.ALL_SET_DEFINITIONS.length : 'EMPTY');
-  } else {
-      console.error('[Verification] window.ALL_SET_DEFINITIONS is not an array/object or is null!');
-  }
+  // Verification logs for cardData and ALL_SET_DEFINITIONS // REMOVE ALL THESE
+  // console.log('[Verification] typeof window.cardData:', typeof window.cardData); // REMOVED
+  // if (typeof window.cardData === 'object' && window.cardData !== null) { // REMOVED
+      // console.log('[Verification] window.cardData keys length:', Object.keys(window.cardData).length); // REMOVED
+      // if (Object.keys(window.cardData).length < 5 && Object.keys(window.cardData).length > 0) { // Log content only if it's small but not empty // REMOVED
+          // try { // REMOVED
+            // console.log('[Verification] window.cardData content sample (first key):', JSON.stringify(window.cardData[Object.keys(window.cardData)[0]])); // REMOVED
+          // } catch (e) { console.log('[Verification] window.cardData content sample could not be stringified.');} // REMOVED
+      // } else if (Object.keys(window.cardData).length === 0) { // REMOVED
+           // console.log('[Verification] window.cardData is empty object.'); // REMOVED
+      // } // REMOVED
+  // } else { // REMOVED
+      // console.error('[Verification] window.cardData is not an object or is null!'); // REMOVED
+  // } // REMOVED
+  // console.log('[Verification] typeof window.ALL_SET_DEFINITIONS:', typeof window.ALL_SET_DEFINITIONS); // REMOVED
+  // if (typeof window.ALL_SET_DEFINITIONS === 'object' && window.ALL_SET_DEFINITIONS !== null && typeof window.ALL_SET_DEFINITIONS.length === 'number') { // REMOVED
+      // console.log('[Verification] window.ALL_SET_DEFINITIONS length:', window.ALL_SET_DEFINITIONS.length > 0 ? window.ALL_SET_DEFINITIONS.length : 'EMPTY'); // REMOVED
+  // } else { // REMOVED
+      // console.error('[Verification] window.ALL_SET_DEFINITIONS is not an array/object or is null!'); // REMOVED
+  // } // REMOVED
   // End of verification logs
 
   let screenToDisplayOnLoad = SCREENS.STATS;

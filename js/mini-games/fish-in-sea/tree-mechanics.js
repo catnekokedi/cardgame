@@ -44,13 +44,13 @@ function getRandomRarityFromWeights(weights) {
  * Generates a random card for the tree based on defined rarities using utility functions.
  */
 function generateRandomCardForTree() {
-    // Keep existing typeof logs for dependencies for now for diagnostics // REMOVE THESE
-    // console.log('[TreeGen] typeof getActiveSetDefinitions:', typeof getActiveSetDefinitions); // DEBUG
-    // console.log('[TreeGen] typeof window.cardData:', typeof window.cardData, 'Keys:', Object.keys(window.cardData || {}).length); // DEBUG
-    // console.log('[TreeGen] typeof getFixedGradeAndPrice:', typeof getFixedGradeAndPrice); // DEBUG
-    // console.log('[TreeGen] typeof getCardImagePath:', typeof getCardImagePath); // DEBUG
-    // console.log('[TreeGen] typeof getCardIntrinsicRarity:', typeof getCardIntrinsicRarity); // DEBUG
-    // console.log('[TreeGen] typeof window.ALL_SET_DEFINITIONS:', typeof window.ALL_SET_DEFINITIONS); // DEBUG
+    // Keep existing typeof logs for dependencies for now for diagnostics // REMOVE THESE // Already commented
+    // console.log('[TreeGen] typeof getActiveSetDefinitions:', typeof getActiveSetDefinitions); // REMOVED DEBUG
+    // console.log('[TreeGen] typeof window.cardData:', typeof window.cardData, 'Keys:', Object.keys(window.cardData || {}).length); // REMOVED DEBUG
+    // console.log('[TreeGen] typeof getFixedGradeAndPrice:', typeof getFixedGradeAndPrice); // REMOVED DEBUG
+    // console.log('[TreeGen] typeof getCardImagePath:', typeof getCardImagePath); // REMOVED DEBUG
+    // console.log('[TreeGen] typeof getCardIntrinsicRarity:', typeof getCardIntrinsicRarity); // REMOVED DEBUG
+    // console.log('[TreeGen] typeof window.ALL_SET_DEFINITIONS:', typeof window.ALL_SET_DEFINITIONS); // REMOVED DEBUG
 
     if (typeof getActiveSetDefinitions !== 'function' ||
         typeof getFixedGradeAndPrice !== 'function' ||
@@ -112,11 +112,10 @@ function generateRandomCardForTree() {
 
     if (possibleCards.length > 0) {
         const selectedCard = possibleCards[Math.floor(Math.random() * possibleCards.length)];
-        // console.log(`[TreeGen] Selected card: ${selectedCard.name}`); // Old log commented out
-        console.log(`[TreeGenFinal] Generated: ID=${selectedCard.id}, Set=${selectedCard.set}, Name="${selectedCard.name}", Rarity=${selectedCard.rarity}, Image=${selectedCard.imagePath}`); // This one is good - event based
+        // console.log(`[TreeGenFinal] Generated: ID=${selectedCard.id}, Set=${selectedCard.set}, Name="${selectedCard.name}", Rarity=${selectedCard.rarity}, Image=${selectedCard.imagePath}`); // REMOVE - Aggressive cleanup
         return selectedCard;
     } else {
-        // console.warn(`Tree: No cards found for target rarity '${targetRarityKey}'. Trying fallback to 'base' rarity.`); // INFO
+        // console.warn(`Tree: No cards found for target rarity '${targetRarityKey}'. Trying fallback to 'base' rarity.`); // REMOVED INFO
         // Fallback to 'base' rarity (similar loop but targetRarityKey is 'base')
         // Re-initialize possibleCards for fallback search
         possibleCards = [];
@@ -139,11 +138,10 @@ function generateRandomCardForTree() {
                 } catch (e) { /* ignore */ }
             }
         });
-        // console.log(`[TreeGen] Fallback: Found ${possibleCards.length} 'base' rarity cards.`); // DEBUG
+        // console.log(`[TreeGen] Fallback: Found ${possibleCards.length} 'base' rarity cards.`); // REMOVED DEBUG
         if (possibleCards.length > 0) {
             const selectedCard = possibleCards[Math.floor(Math.random() * possibleCards.length)];
-            // console.log(`[TreeGen] Selected fallback card: ${selectedCard.name}`); // Old log commented out
-            console.log(`[TreeGenFinal] Generated: ID=${selectedCard.id}, Set=${selectedCard.set}, Name="${selectedCard.name}", Rarity=${selectedCard.rarity}, Image=${selectedCard.imagePath}`); // This one is good - event based
+            // console.log(`[TreeGenFinal] Generated: ID=${selectedCard.id}, Set=${selectedCard.set}, Name="${selectedCard.name}", Rarity=${selectedCard.rarity}, Image=${selectedCard.imagePath}`); // REMOVE - Aggressive cleanup
             return selectedCard;
         }
     }
@@ -288,7 +286,7 @@ function collectCardFromTree(slotIndex) {
     const slot = treeSlots[slotIndex];
     if (slot && slot.state === "revealed" && slot.card) {
         const collectedCardDetails = slot.card;
-        console.log('[TreeCollect] Initial slot.card details:', JSON.parse(JSON.stringify(collectedCardDetails)));
+        // console.log('[TreeCollect] Initial slot.card details:', JSON.parse(JSON.stringify(collectedCardDetails))); // REMOVE - Aggressive cleanup
 
         const cardDataForBasket = {
             id: collectedCardDetails.id,
@@ -316,7 +314,7 @@ function collectCardFromTree(slotIndex) {
             // Optionally, create a full error object for cardDataForBasket here if needed
         }
 
-        console.log('[TreeCollect] Prepared cardDataForBasket:', JSON.parse(JSON.stringify(cardDataForBasket)));
+        // console.log('[TreeCollect] Prepared cardDataForBasket:', JSON.parse(JSON.stringify(cardDataForBasket))); // REMOVE - Aggressive cleanup
         // The old log is now covered by the new [TreeCollect] log above.
         // console.log(`[TreeMechanics] Item for basket from tree slot ${slotIndex}: Name=${cardDataForBasket.name}, Type=${cardDataForBasket.type}, Source=${cardDataForBasket.source}`);
 
@@ -354,10 +352,10 @@ function collectCardFromTree(slotIndex) {
         if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.renderTreeSlots === 'function') {
             fishingTreeUi.renderTreeSlots(getTreeSlotsData());
         }
-        console.log(`Slot ${slotIndex} cleared after collecting ${collectedCardDetails.name || 'item'}.`);
+        // console.log(`Slot ${slotIndex} cleared after collecting ${collectedCardDetails.name || 'item'}.`); // INFO
         return { ...collectedCardDetails };
     } else {
-        console.log(`No revealed card to collect in slot ${slotIndex}. Current state: ${slot ? slot.state : 'empty'}`);
+        // console.log(`No revealed card to collect in slot ${slotIndex}. Current state: ${slot ? slot.state : 'empty'}`); // INFO
         return null;
     }
 }
@@ -375,7 +373,7 @@ function updateTreeMoisture(newMoisture) {
             fishingTreeUi.updateMoistureDisplay(treeMoisture);
         }
     }
-    console.log(`Tree moisture updated to: ${treeMoisture}% (Constant moisture: ${constantMoistureActive})`);
+    // console.log(`Tree moisture updated to: ${treeMoisture}% (Constant moisture: ${constantMoistureActive})`); // INFO
 }
 
 function getTreeDataForSave() {
@@ -413,7 +411,7 @@ function loadTreeData(data) {
         }
         // Ensure revealed slots from save have valid card data, assign fallback if not
         if (slotData && slotData.state === "revealed" && !slotData.card) {
-            console.warn(`[TreeLoad] Revealed slot ${index} from save data is missing card details. Assigning error fallback.`);
+            // console.warn(`[TreeLoad] Revealed slot ${index} from save data is missing card details. Assigning error fallback.`); // REMOVE - Aggressive cleanup
             slotData.card = {
                 type: "error_card_save_load", name: "Corrupted Fruit",
                 imagePath: "gui/fishing_game/tree-back.png",
@@ -442,7 +440,7 @@ function loadTreeData(data) {
     if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.updateMoistureDisplay === 'function') {
         fishingTreeUi.updateMoistureDisplay(treeMoisture);
     }
-    console.log("Tree data loaded:", getTreeDataForSave());
+    // console.log("Tree data loaded:", getTreeDataForSave()); // INFO
 }
 
 window.initializeTree = initializeTree;

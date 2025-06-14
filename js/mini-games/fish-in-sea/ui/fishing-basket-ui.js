@@ -24,7 +24,7 @@ window.fishingBasketUi = {
 
         if (!this.modalElement || !this.basketIconElement || !this.cardsContainerElement || !this.closeButtonElement ||
             !this.rarityFilterElement || !this.sellAllButtonElement || !this.collectAllButtonElement) {
-            console.error("One or more fishing basket UI elements are missing from the DOM.");
+            // console.error("One or more fishing basket UI elements are missing from the DOM."); // REMOVE - Aggressive cleanup
             return;
         }
 
@@ -121,7 +121,7 @@ window.fishingBasketUi = {
                 cardDiv.classList.add('locked');
             }
             // cardData: { set, id, rarity, price, name, imagePath, type, source }
-            console.log("[FishingBasketUI] Rendering item.cardData:", item.cardData, "Quantity:", item.quantity, "Source:", item.cardData.source);
+            // console.log("[FishingBasketUI] Rendering item.cardData:", item.cardData, "Quantity:", item.quantity, "Source:", item.cardData.source); // REMOVE - Aggressive cleanup
 
             let cardImageSrc = 'gui/items/placeholder_icon.png'; // Default fallback
             // New check for known error items
@@ -150,7 +150,7 @@ window.fishingBasketUi = {
                 ${item.isLocked ? '<div class="basket-card-lock-icon">🔒</div>' : ''}
             `;
             cardDiv.dataset.instanceId = item.instanceId;
-            console.log("[FishingBasketUI] Final cardImageSrc:", cardImageSrc, "for item name:", cardName);
+            // console.log("[FishingBasketUI] Final cardImageSrc:", cardImageSrc, "for item name:", cardName); // REMOVE - Aggressive cleanup
 
 
             cardDiv.addEventListener('click', () => this.showCardDetailForBasketItem(item));

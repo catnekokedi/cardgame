@@ -54,7 +54,12 @@ function startFishingGame(gameContentEl, gameResultEl) {
     if (typeof window.fishingRocksUi !== 'undefined' && typeof window.fishingRocksUi.initializeRockUI === 'function') window.fishingRocksUi.initializeRockUI(); else console.warn("fishingRocksUi.initializeRockUI function not found.");
 
     // Core fishing mechanics (fish movement, bite logic)
-    if (typeof window.fishingMechanics !== 'undefined' && typeof window.fishingMechanics.initializeFishingMechanics === 'function') window.fishingMechanics.initializeFishingMechanics(); else console.warn("fishingMechanics.initializeFishingMechanics function not found.");
+    console.log("[Main] Attempting to call window.fishingMechanics.initializeFishingMechanics()");
+    if (typeof window.fishingMechanics !== 'undefined' && typeof window.fishingMechanics.initializeFishingMechanics === 'function') {
+        window.fishingMechanics.initializeFishingMechanics();
+    } else {
+        console.error("[Main] window.fishingMechanics or initializeFishingMechanics not found!");
+    }
     // UI for new core fishing game elements (sea container, fish rendering)
     // if (typeof window.fishingGameUi !== 'undefined' && typeof window.fishingGameUi.initializeFishingUIElements === 'function') window.fishingGameUi.initializeFishingUIElements(); else console.warn("fishingGameUi.initializeFishingUIElements function not found."); // Commented out as per task
 
@@ -85,17 +90,17 @@ function startFishingGame(gameContentEl, gameResultEl) {
         birdSkyBoundaries.yMin = 0; // Top of the sky container
         birdSkyBoundaries.yMax = skyElementForBirds.offsetHeight * 0.75; // Fly in upper 75% of sky container
 
-        console.log(`[BirdMechanics Init] Calculated bird boundaries: xMin=${birdSkyBoundaries.xMin}, xMax=${birdSkyBoundaries.xMax}, yMin=${birdSkyBoundaries.yMin}, yMax=${birdSkyBoundaries.yMax}`);
-        console.log(`[BirdMechanics Init] SkyRect: L=${skyRect.left}, R=${skyRect.right}, T=${skyRect.top}, W=${skyRect.width}, H=${skyRect.height}`);
-        console.log(`[BirdMechanics Init] WaterRect: L=${waterRect.left}, R=${waterRect.right}, T=${waterRect.top}, W=${waterRect.width}, H=${waterRect.height}`);
+        // console.log(`[BirdMechanics Init] Calculated bird boundaries: xMin=${birdSkyBoundaries.xMin}, xMax=${birdSkyBoundaries.xMax}, yMin=${birdSkyBoundaries.yMin}, yMax=${birdSkyBoundaries.yMax}`); // REMOVE - Aggressive cleanup
+        // console.log(`[BirdMechanics Init] SkyRect: L=${skyRect.left}, R=${skyRect.right}, T=${skyRect.top}, W=${skyRect.width}, H=${skyRect.height}`); // REMOVE - Aggressive cleanup
+        // console.log(`[BirdMechanics Init] WaterRect: L=${waterRect.left}, R=${waterRect.right}, T=${waterRect.top}, W=${waterRect.width}, H=${waterRect.height}`); // REMOVE - Aggressive cleanup
 
     } else {
-        console.warn("Bird Mechanics: #fishing-sky-container or water panel element not found for precise boundary setup. Using defaults.", birdSkyBoundaries);
+        console.warn("Bird Mechanics: #fishing-sky-container or water panel element not found for precise boundary setup. Using defaults.", birdSkyBoundaries); // Keep warn
     }
 
     if (window.birdMechanics && typeof window.birdMechanics.initialize === 'function') {
         window.birdMechanics.initialize(birdSkyBoundaries);
-        console.log("[BirdMechanics Init] Bird mechanics initialized with boundaries:", birdSkyBoundaries);
+        // console.log("[BirdMechanics Init] Bird mechanics initialized with boundaries:", birdSkyBoundaries); // REMOVE - Aggressive cleanup
     }
     if (window.birdUi && typeof window.birdUi.initialize === 'function') {
         window.birdUi.initialize('#fishing-sky-container'); // UI uses selector
