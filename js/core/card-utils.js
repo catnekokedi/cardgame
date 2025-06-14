@@ -94,12 +94,16 @@ function getCardImagePath(setAbbrIdentifier, cardId, imageType = 'standard', car
         return 'gui/fishing_game/tree-back.png';
     }
 
-    let extension = '.jpg'; // Default extension
-    if (meta.version === 'v2') {
+    let extension = '.jpg'; // Default to .jpg
+    if (meta.cardImageFolder === 'cards-yuki') { // 'cards-yuki' corresponds to v2 sets
         extension = '.png';
     }
-    // Allow specific sets to override if needed (example from previous versions)
-    if (setAbbrIdentifier === "PRE" || (cardDefinition && cardDefinition.extension === '.png')) {
+    // Allow specific overrides if a card definition explicitly states a .png extension
+    if (cardDefinition && cardDefinition.extension === '.png') {
+        extension = '.png';
+    }
+    // Ensure PRE set uses .png as it was a special case
+    if (setAbbrIdentifier === "PRE") {
         extension = '.png';
     }
 
