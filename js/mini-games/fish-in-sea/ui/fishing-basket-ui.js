@@ -126,21 +126,35 @@ window.fishingBasketUi = {
             let cardImageSrc = 'gui/fishing_game/tree-back.png'; // Default to placeholder
             const card = item.cardData;
 
+            const card = item.cardData;
+
             if (card) {
                 const errorItemTypes = ['error_card_generation', 'error_card_missing_data', 'error_card_save_load'];
                 if (card.id === 'error_card' || card.set === 'fish_in_sea_error' || errorItemTypes.includes(card.type)) {
-                    // cardImageSrc is already set to tree-back.png, so this condition is met.
+                    // cardImageSrc is already set to tree-back.png, no action needed here.
                 } else if (card.imagePath && typeof card.imagePath === 'string' && card.imagePath.includes('/')) {
-                    cardImageSrc = card.imagePath;
+                    let pathAttempt = card.imagePath;
+                    if (pathAttempt.startsWith('cards-yuki/')) {
+                        // console.log(`[BasketRender] Correcting 'cards-yuki/' path for ${card.name} to 'cards-new/'`);
+                        pathAttempt = pathAttempt.replace('cards-yuki/', 'cards-new/');
+                    }
+                    // Basic check to see if it looks like a real image path after potential correction
+                    if (pathAttempt.endsWith('.jpg') || pathAttempt.endsWith('.png')) {
+                        cardImageSrc = pathAttempt;
+                    } else {
+                        // console.warn(`[BasketRender] Corrected path for ${card.name} is not a .jpg/.png: ${pathAttempt}. Using placeholder.`);
+                    }
                 } else if (card.set && card.id && (typeof card.id === 'number' || !isNaN(parseInt(card.id)))) {
-                    const numericId = parseInt(card.id); // Ensure numeric ID for getCardImagePath
-                    if (numericId > 0) { // Check if parsing was successful and ID is valid
+                    const numericId = parseInt(card.id);
+                    if (numericId > 0) {
                         const pathFromUtil = getCardImagePath(card.set, numericId);
-                        if (pathFromUtil && !pathFromUtil.includes('undefined') && !pathFromUtil.includes('No+Set+Meta')) {
-                            cardImageSrc = pathFromUtil;
-                        } else {
-                            // console.warn(`[BasketRender] getCardImagePath returned problematic path for ${card.set}#${numericId}: ${pathFromUtil}. Using placeholder.`);
-                        }
+                        if (pathFromUtil && !pathFromUtil.includes('undefined') && pathFromUtil !== 'gui/fishing_game/tree-back.png') {
+                             if (pathFromUtil.endsWith('.jpg') || pathFromUtil.endsWith('.png')) {
+                                cardImageSrc = pathFromUtil;
+                            } else {
+                                // console.warn(`[BasketRender] Path from util for ${card.name} is not a .jpg/.png: ${pathFromUtil}. Using placeholder.`);
+                            }
+                        } // If getCardImagePath returned placeholder, cardImageSrc remains the default placeholder.
                     } else {
                          // console.warn(`[BasketRender] Invalid numericId for ${card.set}#${card.id}. Using placeholder.`);
                     }

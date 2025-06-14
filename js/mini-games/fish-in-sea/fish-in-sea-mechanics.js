@@ -1,6 +1,6 @@
 // js/mini-games/fishing-game/fishing-mechanics.js
 
-window.fishingMechanics = {
+const fishingMechanicsInstance = { // Changed to const instance
     activeFish: [],
     maxActiveFish: 4, // Can be adjusted
     seaBoundaries: { minX: 50, maxX: 350, minY: 50, maxY: 250 }, // Example, adjust based on UI
@@ -25,7 +25,7 @@ window.fishingMechanics = {
         //     fishingGameUi.renderFish(this.activeFish);
         // } // Removed as per task
         // console.log("Fishing mechanics initialized with fish."); // One-time init, keep if desired, but removing for aggressive pass
-        console.log("[Mechanics] fishingMechanics.initializeFishingMechanics called and executed."); // Keep this one as per task
+        // console.log("[Mechanics] fishingMechanics.initializeFishingMechanics called and executed."); // REMOVE as per prompt
     },
 
     spawnFish(replaceFishId = null) {
@@ -520,4 +520,5 @@ window.fishingMechanics = {
         return { ticketType: targetTicketType, count: ticketsAwardedThisRule, itemsConsumedCount: itemsConsumedFromBasketThisRule };
     }
 };
-console.log("[MechanicsInit] fish-in-sea-mechanics.js loaded and fishingMechanics prepared.");
+window.fishingMechanics = fishingMechanicsInstance; // Assign to window
+// console.log("[Fixed] fish-in-sea-mechanics.js loaded, window.fishingMechanics assigned."); // Minimal log, commented out
