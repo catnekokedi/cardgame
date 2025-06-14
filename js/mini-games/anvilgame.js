@@ -496,11 +496,36 @@ function goToAnvilGameFromGallery() {
     }
 }
 
-anvilgame.loadState = function(stagedCards, filterRarity, packReadyRarity, isProcessingState) {
-    anvilgame.stagedCards = stagedCards || [];
-    anvilUiFilterRarity = filterRarity || 'all';
-    anvilPackReadyRarityKey = packReadyRarity || null; 
-    anvilIsProcessing = isProcessingState || false;
+// Function to gather all Anvil state for saving
+anvilgame.getAnvilDataForSave = function() {
+    return {
+        stagedCards: anvilgame.stagedCards,
+        uiFilterRarity: anvilUiFilterRarity,
+        packReadyRarityKey: anvilPackReadyRarityKey,
+        isProcessing: anvilIsProcessing,
+        lastAnvilOutputRarityKey: anvilgame.lastAnvilOutputRarityKey,
+        lastAnvilInputRarityKey: anvilgame.lastAnvilInputRarityKey
+    };
+};
+
+// Modified loadState to accept a single data object
+anvilgame.loadState = function(data) {
+    if (!data) {
+        // If no data, effectively reset to initial state for these values
+        anvilgame.stagedCards = [];
+        anvilUiFilterRarity = 'all';
+        anvilPackReadyRarityKey = null;
+        anvilIsProcessing = false;
+        anvilgame.lastAnvilOutputRarityKey = null;
+        anvilgame.lastAnvilInputRarityKey = null;
+        return;
+    }
+    anvilgame.stagedCards = data.stagedCards || [];
+    anvilUiFilterRarity = data.uiFilterRarity || 'all';
+    anvilPackReadyRarityKey = data.packReadyRarityKey || null;
+    anvilIsProcessing = data.isProcessing || false;
+    anvilgame.lastAnvilOutputRarityKey = data.lastAnvilOutputRarityKey || null;
+    anvilgame.lastAnvilInputRarityKey = data.lastAnvilInputRarityKey || null;
 };
 
 anvilgame.resetState = function(returnCardsToCollection = false) {

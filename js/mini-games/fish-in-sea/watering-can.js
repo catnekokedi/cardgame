@@ -14,19 +14,9 @@ const CONSTANT_MOISTURE_COST = 500; // Example cost
  * Sets up event listeners for the icon.
  */
 function initializeWateringCan() {
-    const canIcon = document.getElementById('watering-can-icon');
-    if (canIcon) {
-        canIcon.addEventListener('click', openUpgradeModal);
-    } else {
-        console.error("Watering can icon not found. Ensure HTML is loaded before this script or defer this call.");
-    }
-
-    const closeModalButton = document.getElementById('close-watering-can-modal');
-    if (closeModalButton) {
-        closeModalButton.addEventListener('click', closeUpgradeModal);
-    } else {
-        console.error("Watering can modal close button not found.");
-    }
+    // Event listeners for the watering can icon (to open modal) and the modal's close button
+    // are now handled in fishing-ui.js (addEventListeners function).
+    // This function will focus on initializing watering can logic and specific upgrade buttons.
 
     const purchaseMoistureButton = document.getElementById('purchase-moisture-btn');
     if (purchaseMoistureButton) {

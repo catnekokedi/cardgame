@@ -10,14 +10,42 @@ function startFishingGame(gameContentEl, gameResultEl) {
 
     initializeFishingGameState(); // From fishing-state.js
 
+    // Reset and initialize bird systems early
+    if (window.birdUi && typeof window.birdUi.reset === 'function') {
+        window.birdUi.reset();
+    }
+    if (window.birdMechanics && typeof window.birdMechanics.initialize === 'function') {
+        // Initialize with default boundaries first, will be refined after sky element is available
+        window.birdMechanics.initialize();
+    }
+
+    // Initialize core systems like Summon Tickets
+    if (typeof window.initializeSummonTickets === 'function') {
+        window.initializeSummonTickets();
+    } else {
+        console.warn("initializeSummonTickets function not found. Summon ticket system may not be ready.");
+    }
+
     if (typeof initializeTree === 'function') initializeTree(); else console.warn("initializeTree function not found.");
 
-    // Initialize main fishing UI (assumed to be always available, e.g., window.fishingUi)
-    if (typeof fishingUi !== 'undefined' && typeof fishingUi.init === 'function') {
-        fishingUi.init(gameContentEl);
+    // Initialize main fishing UI
+    if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.init === 'function') {
+        window.fishingUi.init(gameContentEl);
     } else {
         console.error("CRITICAL: Main fishingUi.init function not found.");
         // Potentially stop further initialization if main UI can't load
+    }
+
+    // Fishing Basket logic and UI - Initialized earlier as other modules depend on window.fishingBasket
+    if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.initializeBasket === 'function') {
+        window.fishingBasket.initializeBasket();
+    } else {
+        console.warn("fishingBasket.initializeBasket function not found during main initialization sequence. Dependent mechanics might fail.");
+    }
+    if (typeof window.fishingBasketUi !== 'undefined' && typeof window.fishingBasketUi.initializeBasketUI === 'function') {
+        window.fishingBasketUi.initializeBasketUI();
+    } else {
+        console.warn("fishingBasketUi.initializeBasketUI function not found during main initialization sequence.");
     }
 
     if (typeof window.fishingTreeUi !== 'undefined' && typeof window.fishingTreeUi.initialize === 'function') window.fishingTreeUi.initialize(); else console.warn("fishingTreeUi.initialize function not found.");
@@ -30,13 +58,25 @@ function startFishingGame(gameContentEl, gameResultEl) {
     // UI for new core fishing game elements (sea container, fish rendering)
     // if (typeof window.fishingGameUi !== 'undefined' && typeof window.fishingGameUi.initializeFishingUIElements === 'function') window.fishingGameUi.initializeFishingUIElements(); else console.warn("fishingGameUi.initializeFishingUIElements function not found."); // Commented out as per task
 
-    // Sky Mechanics and UI
-    if (typeof window.skyMechanics !== 'undefined' && typeof window.skyMechanics.initializeSkyMechanics === 'function') window.skyMechanics.initializeSkyMechanics(); else console.warn("skyMechanics.initializeSkyMechanics function not found.");
-    if (typeof window.skyUi !== 'undefined' && typeof window.skyUi.initializeSkyUI === 'function') window.skyUi.initializeSkyUI(); else console.warn("skyUi.initializeSkyUI function not found.");
+    // Old Sky Mechanics and UI calls have been removed as they are replaced by the new bird system.
 
-    // Fishing Basket logic and UI
-    if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.initializeBasket === 'function') window.fishingBasket.initializeBasket(); else console.warn("fishingBasket.initializeBasket function not found.");
-    if (typeof window.fishingBasketUi !== 'undefined' && typeof window.fishingBasketUi.initializeBasketUI === 'function') window.fishingBasketUi.initializeBasketUI(); else console.warn("fishingBasketUi.initializeBasketUI function not found.");
+    // Initialize Bird Mechanics and UI
+    const skyElementForBirds = document.getElementById('fishing-sky-container'); // As defined in fishing-ui.js HTML
+    let birdSkyBoundaries = { xMin: 0, xMax: 600, yMin: 0, yMax: 150 }; // Default fallback
+    if (skyElementForBirds) {
+        birdSkyBoundaries.xMax = skyElementForBirds.offsetWidth;
+        // Use only a portion of the sky container for bird flight, e.g., upper 75-80% to avoid overlap with other UI
+        birdSkyBoundaries.yMax = skyElementForBirds.offsetHeight * 0.80;
+    } else {
+        console.warn("Bird Mechanics: #fishing-sky-container not found for precise boundary setup. Using defaults.");
+    }
+
+    if (window.birdMechanics && typeof window.birdMechanics.initialize === 'function') {
+        window.birdMechanics.initialize(birdSkyBoundaries); // Re-initialize with actual boundaries
+    }
+    if (window.birdUi && typeof window.birdUi.initialize === 'function') {
+        window.birdUi.initialize('#fishing-sky-container'); // UI uses selector
+    }
 
     // Load persistent state AFTER all initializations
     if (typeof miniGameData === 'object' && miniGameData.fishingGame) {
@@ -47,9 +87,11 @@ function startFishingGame(gameContentEl, gameResultEl) {
         }
 
         // After loading, UI components need refreshing based on the now-loaded state
-        if (typeof window.fishingTreeUi !== 'undefined' && typeof window.fishingTreeUi.initialize === 'function') window.fishingTreeUi.initialize();
+        // Note: fishingTreeUi.initialize() is removed from here because loadTreeData() in tree-mechanics.js
+        // already calls fishingTreeUi.renderTreeSlots() and fishingTreeUi.updateMoistureDisplay() after loading data.
         if (typeof updateWateringCanUI === 'function') updateWateringCanUI();
-        if (typeof window.fishingRocksUi !== 'undefined' && typeof window.fishingRocksUi.renderRocks === 'function' && typeof getRockSlotsData === 'function') window.fishingRocksUi.renderRocks(getRockSlotsData());
+        // Note: fishingRocksUi.renderRocks() is removed from here because loadRockData() in rock-mechanics.js
+        // already calls its own UI rendering function after loading data.
         if (typeof window.fishingRocksUi !== 'undefined' && typeof window.fishingRocksUi.updatePickaxeCursor === 'function' && typeof pickaxeSelected !== 'undefined') window.fishingRocksUi.updatePickaxeCursor(pickaxeSelected);
 
         if (typeof window.fishingGameUi !== 'undefined' && typeof window.fishingMechanics !== 'undefined') {
@@ -61,20 +103,22 @@ function startFishingGame(gameContentEl, gameResultEl) {
             if (typeof window.fishingBasketUi.updateBasketCountDisplay === 'function') window.fishingBasketUi.updateBasketCountDisplay(window.fishingBasket.getTotalItemCount());
         }
         // Ensure existing fishingUi (for bobber, line etc.) is also updated after load
-        if (typeof fishingUi !== 'undefined') {
+        if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.drawRodLine === 'function') { // Check specific functions needed
             if (fishingGameState.isRodCast || fishingGameState.hasHookedFish) {
-                if (typeof fishingUi.showBobber === 'function') fishingUi.showBobber(fishingMechanics.hookPosition);
-                if (typeof fishingUi.drawRodLine === 'function') fishingUi.drawRodLine(fishingMechanics.hookPosition);
-                if (typeof fishingUi.showExclamationOnBobber === 'function') fishingUi.showExclamationOnBobber(fishingGameState.hasHookedFish && !fishingGameState.isReeling);
+                if (typeof window.fishingUi.showBobber === 'function') window.fishingUi.showBobber(); // Uses internal hookPosition
+                window.fishingUi.drawRodLine(); // Uses internal hookPosition and bobberPosition
+                if (typeof window.fishingUi.showExclamationOnBobber === 'function') window.fishingUi.showExclamationOnBobber(fishingGameState.hasHookedFish && !fishingGameState.isReeling);
             } else {
-                if (typeof fishingUi.hideBobber === 'function') fishingUi.hideBobber();
-                if (typeof fishingUi.hideRodLine === 'function') fishingUi.hideRodLine();
+                if (typeof window.fishingUi.hideBobber === 'function') window.fishingUi.hideBobber();
+                if (typeof window.fishingUi.hideRodLine === 'function') window.fishingUi.hideRodLine();
             }
         }
     }
 
-    fishingUi.updateRodAndBaitDisplay(); // General UI updates
-    fishingUi.updateStatusText(); // General UI updates
+    if (typeof window.fishingUi !== 'undefined') { // Ensure fishingUi is available before calling its methods
+        if (typeof window.fishingUi.updateRodAndBaitDisplay === 'function') window.fishingUi.updateRodAndBaitDisplay();
+        if (typeof window.fishingUi.updateStatusText === 'function') window.fishingUi.updateStatusText();
+    }
 
 
     document.addEventListener('keydown', handleFishingKeyPress);
@@ -109,8 +153,22 @@ function updateFishingGameLoop() {
     if (typeof window.wateringCanMechanics !== 'undefined' && typeof window.wateringCanMechanics.updateWateringCanDragAction === 'function') {
         window.wateringCanMechanics.updateWateringCanDragAction();
     }
-    if (typeof window.skyMechanics !== 'undefined' && typeof window.skyMechanics.updateBirdMovementAndSpawns === 'function') {
-        window.skyMechanics.updateBirdMovementAndSpawns(deltaTimeInSeconds);
+    // Old skyMechanics.updateBirdMovementAndSpawns call removed.
+
+    // Update new Bird Mechanics
+    if (window.birdMechanics && typeof window.birdMechanics.update === 'function') {
+        window.birdMechanics.update(deltaTimeMs); // birdMechanics.update expects deltaTime in ms
+    }
+    if (window.birdUi && typeof window.birdMechanics !== 'undefined' && typeof window.birdUi.update === 'function') {
+        window.birdUi.update(window.birdMechanics.birds);
+    }
+
+    // Continuously update fishing line if it should be visible
+    if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.drawRodLine === 'function') {
+        if (fishingGameState.isRodCast || fishingGameState.hasHookedFish) {
+            window.fishingUi.drawRodLine();
+        }
+        // Hiding the line when not cast/hooked is handled by resetFishingState and castRod (hiding previous catch preview)
     }
 }
 
@@ -154,6 +212,15 @@ function stopFishingGame() {
     document.removeEventListener('keydown', handleFishingKeyPress);
     
     fishingGameState.isGameActive = false; // Mark as inactive
+
+    // Reset bird systems when stopping the fishing game
+    if (window.birdUi && typeof window.birdUi.reset === 'function') {
+        window.birdUi.reset();
+    }
+    if (window.birdMechanics && typeof window.birdMechanics.initialize === 'function') {
+        // Re-initialize to clear birds array and reset timers, effectively a reset
+        window.birdMechanics.initialize();
+    }
 
     if (typeof miniGameData === 'object' && miniGameData !== null) {
         miniGameData.fishingGame = getPersistentFishingState(); 

@@ -90,12 +90,15 @@ function spawnNewRock(slotIndex, initialDelay = 0) {
  * @param {number} rockSlotIndex The index of the rock slot.
  */
 function hitRock(rockSlotIndex) {
+    // Removed pickaxe selection dependency for direct rock interaction
+    /*
     if (!fishingGameState.pickaxeSelected) {
         if(typeof showCustomAlert === 'function') { // Changed to showCustomAlert
             showCustomAlert("Select the pickaxe tool first!", null, 1500);
         }
         return;
     }
+    */
     const rock = rockSlots[rockSlotIndex];
     if (!rock || rock.isRespawning) {
         console.log("No active rock in this slot or rock is respawning.");

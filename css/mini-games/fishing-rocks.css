@@ -4,8 +4,8 @@
 
 #fishing-rocks-container {
     position: absolute;
-    bottom: 2%; /* Position at the bottom of the land area */
-    left: 1%;   /* Align with tree container's left */
+    bottom: 12%; /* Original: 2%. Moved 10% upwards (2 + 10 = 12) */
+    left: 26%;   /* Original: 1%. Moved 25% to the right (1 + 25 = 26) */
     width: 38%; /* Fit within 40% land area */
     height: auto; /* Auto height based on content, or a fixed small height e.g. 100px */
     min-height: 100px; /* Ensure some space for rocks */

@@ -73,8 +73,16 @@ window.fishingMechanics = {
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance < 5) { // Reached target
-                fish.targetX = this.seaBoundaries.minX + Math.random() * (this.seaBoundaries.maxX - this.seaBoundaries.minX);
-                fish.targetY = this.seaBoundaries.minY + Math.random() * (this.seaBoundaries.maxY - this.seaBoundaries.minY);
+                if (fishingGameState.isRodCast && !fishingGameState.hasHookedFish && fish.id !== fishingGameState.bitingFishId) {
+                    // If rod is cast and this fish isn't already the one biting/hooked, it targets the hook
+                    fish.targetX = this.hookPosition.x + (Math.random() - 0.5) * 15; // Target hook, with slight jitter
+                    fish.targetY = this.hookPosition.y + (Math.random() - 0.5) * 15;
+                    // console.log(`Fish ${fish.id} is now targeting the hook area.`);
+                } else {
+                    // Original random target logic if rod not cast or fish is already hooked
+                    fish.targetX = this.seaBoundaries.minX + Math.random() * (this.seaBoundaries.maxX - this.seaBoundaries.minX);
+                    fish.targetY = this.seaBoundaries.minY + Math.random() * (this.seaBoundaries.maxY - this.seaBoundaries.minY);
+                }
                 // Update speed as well for variety
                 fish.speedX = (Math.random() - 0.5) * 20 + (dx / distance * 10); // Add some momentum bias
                 fish.speedY = (Math.random() - 0.5) * 20 + (dy / distance * 10);

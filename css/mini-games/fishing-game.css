@@ -42,10 +42,11 @@
     flex: 0 0 40%; /* Land takes 40% width */
     position: relative;
     overflow: hidden;
+    /* Original grass start: 35.1%. Reduced grass height by 25%. New start: ~51.4% */
     background: linear-gradient(to bottom, 
         #c1e7f7 0%,    /* Light Sky Blue for sky */
-        #e0f2f7 35%,   /* Fading Sky Blue - Sky ends at 35% */
-        #98FB98 35.1%, /* Pale Green for grass - Grass starts at 35.1% */
+        #e0f2f7 51.3%, /* Fading Sky Blue - Sky ends at 51.3% */
+        #98FB98 51.4%, /* Pale Green for grass - Grass starts at 51.4% */
         #8FBC8F 100%   /* Dark Sea Green for deeper grass */
     );
     display: flex; /* For positioning children */
@@ -58,10 +59,11 @@
     flex: 0 0 60%; /* Water takes 60% width */
     position: relative;
     overflow: hidden;
+    /* Original water start: 35.1%. Reduced water height by 25%. New start: ~51.4% (to match land sky) */
     background: linear-gradient(to bottom, 
         #c1e7f7 0%,    /* Light Sky Blue for sky */
-        #e0f2f7 35%,   /* Fading Sky Blue */
-        #00BFFF 35.1%, /* Deep Sky Blue for water base start */
+        #e0f2f7 51.3%, /* Fading Sky Blue */
+        #00BFFF 51.4%, /* Deep Sky Blue for water base start */
         #1E90FF 100%   /* Dodger Blue for deeper water */
     );
 }
@@ -130,7 +132,7 @@
     bottom: 0;
     left: 0;
     width: 100%; /* 100% of #fishing-water-area */
-    height: 60%; /* Water surface is 60% height of #fishing-water-area */
+    height: 45%; /* Original: 60%. Reduced by 25% (60 * 0.75 = 45) */
     overflow: hidden; 
     z-index: 1; 
 }

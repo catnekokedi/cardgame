@@ -117,6 +117,14 @@ function saveGame() {
     if (typeof fishingGameState !== 'undefined' && typeof miniGameData === 'object' && typeof getPersistentFishingState === 'function') {
         miniGameData.fishingGame = getPersistentFishingState(); // This now includes shopProgress
     }
+    // Add Anvil game data to miniGameData
+    if (typeof window.anvilgame !== 'undefined' && typeof window.anvilgame.getAnvilDataForSave === 'function') {
+        if (typeof miniGameData !== 'object' || miniGameData === null) { // Ensure miniGameData object exists
+            miniGameData = {};
+        }
+        miniGameData.anvilGame = window.anvilgame.getAnvilDataForSave();
+        console.log("[SAVEGAME] Anvil data collected for save:", miniGameData.anvilGame); // Added log
+    }
 
 
     const gameState = {
@@ -130,7 +138,7 @@ function saveGame() {
         currentScreen,
         currentMiniGame,
         currentActiveSetVersion, 
-        miniGameData, 
+        miniGameData, // This now includes anvilGame data if available
         unlockedSets,
         cheatsPasswordEntered, 
         isDebugModeActive,
@@ -140,12 +148,7 @@ function saveGame() {
         fixedCardProperties, 
         lastSelectedSummonRarityKey: typeof lastSelectedSummonRarityKey !== 'undefined' ? lastSelectedSummonRarityKey : null,
         lastTicketRewardTimes: typeof lastTicketRewardTimes !== 'undefined' ? lastTicketRewardTimes : {},
-        anvilState: {
-            staged: (typeof anvilgame !== 'undefined' && typeof anvilgame.stagedCards !== 'undefined') ? anvilgame.stagedCards : [],
-            filterRarity: typeof anvilUiFilterRarity !== 'undefined' ? anvilUiFilterRarity : 'all',
-            packReadyRarity: typeof anvilPackReadyRarityKey !== 'undefined' ? anvilPackReadyRarityKey : null,
-            isProcessing: typeof anvilIsProcessing !== 'undefined' ? anvilIsProcessing : false 
-        },
+        // Old anvilState removed, data is now in miniGameData.anvilGame
         offerState: {
             playerItems: typeof directOfferPlayerItems !== 'undefined' ? directOfferPlayerItems : [],
             opponentItems: typeof directOfferOpponentOfferItems !== 'undefined' ? directOfferOpponentOfferItems : [],
@@ -269,15 +272,16 @@ function loadGame() {
         normalizeProbabilities(liveRarityPackPullDistribution, 'packProb');
         normalizeProbabilities(gradeDistribution, 'prob');
 
-        if (typeof anvilgame !== 'undefined' && anvilgame.loadState && loadedGameState.anvilState) {
-            anvilgame.loadState(
-                loadedGameState.anvilState.staged, 
-                loadedGameState.anvilState.filterRarity, 
-                loadedGameState.anvilState.packReadyRarity, 
-                loadedGameState.anvilState.isProcessing
-            );
-        } else if (typeof anvilgame !== 'undefined' && anvilgame.resetState) {
-            anvilgame.resetState(false); 
+        // Load Anvil Game specific state
+        if (typeof window.anvilgame !== 'undefined' && typeof window.anvilgame.loadState === 'function') {
+            if (loadedGameState.miniGameData && loadedGameState.miniGameData.anvilGame) {
+                console.log("[LOAD] Loading Anvil data:", loadedGameState.miniGameData.anvilGame); // Added log
+                window.anvilgame.loadState(loadedGameState.miniGameData.anvilGame);
+            } else if (typeof window.anvilgame.resetState === 'function') {
+                // If no saved Anvil data, reset its state
+                console.log("[LOAD] No Anvil data found in save, resetting Anvil state."); // Added log
+                window.anvilgame.resetState(false);
+            }
         }
 
 

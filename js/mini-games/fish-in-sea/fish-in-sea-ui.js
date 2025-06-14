@@ -572,3 +572,6 @@ const fishingUi = {
         return document.createElementNS("http://www.w3.org/2000/svg", type);
     }
 };
+
+// Expose the fishingUi object globally
+window.fishingUi = fishingUi;

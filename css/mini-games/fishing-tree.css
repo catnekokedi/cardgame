@@ -3,9 +3,10 @@
 #fishing-tree-container {
     position: absolute;
     /* Centered in the left 40% "land" area, significantly higher */
-    left: calc(28% - 175px); /* Centering 350px tree in left 40% area - MOVED 8% RIGHT */
+    /* Original: calc(28% - 175px). Moved 15% further right (28+15=43). Then 30px more right (-175+30 = -145) */
+    left: calc(43% - 145px);
     width: 350px;
-    top: 8%;  /* Moved up significantly - MOVED 7% HIGHER */
+    top: calc(-17% + 30px); /* Original: 8%. Moved 25% up (8-25=-17). Then 30px down. */
     height: 70%; /* Adjusted height */
     max-height: 550px; /* Adjusted max-height */
     background-image: url('../../gui/fishing_game/tree_placeholder.png');
@@ -16,11 +17,12 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 5px; /* CHANGED to 5px */
-    padding: 10px 15px 20px 15px; /* CHANGED padding */
+    gap: 45px; /* Changed gap to 45px as requested */
+    padding: 10px 15px 20px 15px; /* Existing padding */
     box-sizing: border-box;
-    align-items: center;
-    justify-items: center;
+    align-items: center; /* Aligns items vertically within their cell */
+    justify-items: center; /* Aligns items horizontally within their cell */
+    align-content: center; /* Vertically centers the grid rows if container has extra space */
 }
 /* REMOVED #fishing-tree-container::before rule */
 
@@ -116,3 +118,17 @@
 .tree-card-slot[data-slot-index="1"] { position: absolute; top: 50px; right: 30px; }
 ... etc. for 8 slots
 */
+
+.maturation-percentage-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 10px; /* Adjusted for small slot size */
+    font-weight: bold;
+    text-align: center;
+    z-index: 1; /* Above the slot's background image */
+    pointer-events: none; /* So it doesn't interfere with click events on the slot */
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.7); /* Shadow for better readability */
+}

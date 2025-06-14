@@ -91,7 +91,8 @@ function showScreen(screenId, performSave = true) {
         !(currentMiniGame === SCREENS.IDLE_EXHIBITION && screenId === SCREENS.COLLECTION) // Idle Exhibition can go to Collection
         ) {
         
-        if (currentMiniGame === SCREENS.TRADE_UP_GAME && typeof anvilgame !== 'undefined' && anvilgame.clearAnvilStateOnLeave) anvilgame.clearAnvilStateOnLeave();
+        // TEMP: Disabled automatic clearAnvilStateOnLeave to test persistence
+        // if (currentMiniGame === SCREENS.TRADE_UP_GAME && typeof anvilgame !== 'undefined' && anvilgame.clearAnvilStateOnLeave) anvilgame.clearAnvilStateOnLeave();
         if (currentMiniGame === SCREENS.DIRECT_OFFER_GAME && typeof offergame !== 'undefined' && offergame.clearOfferStateOnLeave) offergame.clearOfferStateOnLeave();
         
         if (currentMiniGame !== SCREENS.IDLE_EXHIBITION && currentMiniGame !== SCREENS.FISHING_GAME) { // Keep Idle Ex and Fishing active if navigating to certain related screens

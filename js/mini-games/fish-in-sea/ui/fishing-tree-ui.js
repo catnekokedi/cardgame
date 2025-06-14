@@ -45,10 +45,13 @@ const fishingTreeUi = {
                 if (slot.state === "unmatured") {
                     slotDiv.style.backgroundImage = `url('gui/fishing_game/tree-back.png')`;
                     slotDiv.style.setProperty('--maturation-progress', `${Math.floor(slot.maturation || 0)}%`);
-                    // Simple text for progress, can be styled with CSS using the variable.
-                    // This text won't be visible if card is face down unless styled to overlay.
-                    // Consider adding a visible progress bar element if needed.
-                    // slotDiv.textContent = `${Math.floor(slot.maturation || 0)}%`;
+
+                    // Add text element for maturation percentage
+                    const percentageText = document.createElement('div');
+                    percentageText.classList.add('maturation-percentage-text');
+                    percentageText.textContent = `${Math.round(slot.maturation || 0)}%`;
+                    slotDiv.appendChild(percentageText);
+
                 } else if (slot.state === "revealed") {
                     // Ensure slot.card and slot.card.imagePath exist
                     if (slot.card && slot.card.imagePath) {
@@ -87,12 +90,22 @@ const fishingTreeUi = {
      * @param {number} moistureLevel - The current moisture level (0-100).
      */
     updateMoistureDisplay: function(moistureLevel) {
-        const moistureDisplayValue = document.getElementById('tree-moisture-display-value');
-        if (moistureDisplayValue) {
-            moistureDisplayValue.textContent = Math.round(moistureLevel);
+        const moistureBarElement = document.getElementById('fishing-tree-moisture-bar'); // Correct ID from fishing-ui.js HTML
+        if (moistureBarElement) {
+            const roundedMoisture = Math.round(moistureLevel);
+            moistureBarElement.textContent = `${roundedMoisture}%`;
+            moistureBarElement.style.width = `${roundedMoisture}%`; // Assuming this element is the bar itself
+
+            // If the bar has a specific color based on moisture, you can add it here:
+            if (roundedMoisture < 20) {
+                moistureBarElement.style.backgroundColor = 'red';
+            } else if (roundedMoisture < 50) {
+                moistureBarElement.style.backgroundColor = 'orange';
+            } else {
+                moistureBarElement.style.backgroundColor = 'green'; // Or your default bar color
+            }
         } else {
-            // This can happen if called before DOM is fully ready.
-            // console.warn("tree-moisture-display-value element not found at time of update.");
+            // console.warn("fishing-tree-moisture-bar element not found at time of update.");
         }
     },
 
@@ -101,17 +114,13 @@ const fishingTreeUi = {
      * Should be called after the main DOM is loaded and treeMechanics state is available.
      */
     initialize: function() {
-        // Attempt initial render. treeMechanics.initializeTree will also call these.
-        if (typeof getTreeSlotsData === 'function' && typeof treeMoisture !== 'undefined') {
-            this.renderTreeSlots(getTreeSlotsData());
-            this.updateMoistureDisplay(treeMoisture);
-        } else {
-            // Fallback if treeMechanics isn't ready, render default empty state
-            console.warn("fishingTreeUi.initialize: treeMechanics data not ready. Rendering default empty tree.");
-            this.renderTreeSlots(Array(8).fill(null));
-            this.updateMoistureDisplay(100); // Default moisture
-        }
-        console.log("Fishing Tree UI initialized or re-initialized.");
+        // The main purpose of this function was to do an initial render.
+        // However, initializeTree() from tree-mechanics.js already calls renderTreeSlots
+        // with the correct data context after tree data is ready.
+        // Also, loadTreeData() in tree-mechanics.js calls renderTreeSlots after loading saved data.
+        // To avoid redundant/conflicting renders and warnings, this function is now minimal.
+        // It can be used for one-time UI setup if needed in the future (e.g. attaching event listeners not tied to specific slots).
+        console.log("Fishing Tree UI component initialized. (Initial render is handled by tree-mechanics functions).");
     }
 };
 

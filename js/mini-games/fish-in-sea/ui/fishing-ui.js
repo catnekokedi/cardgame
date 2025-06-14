@@ -32,6 +32,7 @@ const fishingUi = {
                         </div>
                     </div>
                     <div id="fishing-water-area">
+                        <div id="fishing-sky-container"></div> <!-- Added for birds -->
                         <div id="fishing-cat-svg-container"></div>
                         <canvas id="fishing-rod-line-canvas"></canvas>
                         <div id="fishing-water-surface">
@@ -403,15 +404,15 @@ const fishingUi = {
         fishingGameState.ui.wateringCanIcon.className = 'fishing-ui-icon';
         fishingGameState.ui.wateringCanIcon.innerHTML = '🚰';
         fishingGameState.ui.wateringCanIcon.title = 'Watering Can';
-        fishingGameState.ui.wateringCanIcon.draggable = true; 
+        // fishingGameState.ui.wateringCanIcon.draggable = true; // Disabled drag for watering can
         uiPanelRight.appendChild(fishingGameState.ui.wateringCanIcon);
         
-        fishingGameState.ui.pickaxeIcon = document.createElement('div');
-        fishingGameState.ui.pickaxeIcon.id = 'fishing-tool-pickaxe';
-        fishingGameState.ui.pickaxeIcon.className = 'fishing-ui-icon';
-        fishingGameState.ui.pickaxeIcon.innerHTML = '⛏️';
-        fishingGameState.ui.pickaxeIcon.title = 'Pickaxe';
-        uiPanelRight.appendChild(fishingGameState.ui.pickaxeIcon);
+        // fishingGameState.ui.pickaxeIcon = document.createElement('div');
+        // fishingGameState.ui.pickaxeIcon.id = 'fishing-tool-pickaxe';
+        // fishingGameState.ui.pickaxeIcon.className = 'fishing-ui-icon';
+        // fishingGameState.ui.pickaxeIcon.innerHTML = '⛏️';
+        // fishingGameState.ui.pickaxeIcon.title = 'Pickaxe';
+        // uiPanelRight.appendChild(fishingGameState.ui.pickaxeIcon);
 
 
         fishingGameState.ui.sieveIcon = document.createElement('div');
@@ -521,7 +522,8 @@ const fishingUi = {
             });
         }
 
-        // Pickaxe Icon Click Listener
+        // Pickaxe Icon Click Listener (Commented out to remove pickaxe)
+        /*
         if (ui.pickaxeIcon) {
             ui.pickaxeIcon.addEventListener('click', () => {
                 fishingGameState.pickaxeSelected = !fishingGameState.pickaxeSelected;
@@ -544,6 +546,7 @@ const fishingUi = {
                  this.updateStatusText(); // Update status text to reflect tool selection or default state
             });
         }
+        */
 
         // Watering Can Modal Toggle (moved from fishing-watering-can-ui.js)
         if (ui.wateringCanIcon) {
@@ -577,8 +580,9 @@ const fishingUi = {
             closeModalButton.dataset.listenerAttached = 'true';
         }
 
-
-        if (fishingWateringCanUi && fishingWateringCanUi.addDragListenersToIcon) { // This should now only contain drag listeners
+        // Commented out to disable watering can drag-and-drop
+        /*
+        if (fishingWateringCanUi && fishingWateringCanUi.addDragListenersToIcon) {
             fishingWateringCanUi.addDragListenersToIcon(); 
         }
         
@@ -592,29 +596,33 @@ const fishingUi = {
             ui.treeDropArea.addEventListener('dragleave', (e) => this.handleDragLeave(e, 'tree_area'));
             ui.treeDropArea.addEventListener('drop', (e) => this.handleDrop(e, 'tree_area'));
         }
+        */
          if (fishingRocksUi && fishingRocksUi.addClickListenersToIcons) { 
             fishingRocksUi.addClickListenersToIcons();
         }
     },
     handleDragOver(event, targetAreaType) {
-        event.preventDefault(); 
-        if (event.dataTransfer.types.includes('text/plain') && event.dataTransfer.getData('text/plain') === 'watering_can') {
-            event.dataTransfer.dropEffect = 'move';
-            if (fishingGameState.wateringCan.isIconBeingDragged) {
-                 wateringCanMechanics.startOperationOnTarget(targetAreaType);
-            }
-            const targetEl = targetAreaType === 'water_area' ? fishingGameState.ui.waterDropArea : fishingGameState.ui.treeDropArea;
-            if(targetEl) targetEl.classList.add('drag-over-active');
-        }
+        // // Functionality removed as watering can drag-and-drop is disabled
+        // event.preventDefault();
+        // if (event.dataTransfer.types.includes('text/plain') && event.dataTransfer.getData('text/plain') === 'watering_can') {
+        //     event.dataTransfer.dropEffect = 'move';
+        //     if (fishingGameState.wateringCan.isIconBeingDragged) {
+        //          wateringCanMechanics.startOperationOnTarget(targetAreaType);
+        //     }
+        //     const targetEl = targetAreaType === 'water_area' ? fishingGameState.ui.waterDropArea : fishingGameState.ui.treeDropArea;
+        //     if(targetEl) targetEl.classList.add('drag-over-active');
+        // }
     },
     handleDragLeave(event, targetAreaType) {
-        const targetEl = targetAreaType === 'water_area' ? fishingGameState.ui.waterDropArea : fishingGameState.ui.treeDropArea;
-        if(targetEl) targetEl.classList.remove('drag-over-active');
+        // // Functionality removed as watering can drag-and-drop is disabled
+        // const targetEl = targetAreaType === 'water_area' ? fishingGameState.ui.waterDropArea : fishingGameState.ui.treeDropArea;
+        // if(targetEl) targetEl.classList.remove('drag-over-active');
     },
     handleDrop(event, targetAreaType) {
-        event.preventDefault();
-        const targetEl = targetAreaType === 'water_area' ? fishingGameState.ui.waterDropArea : fishingGameState.ui.treeDropArea;
-        if(targetEl) targetEl.classList.remove('drag-over-active');
+        // // Functionality removed as watering can drag-and-drop is disabled
+        // event.preventDefault();
+        // const targetEl = targetAreaType === 'water_area' ? fishingGameState.ui.waterDropArea : fishingGameState.ui.treeDropArea;
+        // if(targetEl) targetEl.classList.remove('drag-over-active');
     },
     
     setCatState(state) { 
@@ -851,3 +859,6 @@ const fishingUi = {
         };
     }
 };
+
+// Make globally available
+window.fishingUi = fishingUi;
