@@ -192,7 +192,7 @@ function _internal_assignGradeAndPrice(intrinsicRarityKey) {
 }
 
 function getFixedGradeAndPrice(setAbbrIdentifier, cardIdNum) {
-    console.log(`[RarityManager] getFixedGradeAndPrice called for Set: ${setAbbrIdentifier}, CardID: ${cardIdNum}`);
+    // console.log(`[RarityManager] getFixedGradeAndPrice called for Set: ${setAbbrIdentifier}, CardID: ${cardIdNum}`);
     let intrinsicRarityKey = 'base'; // Default
 
     if (typeof getCardIntrinsicRarity !== 'function') {
@@ -201,7 +201,7 @@ function getFixedGradeAndPrice(setAbbrIdentifier, cardIdNum) {
     }
 
     intrinsicRarityKey = getCardIntrinsicRarity(setAbbrIdentifier, cardIdNum);
-    console.log(`[RarityManager] Intrinsic Rarity for ${setAbbrIdentifier}#${cardIdNum}: ${intrinsicRarityKey}`);
+    // console.log(`[RarityManager] Intrinsic Rarity for ${setAbbrIdentifier}#${cardIdNum}: ${intrinsicRarityKey}`);
 
     // fixedCardProperties is now a script-level variable
     if (!fixedCardProperties[setAbbrIdentifier]) {
@@ -212,38 +212,39 @@ function getFixedGradeAndPrice(setAbbrIdentifier, cardIdNum) {
         // Name is NOT currently stored in fixedCardProperties. This function doesn't handle names.
         // The name should come from window.cardData[setAbbrIdentifier][cardIdNum].name
         // This log will show that props from cache lack a name.
-        console.log(`[RarityManager] Returning cached props for ${setAbbrIdentifier}#${cardIdNum}:`, fixedCardProperties[setAbbrIdentifier][cardIdNum]);
+        // console.log(`[RarityManager] Returning cached props for ${setAbbrIdentifier}#${cardIdNum}:`, fixedCardProperties[setAbbrIdentifier][cardIdNum]);
         return fixedCardProperties[setAbbrIdentifier][cardIdNum];
     } else {
         const { grade, price } = _internal_assignGradeAndPrice(intrinsicRarityKey);
 
-        // This function DOES NOT KNOW THE CARD'S NAME.
-        // The name must be sourced from window.cardData by the caller, or this function needs access to it.
+        // This function DOES NOT KNOW THE CARD'S SPECIFIC NAME.
+        // Card names are not sourced from js/data/card-definitions.js.
+        // They would ideally come from a populated window.cardData object, but that's not reliably populated with details.
         // For now, it only returns grade, price, and the actual rarityKey.
         const props = { grade, price, rarityKey: intrinsicRarityKey };
-        // Attempt to get name from cardData if available, otherwise it will be handled by caller.
-        // This is a bit of a hack here; ideally, cardData is consistently used or not.
+
+        // Attempt to get name from window.cardData if it happens to be populated for this specific card.
+        // This is unlikely for most cards given current system state.
         if (typeof cardData !== 'undefined' && cardData[setAbbrIdentifier] && cardData[setAbbrIdentifier][cardIdNum] && cardData[setAbbrIdentifier][cardIdNum].name) {
             props.name = cardData[setAbbrIdentifier][cardIdNum].name;
         } else {
-            // props.name will be undefined; caller (generateRandomCardForTree) will use fallback.
-            // console.warn(`[RarityManager] Name not found in cardData for ${setAbbrIdentifier}#${cardIdNum}`);
+            // props.name will be undefined. Callers like generateRandomCardForTree are responsible for providing a generic/fallback name.
+            // console.warn(`[RarityManager] Specific name not found in cardData for ${setAbbrIdentifier}#${cardIdNum}. Generic name will be used by caller.`);
         }
 
-
         fixedCardProperties[setAbbrIdentifier][cardIdNum] = { ...props }; // Cache whatever we have determined.
-        console.log(`[RarityManager] Calculated and cached props for ${setAbbrIdentifier}#${cardIdNum}. Name: ${props.name || 'N/A (to be set by caller)'}. Returning props:`, props);
+        // console.log(`[RarityManager] Calculated and cached props for ${setAbbrIdentifier}#${cardIdNum}. Name: ${props.name || 'N/A (expected, to be set by caller)'}. Returning props:`, props);
         return props;
     }
 }
 
 
 function getCardIntrinsicRarity(setAbbrIdentifier, cardIdNum) {
-    console.log(`[RarityManager] getCardIntrinsicRarity called for Set: ${setAbbrIdentifier}, CardID: ${cardIdNum}`);
-    console.log(`[RarityManager] typeof getSetMetadata: ${typeof getSetMetadata}`);
+    // console.log(`[RarityManager] getCardIntrinsicRarity called for Set: ${setAbbrIdentifier}, CardID: ${cardIdNum}`);
+    // console.log(`[RarityManager] typeof getSetMetadata: ${typeof getSetMetadata}`);
     // Use direct variable access, not window property, as these are top-level consts in their file
-    console.log(`[RarityManager] typeof RARITY_PACK_PULL_DISTRIBUTION: ${typeof RARITY_PACK_PULL_DISTRIBUTION}`);
-    console.log(`[RarityManager] typeof RARITY_SET_COMPOSITION_DISTRIBUTION: ${typeof RARITY_SET_COMPOSITION_DISTRIBUTION}`);
+    // console.log(`[RarityManager] typeof RARITY_PACK_PULL_DISTRIBUTION: ${typeof RARITY_PACK_PULL_DISTRIBUTION}`);
+    // console.log(`[RarityManager] typeof RARITY_SET_COMPOSITION_DISTRIBUTION: ${typeof RARITY_SET_COMPOSITION_DISTRIBUTION}`);
 
     if (typeof getSetMetadata !== 'function' || typeof RARITY_PACK_PULL_DISTRIBUTION === 'undefined' || typeof RARITY_SET_COMPOSITION_DISTRIBUTION === 'undefined') {
         console.error("[RarityManager] getCardIntrinsicRarity: Missing critical dependencies (getSetMetadata, RARITY_PACK_PULL_DISTRIBUTION, or RARITY_SET_COMPOSITION_DISTRIBUTION).");
@@ -251,10 +252,10 @@ function getCardIntrinsicRarity(setAbbrIdentifier, cardIdNum) {
     }
 
     const setMeta = getSetMetadata(setAbbrIdentifier);
-    console.log(`[RarityManager] Metadata for ${setAbbrIdentifier}:`, setMeta ? JSON.parse(JSON.stringify(setMeta)) : "null/undefined");
+    // console.log(`[RarityManager] Metadata for ${setAbbrIdentifier}:`, setMeta ? JSON.parse(JSON.stringify(setMeta)) : "null/undefined");
 
     if (!setMeta) {
-        console.error(`[RarityManager] No metadata found for set ${setAbbrIdentifier}! Returning default rarity.`);
+        // console.error(`[RarityManager] No metadata found for set ${setAbbrIdentifier}! Returning default rarity.`); // This can be spammy if setMeta is often not found for some reason.
         return (RARITY_PACK_PULL_DISTRIBUTION && RARITY_PACK_PULL_DISTRIBUTION[0]?.key) || 'base';
     }
 

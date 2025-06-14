@@ -186,7 +186,7 @@ const birdMechanics = {
                 const ticketsOfTargetRarity = Object.values(summonTicketDefinitions).filter(t => t.rarityKey === targetPullRarityKey);
                 if (ticketsOfTargetRarity.length > 0) {
                     const chosenTicketDef = ticketsOfTargetRarity[Math.floor(Math.random() * ticketsOfTargetRarity.length)];
-                    return {
+                    const reward = {
                         type: 'summon_ticket',
                         id: chosenTicketDef.id,
                         name: chosenTicketDef.name,
@@ -195,17 +195,21 @@ const birdMechanics = {
                         imagePath: getSummonTicketImagePath(targetPullRarityKey), // Use helper for path
                         source: 'bird'
                     };
+                    console.log(`[BirdGenFinal] Generated Ticket: ID=${reward.id}, Name="${reward.name}", Rarity=${reward.rarity}, Image=${reward.imagePath}`);
+                    return reward;
                 } else {
                     console.warn(`BirdMechanics: No summon tickets found for rarity '${targetPullRarityKey}'. Falling back.`);
                     // Fallback: try any ticket or a default one if main logic fails
                     const allTickets = Object.values(summonTicketDefinitions);
                     if (allTickets.length > 0) {
                         const fallbackTicket = allTickets[Math.floor(Math.random() * allTickets.length)];
-                         return {
+                        const reward = {
                             type: 'summon_ticket', id: fallbackTicket.id, name: fallbackTicket.name,
                             rarity: fallbackTicket.rarityKey, rarityKey: fallbackTicket.rarityKey,
                             imagePath: getSummonTicketImagePath(fallbackTicket.rarityKey), source: 'bird'
                         };
+                        console.log(`[BirdGenFinal] Generated Ticket: ID=${reward.id}, Name="${reward.name}", Rarity=${reward.rarity}, Image=${reward.imagePath}`);
+                        return reward;
                     }
                 }
             }
@@ -251,37 +255,40 @@ const birdMechanics = {
             });
 
             if (possibleCards.length > 0) {
-                const chosenCard = possibleCards[Math.floor(Math.random() * possibleCards.length)];
-                console.log(`[BirdMechanics] Generated card: Name=${chosenCard.name}, Type=${chosenCard.type}, Source=${chosenCard.source}, Rarity=${chosenCard.rarity}`);
-                return chosenCard;
+                const reward = possibleCards[Math.floor(Math.random() * possibleCards.length)]; // Assign to 'reward'
+                // console.log(`[BirdMechanics] Generated card: Name=${reward.name}, Type=${reward.type}, Source=${reward.source}, Rarity=${reward.rarity}`); // Old log
+                console.log(`[BirdGenFinal] Generated Card: ID=${reward.id}, Set=${reward.set}, Name="${reward.name}", Rarity=${reward.rarity}, Image=${reward.imagePath}`);
+                return reward;
             } else {
                 console.warn(`BirdMechanics: No cards found for target rarity '${targetPullRarityKey}'. Trying fallback to 'base'.`);
-                const fallbackPossibleCards = []; // Use a new array for fallback
-                activeSets.forEach(setDef => { // Fallback to 'base'
+                const fallbackPossibleCards = [];
+                activeSets.forEach(setDef => {
                     if (cardData[setDef.abbr]) {
                         for (const cardIdKey in cardData[setDef.abbr]) {
                             const cardIdNum = parseInt(cardIdKey);
                             if (getCardIntrinsicRarity(setDef.abbr, cardIdNum) === 'base') {
                                 const cardEntry = cardData[setDef.abbr][cardIdKey];
                                 const fixedProps = getFixedGradeAndPrice(setDef.abbr, cardIdNum);
-                                fallbackPossibleCards.push({ // Add to new array
+                                fallbackPossibleCards.push({
                                     set: setDef.abbr, id: cardIdNum, name: cardEntry.name || `${setDef.name} Card #${cardIdNum} (Bird)`,
                                     rarity: fixedProps.rarityKey, price: fixedProps.price, grade: fixedProps.grade,
-                                    imagePath: getCardImagePath(setDef.abbr, cardIdNum), type: 'bird_reward_card', source: 'bird' // Ensure type is correct here too
+                                    imagePath: getCardImagePath(setDef.abbr, cardIdNum), type: 'bird_reward_card', source: 'bird'
                                 });
                             }
                         }
                     }
                 });
-                if (fallbackPossibleCards.length > 0) { // Check new array
-                    const chosenFallbackCard = fallbackPossibleCards[Math.floor(Math.random() * fallbackPossibleCards.length)];
-                    console.log(`[BirdMechanics] Generated fallback card: Name=${chosenFallbackCard.name}, Type=${chosenFallbackCard.type}, Source=${chosenFallbackCard.source}, Rarity=${chosenFallbackCard.rarity}`);
-                    return chosenFallbackCard;
+                if (fallbackPossibleCards.length > 0) {
+                    const reward = fallbackPossibleCards[Math.floor(Math.random() * fallbackPossibleCards.length)]; // Assign to 'reward'
+                    // console.log(`[BirdMechanics] Generated fallback card: Name=${reward.name}, Type=${reward.type}, Source=${reward.source}, Rarity=${reward.rarity}`); // Old log
+                    console.log(`[BirdGenFinal] Generated Card: ID=${reward.id}, Set=${reward.set}, Name="${reward.name}", Rarity=${reward.rarity}, Image=${reward.imagePath}`);
+                    return reward;
                 }
             }
             console.error("BirdMechanics: Failed to generate any card, even fallback 'base' card.");
             return null;
         }
+        // Removed comments about where the log should go as they are now implemented above.
     },
 
     getRandomRarity: function() {
@@ -299,6 +306,20 @@ const birdMechanics = {
         }
         return null; // Should not be reached
     }
+    // The final reward object is constructed by the end of the main if/else (isTicket).
+    // The logging should occur just before the final 'return reward;' statement of the generateReward function.
+    // The previous diffs were trying to modify inside the card generation logic, which is not the final point.
+    // Let's assume the 'generateReward' function structure is like:
+    // generateReward: function(isTicket) {
+    //   let reward = null;
+    //   if (isTicket) { /* ... sets reward ... */ }
+    //   else { /* ... sets reward (by returning chosenCard/chosenFallbackCard which gets assigned to reward) ... */ }
+    //   // <<< THE LOG SHOULD GO HERE >>>
+    //   return reward;
+    // }
+    // The provided read_file output does not show the full generateReward function structure up to its final return.
+    // I will need to re-read and place the log correctly based on the full function structure.
+    // For now, I will assume the log is added at the very end of the function in the next step after reading again.
 };
 
 // Expose to global scope for other modules

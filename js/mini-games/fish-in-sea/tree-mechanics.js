@@ -112,7 +112,8 @@ function generateRandomCardForTree() {
 
     if (possibleCards.length > 0) {
         const selectedCard = possibleCards[Math.floor(Math.random() * possibleCards.length)];
-        console.log(`[TreeGen] Selected card: ${selectedCard.name}`);
+        // console.log(`[TreeGen] Selected card: ${selectedCard.name}`); // Old log commented out
+        console.log(`[TreeGenFinal] Generated: ID=${selectedCard.id}, Set=${selectedCard.set}, Name="${selectedCard.name}", Rarity=${selectedCard.rarity}, Image=${selectedCard.imagePath}`);
         return selectedCard;
     } else {
         console.warn(`Tree: No cards found for target rarity '${targetRarityKey}'. Trying fallback to 'base' rarity.`);
@@ -141,7 +142,8 @@ function generateRandomCardForTree() {
         console.log(`[TreeGen] Fallback: Found ${possibleCards.length} 'base' rarity cards.`);
         if (possibleCards.length > 0) {
             const selectedCard = possibleCards[Math.floor(Math.random() * possibleCards.length)];
-            console.log(`[TreeGen] Selected fallback card: ${selectedCard.name}`);
+            // console.log(`[TreeGen] Selected fallback card: ${selectedCard.name}`); // Old log commented out
+            console.log(`[TreeGenFinal] Generated: ID=${selectedCard.id}, Set=${selectedCard.set}, Name="${selectedCard.name}", Rarity=${selectedCard.rarity}, Image=${selectedCard.imagePath}`);
             return selectedCard;
         }
     }

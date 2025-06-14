@@ -279,15 +279,33 @@ window.fishingBasket = { // Ensure it's explicitly on window
      */
     loadBasketData: function(data) {
         if (data && Array.isArray(data)) {
-            this.basketContents = data;
-            console.log("Fishing basket data loaded:", this.basketContents);
+            this.basketContents = data.map(item => {
+                if (item && item.cardData && !item.cardData.type) {
+                    // Attempt to migrate type from source if type is missing
+                    const source = item.cardData.source;
+                    let inferredType = 'unknown_item'; // Default if cannot infer
+                    if (source === 'fishing') inferredType = 'fish_card';
+                    else if (source === 'tree') inferredType = 'fruit_card';
+                    else if (source === 'mining') inferredType = 'mineral_card';
+                    else if (source === 'bird') inferredType = 'bird_reward_card';
+
+                    if (inferredType !== 'unknown_item') {
+                        item.cardData.type = inferredType;
+                        console.log(`[FishingBasketLoad] Migrated item ${item.cardData.name || item.cardData.id} to type: ${inferredType} based on source: ${source}`);
+                    } else {
+                        console.warn(`[FishingBasketLoad] Item ${item.cardData.name || item.cardData.id} is missing 'type' and source ('${source}') is not specific enough to infer.`);
+                    }
+                }
+                return item;
+            });
+            console.log("Fishing basket data loaded and potentially migrated:", this.basketContents);
         } else {
             this.basketContents = [];
             console.log("No fishing basket data found or data invalid, starting with empty basket.");
         }
         // Initial UI render after load
         if (typeof fishingBasketUi !== 'undefined' && typeof fishingBasketUi.renderBasket === 'function') {
-            fishingBasketUi.renderBasket(this.getBasketContentsForDisplay());
+            fishingBasketUi.renderBasket(this.getBasketContentsForDisplay(fishingBasketUi.currentFilters || {})); // Pass current filters
         }
         if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateBasketCount === 'function') {
             fishingUi.updateBasketCount(this.getTotalItemCount());

@@ -90,55 +90,72 @@ function spawnNewRock(slotIndex, initialDelay = 0) {
  * @param {number} rockSlotIndex The index of the rock slot.
  */
 function hitRock(rockSlotIndex) {
-    // Removed pickaxe selection dependency for direct rock interaction
-    /*
-    if (!fishingGameState.pickaxeSelected) {
-        if(typeof showCustomAlert === 'function') { // Changed to showCustomAlert
-            showCustomAlert("Select the pickaxe tool first!", null, 1500);
-        }
-        return;
-    }
-    */
     const rock = rockSlots[rockSlotIndex];
 
-    // Prevent hitting already broken or respawning rocks or invalid slot
-    if (!rock || rock.isRespawning || rock.hp <= 0) {
-        // console.log("Rock already broken/respawning or invalid slot."); // Optional log
+    // Prevent hitting already broken or respawning rocks or invalid slots
+    if (!rock || rock.isRespawning || (rock.hp !== undefined && rock.hp <= 0)) {
+        // console.log(`[RockHP] Attempted to hit rock in slot ${rockSlotIndex}, but it's already broken, respawning, or invalid.`);
         return;
     }
 
-    // Cooldown check (existing logic)
+    // Cooldown check (existing logic should be fine)
     const now = Date.now();
     if (now - (rockLastHitTime[rockSlotIndex] || 0) < ROCK_HIT_COOLDOWN) {
+        // console.log(`[RockHP] Rock hit on cooldown for slot ${rockSlotIndex}.`);
         return;
     }
     rockLastHitTime[rockSlotIndex] = now;
 
-    rock.hp -= 1; // Player deals 1 damage
+    // Decrement HP
+    if (rock.hp === undefined) { // Should not happen if initialized correctly
+        console.error(`[RockHP] Rock in slot ${rockSlotIndex} has undefined HP! MaxHP: ${rock.maxHp}. Setting HP to maxHp.`);
+        rock.hp = rock.maxHp; // Initialize if undefined
+    }
+    rock.hp -= 1;
+    // console.log(`[RockHP] Rock slot ${rockSlotIndex} hit. HP before clamp: ${rock.hp}`);
 
-    // Clamp HP at 0 if it went below (ensures clean state before break check)
+
+    // Clamp HP at 0 if it went below
     if (rock.hp < 0) {
+        console.warn(`[RockHP] Rock HP for slot ${rockSlotIndex} went below 0 (${rock.hp}), clamping to 0.`);
         rock.hp = 0;
     }
 
-    // console.log(`Rock slot ${rockSlotIndex} hit. New HP: ${rock.hp}/${rock.maxHp}`); // Optional: for debugging
-
     if (typeof playSound === 'function') playSound('sfx_rock_hit.mp3');
 
-    if (rock.hp === 0) { // Changed from <= 0 to === 0 due to clamping above
-        console.log(`Rock in slot ${rockSlotIndex} destroyed! HP reached 0.`);
-        grantRockRewards(rock.definition); // Pass the original definition
+    if (rock.hp === 0) {
+        console.log(`[RockHP] Rock in slot ${rockSlotIndex} destroyed! HP reached 0.`);
+        // Ensure rock.definition is valid before passing to grantRockRewards
+        if (!rock.definition) {
+            console.error(`[RockHP] Rock in slot ${rockSlotIndex} has no definition! Cannot grant rewards. Rarity: ${rock.rarity}`);
+            // Attempt to reconstruct definition if possible, or use a default
+            if (rock.rarity && rockDefinitions[rock.rarity]) {
+                rock.definition = rockDefinitions[rock.rarity];
+            } else {
+                // Fallback to a default definition or skip rewards
+                console.error(`[RockHP] Cannot reconstruct definition for rock rarity ${rock.rarity}. Rewards may be incorrect or skipped.`);
+                // Potentially use a default common rock definition for rewards or handle appropriately
+            }
+        }
+        if (rock.definition) { // Grant rewards only if definition is available
+            grantRockRewards(rock.definition);
+        }
 
+
+        // Set to respawning state
         rockSlots[rockSlotIndex] = {
             isRespawning: true,
-            respawnTimer: BASE_ROCK_RESPAWN_TIME + (Math.random() * 5000 - 2500),
-            // No need for hp, definition, etc. for a respawning placeholder
+            respawnTimer: BASE_ROCK_RESPAWN_TIME + (Math.random() * 5000 - 2500)
         };
-        console.log(`Rock in slot ${rockSlotIndex} will respawn in about ${Math.round(rockSlots[rockSlotIndex].respawnTimer/1000)}s.`);
+        // console.log(`[RockHP] Rock in slot ${rockSlotIndex} will respawn in about ${Math.round(rockSlots[rockSlotIndex].respawnTimer/1000)}s.`);
         if (typeof playSound === 'function') playSound('sfx_rock_destroy.mp3');
     } else {
         // Update cracks only if not destroyed
-        rock.cracks = Math.min(3, Math.floor(((rock.maxHp - rock.hp) / rock.maxHp) * 4));
+        if (rock.maxHp > 0) { // Avoid division by zero if maxHp is somehow not set
+           rock.cracks = Math.min(3, Math.floor(((rock.maxHp - rock.hp) / rock.maxHp) * 4));
+        } else {
+           rock.cracks = 0;
+        }
     }
 
     if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.renderRocks === 'function') {
