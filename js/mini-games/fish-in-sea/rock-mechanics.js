@@ -246,12 +246,11 @@ function grantRockRewards(rockDef) {
         if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
             window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
 
-            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
-                const previewItem = {
-                    type: cardDataForBasket.type,
-                    details: cardDataForBasket
-                };
-                window.fishingUi.showCatchPreview(previewItem);
+            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
+                // Ensure cardDataForBasket has: imagePath, name, set, id (or cardId), rarityKey
+                // cardDataForBasket already prepared with these fields.
+                if (typeof playSound === 'function') playSound('sfx_reward_notification.mp3');
+                window.fishingUi.showCaughtItemDisplay(cardDataForBasket);
             }
         } else {
             console.warn("fishingBasket.addCardToBasket function not found. Item from rock not added to basket.");
@@ -278,8 +277,11 @@ function grantRockRewards(rockDef) {
             };
             // console.log(`[RockMechanics] Granted Summon Ticket: ${ticketDisplayName}, Type=${ticketDisplayData.type}, Source=${ticketDisplayData.source}`); // Aggressively removed
 
-            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
-                 window.fishingUi.showCatchPreview(ticketDisplayData);
+            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
+                 // Ensure ticketDisplayData has: imagePath, name, rarityKey (or type: 'ticket')
+                 // ticketDisplayData is prepared with imagePath, name, and type: 'ticket'.
+                 if (typeof playSound === 'function') playSound('sfx_reward_notification.mp3');
+                 window.fishingUi.showCaughtItemDisplay(ticketDisplayData);
             }
         } else {
             console.warn("summonTicketRarities array not defined/empty, or addSummonTickets function missing. Cannot grant random ticket from rock.");
