@@ -57,10 +57,8 @@ window.fishingBasket = { // Ensure it's explicitly on window
         if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateBasketCount === 'function') {
             fishingUi.updateBasketCount(this.getTotalItemCount());
         }
-        // Show the collected item display
-        if (typeof showTemporaryCollectedItem === 'function') {
-            showTemporaryCollectedItem(cardData);
-        }
+        // REMOVED: Direct call to showTemporaryCollectedItem from addCardToBasket.
+        // Display should be handled by the mechanic that awarded the item, using fishingUi.showCatchPreview.
     },
 
     /**

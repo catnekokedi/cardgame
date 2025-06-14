@@ -1,6 +1,7 @@
 // js/ui/components/global-item-display.js
 
 function showTemporaryCollectedItem(cardData) {
+    console.log(`%c[DisplayEvent] GLOBAL showTemporaryCollectedItem CALLED for item:`, 'color: red; font-weight: bold;', cardData ? cardData.name : cardData, cardData);
     if (!cardData) return;
 
     const existingDisplay = document.getElementById('temp-collected-item-display');

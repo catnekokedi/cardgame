@@ -346,20 +346,8 @@ window.fishingMechanics = {
                             window.fishingUi.showCatchPreview({ type: 'ticket', details: ticketPreviewDetails });
                             console.log(`[FishMechanics] Ticket from fishing for display: Name=${ticketPreviewDetails.name}, Type=ticket, Source=${ticketPreviewDetails.source}`);
                         }
-                    } else if (typeof showTemporaryCollectedItem === 'function') {
-                        // Fallback if showCatchPreview is not available
-                        if (caughtItem.type === 'card') { // Note: caughtItem.type is 'card', cardDataForBasket.type is 'fish_card'
-                            showTemporaryCollectedItem(cardDataForBasket);
-                        } else if (caughtItem.type === 'ticket') {
-                            showTemporaryCollectedItem({
-                                name: caughtItem.details.name,
-                                imagePath: (typeof getSummonTicketImagePath === 'function' ? getSummonTicketImagePath(caughtItem.details.rarityKey) : ''),
-                                type: 'ticket',
-                                rarityKey: caughtItem.details.rarityKey,
-                                source: 'fishing'
-                            });
-                        }
                     }
+                    // Fallback to showTemporaryCollectedItem removed.
                 } else { // Not a card or ticket, but determineCatch should always return one of these
                     console.warn("[FishMechanics] determineCatch returned an unknown item type:", caughtItem);
                 }

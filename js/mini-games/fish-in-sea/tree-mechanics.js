@@ -320,9 +320,11 @@ function collectCardFromTree(slotIndex) {
                     }
                 };
                 window.fishingUi.showCatchPreview(previewItem);
-            } else if (typeof showTemporaryCollectedItem === 'function') {
-                showTemporaryCollectedItem(cardDataForBasket);
             }
+            // Fallback to showTemporaryCollectedItem removed to ensure single display path.
+            // If showCatchPreview is not available, nothing will be shown by this function,
+            // relying on the global display from addCardToBasket (which was also removed).
+            // This means showCatchPreview becomes essential for any visual feedback from collection.
         } else {
             console.warn("fishingBasket.addCardToBasket function not found. Card not added to basket.");
         }
@@ -383,12 +385,22 @@ function loadTreeData(data) {
         return;
     }
 
-    treeSlots = data.treeSlots ? data.treeSlots.map(slotData => {
+    treeSlots = data.treeSlots ? data.treeSlots.map((slotData, index) => { // Added index for logging
         if (slotData && (slotData.state === "growing" || slotData.state === "unmatured")) {
             return {
                 state: "growing",
                 maturation: slotData.maturation || 0,
                 card: null
+            };
+        }
+        // Ensure revealed slots from save have valid card data, assign fallback if not
+        if (slotData && slotData.state === "revealed" && !slotData.card) {
+            console.warn(`[TreeLoad] Revealed slot ${index} from save data is missing card details. Assigning error fallback.`);
+            slotData.card = {
+                type: "error_card_save_load", name: "Corrupted Fruit",
+                imagePath: "gui/fishing_game/tree-back.png",
+                rarity: "unknown", price: 0, set: "fish_in_sea_error", id: "error_save_load",
+                source: "tree" // Add source for consistency
             };
         }
         return slotData ? { ...slotData } : null;

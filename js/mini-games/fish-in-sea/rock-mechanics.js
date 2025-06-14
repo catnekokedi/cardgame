@@ -244,10 +244,8 @@ function grantRockRewards(rockDef) {
                     details: cardDataForBasket // Pass the whole cardDataForBasket as details
                 };
                 window.fishingUi.showCatchPreview(previewItem);
-            } else if (typeof showTemporaryCollectedItem === 'function') {
-                // Fallback if showCatchPreview is not available
-                showTemporaryCollectedItem(cardDataForBasket);
             }
+            // Fallback to showTemporaryCollectedItem removed.
 
         } else {
             console.warn("fishingBasket.addCardToBasket function not found. Item from rock not added to basket.");
@@ -279,11 +277,9 @@ function grantRockRewards(rockDef) {
 
             if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
                  window.fishingUi.showCatchPreview(ticketDisplayData); // ticketDisplayData now includes source in details
-            } else if (typeof showTemporaryCollectedItem === 'function') {
-                showTemporaryCollectedItem({ name: ticketDisplayData.name, imagePath: ticketDisplayData.imagePath, type: ticketDisplayData.type, source: ticketDisplayData.source });
-            } else if(typeof showCustomModal === 'function') {
-                 showCustomModal(`Found a ${ticketDisplayName}! (from Mining)`, "success");
             }
+            // Fallbacks to showTemporaryCollectedItem and showCustomModal removed for tickets from this point.
+            // addSummonTickets handles its own user feedback if showCatchPreview is not available.
         } else {
             console.warn("summonTicketRarities array not defined/empty, or addSummonTickets function missing. Cannot grant random ticket from rock.");
         }

@@ -586,6 +586,7 @@ const fishingUi = {
         }
     },
     showCatchPreview(item) { 
+        console.log(`%c[DisplayEvent] fishingUi.showCatchPreview CALLED for item:`, 'color: purple; font-weight: bold;', item && item.details ? item.details.name : item, item);
         const previewEl = fishingGameState.ui.catchPreview;
         const imgEl = fishingGameState.ui.catchPreviewImg;
         const nameEl = fishingGameState.ui.catchPreviewName;
