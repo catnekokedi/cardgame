@@ -158,8 +158,6 @@ const fishingMechanicsInstance = { // Changed to const instance
     // It was just an extra comma.
 
     checkForBite(deltaTime) { // deltaTime in seconds
-
-    checkForBite(deltaTime) { // deltaTime in seconds
         // Minimal entry log (if desired, ensure it's not flooding)
         // console.log(`[Mechanics] checkForBite - RodCast: ${fishingGameState.isRodCast}, Reeling: ${fishingGameState.isReeling}, Hooked: ${fishingGameState.hasHookedFish}`);
 
