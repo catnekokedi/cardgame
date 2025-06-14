@@ -65,11 +65,47 @@ function getSetMetadata(setAbbrIdentifier) {
     };
 }
 
-function getCardImagePath(setAbbrIdentifier, cardId) {
+function getCardImagePath(setAbbrIdentifier, cardId, imageType = 'standard', cardDefinition = null) {
+    // Robust checks for parameters
+    if (typeof setAbbrIdentifier !== 'string' || !setAbbrIdentifier ||
+        (typeof cardId !== 'number' && typeof cardId !== 'string') || // Allow string cardId for things like 'error_card' initially
+        (typeof cardId === 'number' && (isNaN(cardId) || cardId < 1)) ||
+        (typeof cardId === 'string' && isNaN(parseInt(cardId))) // Allow string that can be parsed to int
+       ) {
+        // console.warn(`[getCardImagePath] Invalid parameters: setAbbr=${setAbbrIdentifier}, cardId=${cardId}. Returning default placeholder.`);
+        return 'gui/fishing_game/tree-back.png'; // Default placeholder
+    }
+
+    // Specific check for known error/placeholder card IDs that are strings
+    if (typeof cardId === 'string' && cardId.includes('error')) {
+         return 'gui/fishing_game/tree-back.png';
+    }
+
+    // Convert cardId to number for further processing if it was a string numeral
+    const numericCardId = typeof cardId === 'string' ? parseInt(cardId) : cardId;
+    if (typeof numericCardId !== 'number' || isNaN(numericCardId) || numericCardId < 1) {
+        // console.warn(`[getCardImagePath] cardId ${cardId} resulted in invalid numericId. Returning default placeholder.`);
+        return 'gui/fishing_game/tree-back.png';
+    }
+
     const meta = getSetMetadata(setAbbrIdentifier);
-    if (!meta || meta.name.startsWith("Unknown Set")) return `https://placehold.co/130x182/CF6679/FFFFFF?text=No+Set+Meta`;
-    // Use the specific cardImageFolder from the metadata
-    return `${meta.cardImageFolder}/${meta.folderName}/${String(cardId).padStart(3, '0')}.jpg`;
+    if (!meta || meta.name.startsWith("Unknown Set") || !meta.folderName || !meta.cardImageFolder) {
+        // console.warn(`[getCardImagePath] No valid metadata, folderName, or cardImageFolder for set ${setAbbrIdentifier}. Returning default placeholder.`);
+        return 'gui/fishing_game/tree-back.png';
+    }
+
+    let extension = '.jpg'; // Default extension
+    if (meta.version === 'v2') {
+        extension = '.png';
+    }
+    // Allow specific sets to override if needed (example from previous versions)
+    if (setAbbrIdentifier === "PRE" || (cardDefinition && cardDefinition.extension === '.png')) {
+        extension = '.png';
+    }
+
+    // Path construction using metadata
+    // Ensure cardId is padded correctly if it's numeric.
+    return `${meta.cardImageFolder}/${meta.folderName}/${String(numericCardId).padStart(3, '0')}${extension}`;
 }
 
 function initializeSetMappings() {

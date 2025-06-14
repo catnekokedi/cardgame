@@ -41,80 +41,113 @@ function getRandomRarityFromWeights(weights) {
 }
 
 /**
- * Generates a random card for the tree based on defined rarities.
+ * Generates a random card for the tree based on defined rarities using utility functions.
  */
 function generateRandomCardForTree() {
+    // Keep existing typeof logs for dependencies for now for diagnostics // REMOVE THESE // Already commented
+    // console.log('[TreeGen] typeof getActiveSetDefinitions:', typeof getActiveSetDefinitions); // REMOVED DEBUG
+    // console.log('[TreeGen] typeof window.cardData:', typeof window.cardData, 'Keys:', Object.keys(window.cardData || {}).length); // REMOVED DEBUG
+    // console.log('[TreeGen] typeof getFixedGradeAndPrice:', typeof getFixedGradeAndPrice); // REMOVED DEBUG
+    // console.log('[TreeGen] typeof getCardImagePath:', typeof getCardImagePath); // REMOVED DEBUG
+    // console.log('[TreeGen] typeof getCardIntrinsicRarity:', typeof getCardIntrinsicRarity); // REMOVED DEBUG
+    // console.log('[TreeGen] typeof window.ALL_SET_DEFINITIONS:', typeof window.ALL_SET_DEFINITIONS); // REMOVED DEBUG
+
+    if (typeof getActiveSetDefinitions !== 'function' ||
+        typeof getFixedGradeAndPrice !== 'function' ||
+        typeof getCardImagePath !== 'function' ||
+        typeof getCardIntrinsicRarity !== 'function' ||
+        typeof window.ALL_SET_DEFINITIONS === 'undefined') { // ALL_SET_DEFINITIONS is used by getActiveSetDefinitions
+        console.error("Tree: Missing critical global functions or ALL_SET_DEFINITIONS for card generation.");
+        return null; // Cannot proceed
+    }
+
     const targetRarityKey = getRandomRarityFromWeights(treeRarityWeights);
     if (!targetRarityKey) {
         console.error("Tree: Could not determine target rarity from weights.");
         return null;
     }
+    // console.log(`[TreeGen] Target Rarity Key: ${targetRarityKey}`); // DEBUG
 
-    if (typeof getActiveSetDefinitions !== 'function' ||
-        typeof cardData === 'undefined' ||
-        typeof getFixedGradeAndPrice !== 'function' ||
-        typeof getCardImagePath !== 'function' ||
-        typeof getCardIntrinsicRarity !== 'function') {
-        console.error("Tree: Missing critical global functions or data for card generation (getActiveSetDefinitions, cardData, getFixedGradeAndPrice, getCardImagePath, getCardIntrinsicRarity).");
-        return null;
-    }
-
-    const activeSets = getActiveSetDefinitions();
+    const activeSets = getActiveSetDefinitions(); // This should give { abbr: 'SET_CODE', name: 'Set Name', count: X, folderName: '...' }
     if (!activeSets || activeSets.length === 0) {
         console.error("Tree: No active sets available for card generation.");
         return null;
     }
 
-    const possibleCards = [];
+    let possibleCards = [];
     activeSets.forEach(setDef => {
-        if (cardData[setDef.abbr]) {
-            for (const cardIdKey in cardData[setDef.abbr]) {
-                const cardIdNum = parseInt(cardIdKey);
-                if (getCardIntrinsicRarity(setDef.abbr, cardIdNum) === targetRarityKey) {
-                    const cardEntry = cardData[setDef.abbr][cardIdKey]; // Get base card name if available
-                    const fixedProps = getFixedGradeAndPrice(setDef.abbr, cardIdNum);
-                    possibleCards.push({
-                        set: setDef.abbr,
-                        id: cardIdNum,
-                        name: cardEntry.name || `${setDef.name} Card #${cardIdNum}`,
-                        rarity: fixedProps.rarityKey, // This will be the actual rarity after fixedProps
-                        price: fixedProps.price,
-                        grade: fixedProps.grade,
-                        imagePath: getCardImagePath(setDef.abbr, cardIdNum),
-                        type: 'collectible_card'
-                    });
+        if (!setDef || typeof setDef.abbr === 'undefined' || typeof setDef.count !== 'number') {
+            // console.warn(`[TreeGen] Skipping set due to missing abbr or count:`, setDef); // INFO
+            return; // Skip this set definition if it's malformed
+        }
+
+        for (let i = 1; i <= setDef.count; i++) { // Iterate from card ID 1 to setDef.count
+            const cardIdNum = i;
+            try {
+                const intrinsicRarity = getCardIntrinsicRarity(setDef.abbr, cardIdNum);
+                if (intrinsicRarity === targetRarityKey) {
+                    const fixedProps = getFixedGradeAndPrice(setDef.abbr, cardIdNum); // Gets name, price, grade, actual rarityKey
+                    if (fixedProps) {
+                        possibleCards.push({
+                            set: setDef.abbr,
+                            id: cardIdNum,
+                            name: fixedProps.name || `${setDef.name} Card #${cardIdNum}`, // Use name from fixedProps
+                            rarity: fixedProps.rarityKey, // Use actual rarityKey from fixedProps
+                            price: fixedProps.price,
+                            grade: fixedProps.grade,
+                            imagePath: getCardImagePath(setDef.abbr, cardIdNum, fixedProps.imageType || 'standard', fixedProps), // Pass fixedProps if getCardImagePath can use it for imageType
+                            type: 'fruit_card',
+                            source: 'tree'
+                        });
+                    } else {
+                        // console.warn(`[TreeGen] getFixedGradeAndPrice returned null for ${setDef.abbr} - ${cardIdNum}`);
+                    }
                 }
+            } catch (e) {
+                // console.error(`[TreeGen] Error processing ${setDef.abbr} - ${cardIdNum}:`, e);
             }
         }
     });
+    // console.log(`[TreeGen] Found ${possibleCards.length} cards for target rarity '${targetRarityKey}'.`); // DEBUG
 
     if (possibleCards.length > 0) {
-        return possibleCards[Math.floor(Math.random() * possibleCards.length)];
+        const selectedCard = possibleCards[Math.floor(Math.random() * possibleCards.length)];
+        // console.log(`[TreeGenFinal] Generated: ID=${selectedCard.id}, Set=${selectedCard.set}, Name="${selectedCard.name}", Rarity=${selectedCard.rarity}, Image=${selectedCard.imagePath}`); // REMOVE - Aggressive cleanup
+        return selectedCard;
     } else {
-        console.warn(`Tree: No cards found for target rarity '${targetRarityKey}'. Trying a fallback to 'base' rarity.`);
-        // Fallback: try to get any 'base' card if specific rarity fails
+        // console.warn(`Tree: No cards found for target rarity '${targetRarityKey}'. Trying fallback to 'base' rarity.`); // REMOVED INFO
+        // Fallback to 'base' rarity (similar loop but targetRarityKey is 'base')
+        // Re-initialize possibleCards for fallback search
+        possibleCards = [];
         activeSets.forEach(setDef => {
-            if (cardData[setDef.abbr]) {
-                for (const cardIdKey in cardData[setDef.abbr]) {
-                    const cardIdNum = parseInt(cardIdKey);
+            if (!setDef || typeof setDef.abbr === 'undefined' || typeof setDef.count !== 'number') return;
+            for (let i = 1; i <= setDef.count; i++) {
+                const cardIdNum = i;
+                try {
                     if (getCardIntrinsicRarity(setDef.abbr, cardIdNum) === 'base') {
-                         const cardEntry = cardData[setDef.abbr][cardIdKey];
-                         const fixedProps = getFixedGradeAndPrice(setDef.abbr, cardIdNum);
-                         possibleCards.push({
-                            set: setDef.abbr, id: cardIdNum, name: cardEntry.name || `${setDef.name} Card #${cardIdNum}`,
-                            rarity: fixedProps.rarityKey, price: fixedProps.price, grade: fixedProps.grade,
-                            imagePath: getCardImagePath(setDef.abbr, cardIdNum), type: 'collectible_card'
-                        });
+                        const fixedProps = getFixedGradeAndPrice(setDef.abbr, cardIdNum);
+                        if (fixedProps) {
+                            possibleCards.push({
+                                set: setDef.abbr, id: cardIdNum, name: fixedProps.name || `${setDef.name} Card #${cardIdNum}`,
+                                rarity: fixedProps.rarityKey, price: fixedProps.price, grade: fixedProps.grade,
+                                imagePath: getCardImagePath(setDef.abbr, cardIdNum, fixedProps.imageType || 'standard', fixedProps),
+                                type: 'fruit_card', source: 'tree'
+                            });
+                        }
                     }
-                }
+                } catch (e) { /* ignore */ }
             }
         });
+        // console.log(`[TreeGen] Fallback: Found ${possibleCards.length} 'base' rarity cards.`); // REMOVED DEBUG
         if (possibleCards.length > 0) {
-            return possibleCards[Math.floor(Math.random() * possibleCards.length)];
+            const selectedCard = possibleCards[Math.floor(Math.random() * possibleCards.length)];
+            // console.log(`[TreeGenFinal] Generated: ID=${selectedCard.id}, Set=${selectedCard.set}, Name="${selectedCard.name}", Rarity=${selectedCard.rarity}, Image=${selectedCard.imagePath}`); // REMOVE - Aggressive cleanup
+            return selectedCard;
         }
     }
+
     console.error("Tree: Failed to generate any card, even fallback 'base' card.");
-    return null;
+    return null; // Fallback if absolutely no card can be generated
 }
 
 
@@ -131,7 +164,7 @@ function initializeTree() {
     if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.updateMoistureDisplay === 'function') {
         fishingTreeUi.updateMoistureDisplay(treeMoisture);
     }
-    console.log("Tree initialized");
+    // console.log("Tree initialized"); // REMOVE - Aggressive cleanup
 }
 
 function setConstantMoistureSupply(isActive) {
@@ -141,19 +174,15 @@ function setConstantMoistureSupply(isActive) {
         if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.updateMoistureDisplay === 'function') {
             fishingTreeUi.updateMoistureDisplay(treeMoisture);
         }
-        console.log("Constant moisture supply ACTIVE. Tree moisture set to max.");
+        // console.log("Constant moisture supply ACTIVE. Tree moisture set to max."); // REMOVE - Aggressive cleanup
     } else {
-        console.log("Constant moisture supply DEACTIVATED.");
+        // console.log("Constant moisture supply DEACTIVATED."); // REMOVE - Aggressive cleanup
     }
 }
 
 function updateTreeFruitGrowth(deltaTime) {
     if (constantMoistureActive) {
         treeMoisture = MAX_MOISTURE;
-        // Potentially call UI update if moisture is visually represented and can change even when constant.
-        // if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.updateMoistureDisplay === 'function') {
-        //     fishingTreeUi.updateMoistureDisplay(treeMoisture);
-        // }
     }
 
     let slotsChanged = false;
@@ -162,17 +191,16 @@ function updateTreeFruitGrowth(deltaTime) {
             slotTimers[i] += deltaTime;
             if (slotTimers[i] >= SPAWN_TIME) {
                 treeSlots[i] = {
-                    state: "growing", // New state
+                    state: "growing",
                     maturation: 0
-                    // No 'card' object here yet
                 };
                 maturationProgress[i] = 0;
                 slotTimers[i] = 0;
                 slotsChanged = true;
-                console.log(`Slot ${i}: New unknown fruit/card started growing.`);
+                // console.log(`Slot ${i}: New unknown fruit/card started growing.`); // INFO
             }
-        } else if (treeSlots[i].state === "growing" || treeSlots[i].state === "unmatured") { // Handle old "unmatured" as "growing"
-            const moistureFactor = treeMoisture > 0 ? treeMoisture / MAX_MOISTURE : 0.1; // Min factor if no moisture
+        } else if (treeSlots[i].state === "growing" || treeSlots[i].state === "unmatured") {
+            const moistureFactor = treeMoisture > 0 ? treeMoisture / MAX_MOISTURE : 0.1;
             let currentProgress = treeSlots[i].maturation || 0;
             currentProgress += (deltaTime / MATURATION_TIME) * 100 * moistureFactor;
             currentProgress = Math.min(currentProgress, 100);
@@ -181,26 +209,30 @@ function updateTreeFruitGrowth(deltaTime) {
             maturationProgress[i] = currentProgress;
 
             if (currentProgress >= 100) {
+                // console.log(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} matured. Attempting to generate card.`); // INFO
                 const finalCardData = generateRandomCardForTree();
+                // console.log(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} generated card data:`, finalCardData ? finalCardData.name : "None"); // INFO (TreeGenFinal is more specific)
+
                 if (finalCardData) {
                     treeSlots[i].state = "revealed";
-                    treeSlots[i].card = finalCardData;
-                    console.log(`Slot ${i}: Card matured and revealed as ${finalCardData.name} (${finalCardData.rarity})`);
+                    treeSlots[i].card = finalCardData; // finalCardData now includes type: 'fruit_card' and source: 'tree'
+                    // console.log(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} successfully revealed as ${finalCardData.name} (${finalCardData.rarity})`); // INFO (TreeGenFinal is more specific)
                 } else {
-                    // Failed to generate a card, assign a very basic fallback and log error
-                    console.error(`Slot ${i}: Failed to generate card data upon maturation. Assigning generic fallback.`);
-                    treeSlots[i].state = "revealed"; // Still reveal, but with fallback
+                    console.error(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} still failed to generate card after generateRandomCardForTree. Using error fallback.`);
+                    treeSlots[i].state = "revealed";
                     treeSlots[i].card = {
-                        type: "generic_fruit_error",
-                        name: "Mysterious Seed",
-                        imagePath: "gui/fishing_game/fruit_placeholder.png", // Generic placeholder
-                        rarity:"common", price:1, set:"fish_in_sea_fruit", id:"error_fruit"
+                        type: "error_card_generation",
+                        name: "Unreadable Card",
+                        imagePath: "gui/fishing_game/tree-back.png",
+                        rarity: "unknown",
+                        price: 0,
+                        set: "fish_in_sea_error",
+                        id: "error_card"
                     };
                 }
                 slotsChanged = true;
             }
         }
-        // Note: "revealed" slots are handled by collection logic, not here.
     }
 
     if (slotsChanged && typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.renderTreeSlots === 'function') {
@@ -213,28 +245,31 @@ function getTreeSlotsData() {
         if (slot) {
             let slotToReturn = {
                 state: slot.state,
-                maturation: maturationProgress[index] // Always use the synced progress
+                maturation: maturationProgress[index]
             };
 
-            if (slot.state === "growing" || slot.state === "unmatured") { // Handle both new and potentially old state from save
+            if (slot.state === "growing" || slot.state === "unmatured") {
                 slotToReturn.card = {
-                    type: "growing_fruit", // Generic type for UI
+                    type: "growing_fruit",
                     name: "Growing...",
-                    imagePath: "gui/fishing_game/tree-back.png" // Image for the back of a growing card/fruit
+                    imagePath: "gui/fishing_game/tree-back.png"
                 };
             } else if (slot.state === "revealed") {
                 if (slot.card && slot.card.imagePath) {
                     slotToReturn.card = slot.card;
-                } else { // Fallback for revealed card missing data (e.g. from old save or generation error)
+                } else {
                     console.warn("Revealed slot missing card data or imagePath. Assigning fallback for UI.", slot);
                     slotToReturn.card = {
-                        type: "generic_fruit_fallback", name: "Revealed Fruit",
-                        imagePath: "gui/fishing_game/fruit_placeholder.png",
-                        rarity:"common", price:1, set:"fish_in_sea_fruit", id:"generic_fruit_fallback"
+                        type: "error_card_missing_data",
+                        name: "Corrupted Card Data",
+                        imagePath: "gui/fishing_game/tree-back.png",
+                        rarity: "unknown",
+                        price: 0,
+                        set: "fish_in_sea_error",
+                        id: "error_missing_data"
                     };
                 }
             }
-            // If slot.state is something else or card is missing, it'll be handled by UI with what's given
             return slotToReturn;
         }
         return null;
@@ -242,63 +277,70 @@ function getTreeSlotsData() {
 }
 
 function collectCardFromTree(slotIndex) {
+    // console.log("[TreeMechanics] collectCardFromTree called for slotIndex", slotIndex); // REMOVE - Aggressive cleanup
     if (slotIndex < 0 || slotIndex >= treeSlots.length) {
-        console.error(`Invalid slot index: ${slotIndex}`);
+        console.error(`Invalid slot index: ${slotIndex}`); // Keep error
         return null;
     }
 
     const slot = treeSlots[slotIndex];
     if (slot && slot.state === "revealed" && slot.card) {
         const collectedCardDetails = slot.card;
+        // console.log('[TreeCollect] Initial slot.card details:', JSON.parse(JSON.stringify(collectedCardDetails))); // REMOVE - Aggressive cleanup
 
         const cardDataForBasket = {
-            id: collectedCardDetails.id || collectedCardDetails.type || `fruit_slot_${slotIndex}`,
-            set: collectedCardDetails.set || (collectedCardDetails.type === 'collectible_card' ? 'unknown_set' : 'fish_in_sea_fruit'),
-            name: collectedCardDetails.name || `${collectedCardDetails.type ? (collectedCardDetails.type.charAt(0).toUpperCase() + collectedCardDetails.type.slice(1)) : 'Mystic'} Item`,
-            rarity: collectedCardDetails.rarityKey || collectedCardDetails.rarity || 'common',
-            rarityKey: collectedCardDetails.rarityKey || collectedCardDetails.rarity || 'common',
-            price: collectedCardDetails.price || (collectedCardDetails.type === 'collectible_card' ? 0 : 15),
-            grade: collectedCardDetails.grade || (collectedCardDetails.type === 'collectible_card' ? 'S' : null),
-            imagePath: collectedCardDetails.imagePath || (typeof getCardImagePath === 'function' ? getCardImagePath(collectedCardDetails.set, collectedCardDetails.id) : null) || `gui/fishing_game/${collectedCardDetails.type || 'fruit_placeholder'}.png`,
-            source: 'tree',
-            type: collectedCardDetails.type || (collectedCardDetails.set ? 'card' : 'fruit_card')
+            id: collectedCardDetails.id,
+            set: collectedCardDetails.set,
+            name: collectedCardDetails.name,
+            rarity: collectedCardDetails.rarity,
+            rarityKey: collectedCardDetails.rarityKey || collectedCardDetails.rarity, // Ensure rarityKey is preferred if available
+            price: collectedCardDetails.price, // Expect these to be defined by generateRandomCardForTree
+            grade: collectedCardDetails.grade, // Expect these to be defined by generateRandomCardForTree
+            imagePath: collectedCardDetails.imagePath,
+
+            type: 'fruit_card', // Explicitly set as per categorization plan
+            source: 'tree'      // Explicitly set
         };
 
-        console.log(`Collecting item from slot ${slotIndex} directly to basket:`, cardDataForBasket);
+        // Add checks for essential missing properties and log errors if so
+        if (cardDataForBasket.id === undefined || cardDataForBasket.set === undefined ||
+            cardDataForBasket.name === undefined || cardDataForBasket.imagePath === undefined ||
+            cardDataForBasket.rarity === undefined || cardDataForBasket.price === undefined ||
+            cardDataForBasket.grade === undefined ) { // Check for undefined explicitly
+            console.error('[TreeCollect] CRITICAL: Missing essential details in cardDataForBasket from tree slot!',
+                          JSON.parse(JSON.stringify(cardDataForBasket)),
+                          'Original slot.card was:',
+                          JSON.parse(JSON.stringify(collectedCardDetails)));
+            // Optionally, create a full error object for cardDataForBasket here if needed
+        }
+
+        // console.log('[TreeCollect] Prepared cardDataForBasket:', JSON.parse(JSON.stringify(cardDataForBasket))); // REMOVE - Aggressive cleanup
+        // The old log is now covered by the new [TreeCollect] log above.
+        // console.log(`[TreeMechanics] Item for basket from tree slot ${slotIndex}: Name=${cardDataForBasket.name}, Type=${cardDataForBasket.type}, Source=${cardDataForBasket.source}`);
 
         if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
             window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
 
-            const displayData = {
-                type: cardDataForBasket.type === 'collectible_card' ? 'card' : cardDataForBasket.type,
-                details: cardDataForBasket,
-                set: cardDataForBasket.set,
-                id: cardDataForBasket.id,
-                cardId: cardDataForBasket.id,
-                name: cardDataForBasket.name,
-                rarityKey: cardDataForBasket.rarityKey,
-                grade: cardDataForBasket.grade,
-                imagePath: cardDataForBasket.imagePath
-            };
-
-            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
-                 window.fishingUi.showCaughtItemDisplay(displayData);
-            } else if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+            // Standardize to use showCatchPreview
+            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+                const itemTypeForPreview = (cardDataForBasket.type === 'collectible_card' || cardDataForBasket.type === 'fruit_card' || cardDataForBasket.type === 'mineral_card') ? 'card' : cardDataForBasket.type;
                 const previewItem = {
-                    type: displayData.type === 'fruit_card' || displayData.type === 'collectible_card' ? 'card' : displayData.type,
+                    type: itemTypeForPreview,
                     details: {
-                        set: displayData.set,
-                        cardId: displayData.cardId,
-                        rarityKey: displayData.rarityKey,
-                        grade: displayData.grade,
-                        name: displayData.name,
-                        imagePath: displayData.imagePath
+                        set: cardDataForBasket.set,
+                        cardId: cardDataForBasket.id,
+                        rarityKey: cardDataForBasket.rarityKey,
+                        grade: cardDataForBasket.grade,
+                        name: cardDataForBasket.name,
+                        imagePath: cardDataForBasket.imagePath
                     }
                 };
                 window.fishingUi.showCatchPreview(previewItem);
-            } else if (typeof showTemporaryCollectedItem === 'function') {
-                showTemporaryCollectedItem(displayData);
             }
+            // Fallback to showTemporaryCollectedItem removed to ensure single display path.
+            // If showCatchPreview is not available, nothing will be shown by this function,
+            // relying on the global display from addCardToBasket (which was also removed).
+            // This means showCatchPreview becomes essential for any visual feedback from collection.
         } else {
             console.warn("fishingBasket.addCardToBasket function not found. Card not added to basket.");
         }
@@ -310,10 +352,10 @@ function collectCardFromTree(slotIndex) {
         if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.renderTreeSlots === 'function') {
             fishingTreeUi.renderTreeSlots(getTreeSlotsData());
         }
-        console.log(`Slot ${slotIndex} cleared after collecting ${collectedCardDetails.name || 'item'}.`);
+        // console.log(`Slot ${slotIndex} cleared after collecting ${collectedCardDetails.name || 'item'}.`); // REMOVED INFO
         return { ...collectedCardDetails };
     } else {
-        console.log(`No revealed card to collect in slot ${slotIndex}. Current state: ${slot ? slot.state : 'empty'}`);
+        // console.log(`No revealed card to collect in slot ${slotIndex}. Current state: ${slot ? slot.state : 'empty'}`); // REMOVED INFO
         return null;
     }
 }
@@ -331,24 +373,23 @@ function updateTreeMoisture(newMoisture) {
             fishingTreeUi.updateMoistureDisplay(treeMoisture);
         }
     }
-    console.log(`Tree moisture updated to: ${treeMoisture}% (Constant moisture: ${constantMoistureActive})`);
+    // console.log(`Tree moisture updated to: ${treeMoisture}% (Constant moisture: ${constantMoistureActive})`); // INFO
 }
 
 function getTreeDataForSave() {
     return {
         treeSlots: treeSlots.map(slot => {
-            // Only save essential data for "growing" state to avoid saving full placeholder card
             if (slot && (slot.state === "growing" || slot.state === "unmatured")) {
                 return {
-                    state: "growing", // Normalize to "growing" on save
+                    state: "growing",
                     maturation: slot.maturation
                 };
             }
-            return slot ? { ...slot } : null; // Save full slot data for other states (null, revealed)
+            return slot ? { ...slot } : null;
         }),
         treeMoisture,
         slotTimers: [...slotTimers],
-        maturationProgress: [...maturationProgress], // Save this to keep track of exact progress on load
+        maturationProgress: [...maturationProgress],
         constantMoistureActive,
     };
 }
@@ -360,24 +401,32 @@ function loadTreeData(data) {
         return;
     }
 
-    treeSlots = data.treeSlots ? data.treeSlots.map(slotData => {
+    treeSlots = data.treeSlots ? data.treeSlots.map((slotData, index) => { // Added index for logging
         if (slotData && (slotData.state === "growing" || slotData.state === "unmatured")) {
-            // Restore "growing" state correctly without a full card object initially
             return {
-                state: "growing", // Normalize to "growing" on load
+                state: "growing",
                 maturation: slotData.maturation || 0,
-                card: null // Ensure no card object for "growing" state on load
+                card: null
             };
         }
-        return slotData ? { ...slotData } : null; // Load other states as is
+        // Ensure revealed slots from save have valid card data, assign fallback if not
+        if (slotData && slotData.state === "revealed" && !slotData.card) {
+            // console.warn(`[TreeLoad] Revealed slot ${index} from save data is missing card details. Assigning error fallback.`); // REMOVE - Aggressive cleanup
+            slotData.card = {
+                type: "error_card_save_load", name: "Corrupted Fruit",
+                imagePath: "gui/fishing_game/tree-back.png",
+                rarity: "unknown", price: 0, set: "fish_in_sea_error", id: "error_save_load",
+                source: "tree" // Add source for consistency
+            };
+        }
+        return slotData ? { ...slotData } : null;
     }) : Array(8).fill(null);
 
     treeMoisture = data.treeMoisture !== undefined ? data.treeMoisture : 100;
     slotTimers = data.slotTimers || Array(8).fill(0);
-    // Ensure maturationProgress is correctly restored
     maturationProgress = data.maturationProgress && data.maturationProgress.length === 8 ?
                          [...data.maturationProgress] :
-                         treeSlots.map(slot => slot ? (slot.maturation || 0) : 0); // Fallback if old save
+                         treeSlots.map(slot => slot ? (slot.maturation || 0) : 0);
 
     constantMoistureActive = data.constantMoistureActive || false;
 
@@ -391,22 +440,17 @@ function loadTreeData(data) {
     if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.updateMoistureDisplay === 'function') {
         fishingTreeUi.updateMoistureDisplay(treeMoisture);
     }
-    console.log("Tree data loaded:", getTreeDataForSave());
+    // console.log("Tree data loaded:", getTreeDataForSave()); // INFO
 }
 
 window.initializeTree = initializeTree;
-// Expose other functions if they need to be called from elsewhere (e.g., UI interactions beyond collect)
-window.setConstantMoistureSupply = setConstantMoistureSupply; // If UI controls this directly
-window.updateTreeMoisture = updateTreeMoisture; // If UI or other systems can directly influence moisture
-// getTreeSlotsData is used by fishingTreeUi, so it should be available.
-// For safety, if it's not implicitly global due to script concatenation order, expose it.
+window.setConstantMoistureSupply = setConstantMoistureSupply;
+window.updateTreeMoisture = updateTreeMoisture;
 if (typeof window.getTreeSlotsData === 'undefined') {
     window.getTreeSlotsData = getTreeSlotsData;
 }
-// collectCardFromTree is used by fishingTreeUi
 if (typeof window.collectCardFromTree === 'undefined') {
     window.collectCardFromTree = collectCardFromTree;
 }
 
-
-console.log("tree-mechanics.js loaded with UI integration points and new generation logic.");
+// console.log("tree-mechanics.js loaded with UI integration points and new generation logic."); // REMOVE - Aggressive cleanup

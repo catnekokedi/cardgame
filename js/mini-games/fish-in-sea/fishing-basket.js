@@ -12,9 +12,9 @@ window.fishingBasket = { // Ensure it's explicitly on window
         // This will be called after fishingGameState is potentially loaded.
         // If fishingGameState.basketData exists, loadBasketData would have been called by fish-in-sea-state.js
         // So, this function might just ensure the basket is ready or log its state.
-        if (!this.basketContents || this.basketContents.length === 0) {
-            console.log("Fishing basket initialized empty or from fresh state.");
-        }
+        // if (!this.basketContents || this.basketContents.length === 0) { // REMOVED - Aggressive cleanup
+            // console.log("Fishing basket initialized empty or from fresh state."); // REMOVED - Aggressive cleanup
+        // } // REMOVED - Aggressive cleanup
         // Initial UI render if UI is ready
         if (typeof fishingBasketUi !== 'undefined' && typeof fishingBasketUi.renderBasket === 'function') {
             fishingBasketUi.renderBasket(this.getBasketContentsForDisplay());
@@ -27,8 +27,9 @@ window.fishingBasket = { // Ensure it's explicitly on window
      * @param {number} quantity - The number of cards to add.
      */
     addCardToBasket: function(cardData, quantity = 1) {
+        // console.log("[FishingBasket] Attempting to add to basket: Name=", cardData.name, "IMG=", cardData.imagePath, "Set=", cardData.set, "ID=", cardData.id, "Source=", cardData.source, "Full Data:", cardData); // REMOVE - Aggressive cleanup
         if (!cardData || !cardData.id || !cardData.set) {
-            console.error("Invalid cardData provided to addCardToBasket:", cardData);
+            console.error("Invalid cardData provided to addCardToBasket:", cardData); // Keep error
             return;
         }
         // For simplicity, assume cardData.id is unique enough for type identification.
@@ -49,17 +50,15 @@ window.fishingBasket = { // Ensure it's explicitly on window
                 instanceId: `basket_${cardData.set}_${cardData.id}_${Date.now()}` // Unique ID for this stack
             });
         }
-        console.log(`Added ${quantity} of ${cardData.name} to basket. Basket:`, this.basketContents);
+        // console.log(`Added ${quantity} of ${cardData.name} to basket. Basket:`, this.basketContents); // REMOVE - Aggressive cleanup
         if (typeof fishingBasketUi !== 'undefined' && typeof fishingBasketUi.renderBasket === 'function') {
             fishingBasketUi.renderBasket(this.getBasketContentsForDisplay());
         }
         if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateBasketCount === 'function') {
             fishingUi.updateBasketCount(this.getTotalItemCount());
         }
-        // Show the collected item display
-        if (typeof showTemporaryCollectedItem === 'function') {
-            showTemporaryCollectedItem(cardData);
-        }
+        // REMOVED: Direct call to showTemporaryCollectedItem from addCardToBasket.
+        // Display should be handled by the mechanic that awarded the item, using fishingUi.showCatchPreview.
     },
 
     /**
@@ -80,7 +79,7 @@ window.fishingBasket = { // Ensure it's explicitly on window
         } else {
             this.basketContents.splice(itemIndex, 1); // Remove item if quantity is met or exceeded
         }
-        console.log(`Removed ${quantity} of item ${instanceId} from basket.`);
+        // console.log(`Removed ${quantity} of item ${instanceId} from basket.`); // REMOVE - Aggressive cleanup
         if (typeof fishingBasketUi !== 'undefined' && typeof fishingBasketUi.renderBasket === 'function') {
             fishingBasketUi.renderBasket(this.getBasketContentsForDisplay());
         }
@@ -98,7 +97,7 @@ window.fishingBasket = { // Ensure it's explicitly on window
         const item = this.basketContents.find(item => item.instanceId === instanceId);
         if (item) {
             item.isLocked = !item.isLocked;
-            console.log(`Item ${instanceId} lock state: ${item.isLocked}`);
+            // console.log(`Item ${instanceId} lock state: ${item.isLocked}`); // REMOVE - Aggressive cleanup
             if (typeof fishingBasketUi !== 'undefined' && typeof fishingBasketUi.renderBasket === 'function') {
                 fishingBasketUi.renderBasket(this.getBasketContentsForDisplay());
             }
@@ -121,7 +120,7 @@ window.fishingBasket = { // Ensure it's explicitly on window
         const itemToSell = this.basketContents[itemIndex];
         if (itemToSell.isLocked) {
             if(typeof showCustomModal === 'function') showCustomModal("Cannot sell locked items!", "error");
-            console.log(`Item ${instanceId} is locked, cannot sell.`);
+            // console.log(`Item ${instanceId} is locked, cannot sell.`); // REMOVE - Aggressive cleanup
             return;
         }
 
@@ -132,9 +131,9 @@ window.fishingBasket = { // Ensure it's explicitly on window
         if (typeof playerData !== 'undefined' && typeof playerData.toki !== 'undefined') {
             playerData.toki += totalPrice;
             if(typeof updateTokiDisplay === 'function') updateTokiDisplay();
-            console.log(`Sold ${sellQuantity} of ${itemToSell.cardData.name} for ${totalPrice} Toki. Current Toki: ${playerData.toki}`);
+            // console.log(`Sold ${sellQuantity} of ${itemToSell.cardData.name} for ${totalPrice} Toki. Current Toki: ${playerData.toki}`); // REMOVE - Aggressive cleanup
         } else {
-            console.warn("Player data or Toki not found. Cannot update balance.");
+            console.warn("Player data or Toki not found. Cannot update balance."); // Keep warn
         }
 
         this.removeCardFromBasket(instanceId, sellQuantity); // This will re-render and update count
@@ -164,10 +163,10 @@ window.fishingBasket = { // Ensure it's explicitly on window
                 // For now, pass essential info. Grade might default in main collection.
                 updateCollectionSingleCard(itemToCollect.cardData.set, itemToCollect.cardData.id, itemToCollect.cardData);
             }
-            console.log(`Collected ${collectQuantity} of ${itemToCollect.cardData.name} to main collection.`);
+            // console.log(`Collected ${collectQuantity} of ${itemToCollect.cardData.name} to main collection.`); // REMOVE - Aggressive cleanup
             if(typeof showCustomModal === 'function') showCustomModal(`Collected ${collectQuantity} ${itemToCollect.cardData.name}!`, "success");
         } else {
-            console.warn("updateCollectionSingleCard function not found. Cannot add to main collection.");
+            console.warn("updateCollectionSingleCard function not found. Cannot add to main collection."); // Keep warn
             return; // Don't remove if not collected
         }
 
@@ -195,7 +194,7 @@ window.fishingBasket = { // Ensure it's explicitly on window
             if (typeof playerData !== 'undefined' && typeof playerData.toki !== 'undefined') {
                 playerData.toki += totalSoldValue;
                  if(typeof updateTokiDisplay === 'function') updateTokiDisplay();
-                console.log(`Sold all unlocked items (${itemsSoldCount}) for ${totalSoldValue} Toki. Current Toki: ${playerData.toki}`);
+                // console.log(`Sold all unlocked items (${itemsSoldCount}) for ${totalSoldValue} Toki. Current Toki: ${playerData.toki}`); // REMOVE - Aggressive cleanup
             }
             if(typeof showCustomModal === 'function') showCustomModal(`Sold ${itemsSoldCount} items for ${totalSoldValue} Toki!`, "success");
             if (typeof saveGame === 'function') saveGame();
@@ -210,7 +209,7 @@ window.fishingBasket = { // Ensure it's explicitly on window
     collectAllUnlockedCards: function() {
         let itemsCollectedCount = 0;
         if (typeof updateCollectionSingleCard !== 'function') {
-            console.warn("updateCollectionSingleCard function not found. Cannot collect all.");
+            console.warn("updateCollectionSingleCard function not found. Cannot collect all."); // Keep warn
             if(typeof showCustomModal === 'function') showCustomModal("Error: Collection function not available.", "error");
             return;
         }
@@ -225,7 +224,7 @@ window.fishingBasket = { // Ensure it's explicitly on window
             }
         }
         if (itemsCollectedCount > 0) {
-            console.log(`Collected all unlocked items (${itemsCollectedCount}) to main collection.`);
+            // console.log(`Collected all unlocked items (${itemsCollectedCount}) to main collection.`); // REMOVE - Aggressive cleanup
             if(typeof showCustomModal === 'function') showCustomModal(`Collected ${itemsCollectedCount} items to your main collection!`, "success");
             if (typeof saveGame === 'function') saveGame();
         } else {
@@ -239,14 +238,25 @@ window.fishingBasket = { // Ensure it's explicitly on window
      * @returns {Array<object>} Filtered and sorted basket contents.
      */
     getBasketContentsForDisplay: function(filters = {}) {
+        // console.log("[FishingBasket] getBasketContentsForDisplay with filters:", JSON.parse(JSON.stringify(filters))); // REMOVE - Aggressive cleanup
         let displayData = [];
         if (Array.isArray(this.basketContents)) {
             displayData = [...this.basketContents];
+
+            // Filter by type (for tabs)
+            if (filters.type && filters.type !== 'all_caught') {
+                // console.log(`[FishingBasket] Filtering by type: ${filters.type}`); // REMOVE - Aggressive cleanup
+                displayData = displayData.filter(item => item && item.cardData && item.cardData.type === filters.type);
+            }
+
+            // Filter by rarity
             if (filters.rarity && filters.rarity !== 'all') {
-                displayData = displayData.filter(item => item && item.cardData && item.cardData.rarity === filters.rarity);
+                // console.log(`[FishingBasket] Filtering by rarity: ${filters.rarity}`); // REMOVE - Aggressive cleanup
+                displayData = displayData.filter(item => item && item.cardData && (item.cardData.rarity === filters.rarity || item.cardData.rarityKey === filters.rarity));
             }
             // Add sorting if needed
         }
+        // console.log(`[FishingBasket] Items after filtering for type '${filters.type || 'any'}' and rarity '${filters.rarity || 'any'}': ${displayData.length} items.`); // REMOVE - Aggressive cleanup
         return displayData;
     },
 
@@ -269,15 +279,33 @@ window.fishingBasket = { // Ensure it's explicitly on window
      */
     loadBasketData: function(data) {
         if (data && Array.isArray(data)) {
-            this.basketContents = data;
-            console.log("Fishing basket data loaded:", this.basketContents);
+            this.basketContents = data.map(item => {
+                if (item && item.cardData && !item.cardData.type) {
+                    // Attempt to migrate type from source if type is missing
+                    const source = item.cardData.source;
+                    let inferredType = 'unknown_item'; // Default if cannot infer
+                    if (source === 'fishing') inferredType = 'fish_card';
+                    else if (source === 'tree') inferredType = 'fruit_card';
+                    else if (source === 'mining') inferredType = 'mineral_card';
+                    else if (source === 'bird') inferredType = 'bird_reward_card';
+
+                    if (inferredType !== 'unknown_item') {
+                        item.cardData.type = inferredType;
+                        // console.log(`[FishingBasketLoad] Migrated item ${item.cardData.name || item.cardData.id} to type: ${inferredType} based on source: ${source}`); // REMOVE - Aggressive cleanup
+                    } else {
+                        console.warn(`[FishingBasketLoad] Item ${item.cardData.name || item.cardData.id} is missing 'type' and source ('${source}') is not specific enough to infer.`); // Keep important warn
+                    }
+                }
+                return item;
+            });
+            // console.log("Fishing basket data loaded and potentially migrated:", this.basketContents); // REMOVE - Aggressive cleanup
         } else {
             this.basketContents = [];
-            console.log("No fishing basket data found or data invalid, starting with empty basket.");
+            // console.log("No fishing basket data found or data invalid, starting with empty basket."); // REMOVE - Aggressive cleanup
         }
         // Initial UI render after load
         if (typeof fishingBasketUi !== 'undefined' && typeof fishingBasketUi.renderBasket === 'function') {
-            fishingBasketUi.renderBasket(this.getBasketContentsForDisplay());
+            fishingBasketUi.renderBasket(this.getBasketContentsForDisplay(fishingBasketUi.currentFilters || {})); // Pass current filters
         }
         if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateBasketCount === 'function') {
             fishingUi.updateBasketCount(this.getTotalItemCount());
@@ -296,4 +324,4 @@ function addItemToBasket(cardData, quantity = 1) {
 }
 */
 
-console.log("fishing-basket.js loaded and attached to window.fishingBasket");
+// console.log("fishing-basket.js loaded and attached to window.fishingBasket"); // REMOVE - Aggressive cleanup

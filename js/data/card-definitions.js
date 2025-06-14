@@ -517,3 +517,10 @@ window.ALL_SET_DEFINITIONS = [
     { "id": 511, "abbr": "V450", "name": "Alliance Insight", "count": 100, "folderName": "450", "version": "v2" },
     { "id": 512, "abbr": "V451", "name": "Combined Small", "count": 53, "folderName": "451", "version": "v2" }
 ];
+
+// Aggregation loop (added in Turn 49) has been removed as per subtask instructions (Turn 55).
+// This file now only defines window.ALL_SET_DEFINITIONS.
+// window.cardData is expected to be initialized (e.g., as {} in state.js)
+// and populated by a different mechanism if it's meant to hold detailed card data.
+// If card details are derived dynamically, window.cardData might not be used as a large pre-populated object.
+console.log("[CardData] js/data/card-definitions.js executed. ALL_SET_DEFINITIONS is now defined. Aggregation loop removed.");

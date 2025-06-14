@@ -8,7 +8,7 @@ window.fishingBasketUi = {
     rarityFilterElement: null,
     sellAllButtonElement: null,
     collectAllButtonElement: null,
-    currentFilters: { rarity: 'all' }, // Default filter
+    currentFilters: { rarity: 'all', type: 'all_caught' }, // Default filters
 
     /**
      * Initializes basket UI elements and event listeners.
@@ -24,7 +24,7 @@ window.fishingBasketUi = {
 
         if (!this.modalElement || !this.basketIconElement || !this.cardsContainerElement || !this.closeButtonElement ||
             !this.rarityFilterElement || !this.sellAllButtonElement || !this.collectAllButtonElement) {
-            console.error("One or more fishing basket UI elements are missing from the DOM.");
+            // console.error("One or more fishing basket UI elements are missing from the DOM."); // REMOVE - Aggressive cleanup
             return;
         }
 
@@ -54,7 +54,7 @@ window.fishingBasketUi = {
             }
         });
 
-        console.log("Fishing Basket UI initialized.");
+        // console.log("Fishing Basket UI initialized."); // REMOVE - Aggressive cleanup
         this.populateRarityFilter(); // Populate filter options
     },
 
@@ -69,6 +69,9 @@ window.fishingBasketUi = {
             const option = document.createElement('option');
             option.value = rarity;
             option.textContent = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+            if (rarity === 'all') {
+                option.selected = true; // Make 'All' selected by default
+            }
             this.rarityFilterElement.appendChild(option);
         });
     },
@@ -117,17 +120,57 @@ window.fishingBasketUi = {
             if (item.isLocked) {
                 cardDiv.classList.add('locked');
             }
-            // cardData: { set, id, rarity, price, name, imagePath }
-            const cardImage = getCardImagePath(item.cardData, item.cardData.imagePath); // Use helper or direct path
+            // cardData: { set, id, rarity, price, name, imagePath, type, source }
+            // console.log("[FishingBasketUI] Rendering item.cardData:", item.cardData, "Quantity:", item.quantity, "Source:", item.cardData.source); // REMOVE - Aggressive cleanup
+
+            let cardImageSrc = 'gui/fishing_game/tree-back.png'; // Default to placeholder
+            const card = item.cardData;
+
+            if (card) {
+                const errorItemTypes = ['error_card_generation', 'error_card_missing_data', 'error_card_save_load'];
+                if (card.id === 'error_card' || card.set === 'fish_in_sea_error' || errorItemTypes.includes(card.type)) {
+                    // cardImageSrc is already set to tree-back.png, so this condition is met.
+                } else if (card.imagePath && typeof card.imagePath === 'string' && card.imagePath.includes('/')) {
+                    cardImageSrc = card.imagePath;
+                } else if (card.set && card.id && (typeof card.id === 'number' || !isNaN(parseInt(card.id)))) {
+                    const numericId = parseInt(card.id); // Ensure numeric ID for getCardImagePath
+                    if (numericId > 0) { // Check if parsing was successful and ID is valid
+                        const pathFromUtil = getCardImagePath(card.set, numericId);
+                        if (pathFromUtil && !pathFromUtil.includes('undefined') && !pathFromUtil.includes('No+Set+Meta')) {
+                            cardImageSrc = pathFromUtil;
+                        } else {
+                            // console.warn(`[BasketRender] getCardImagePath returned problematic path for ${card.set}#${numericId}: ${pathFromUtil}. Using placeholder.`);
+                        }
+                    } else {
+                         // console.warn(`[BasketRender] Invalid numericId for ${card.set}#${card.id}. Using placeholder.`);
+                    }
+                } else if (card.type === 'summon_ticket' && card.rarityKey && typeof getSummonTicketImagePath === 'function') {
+                    cardImageSrc = getSummonTicketImagePath(card.rarityKey);
+                } else {
+                    // console.warn(`[BasketRender] Could not determine valid image path for card:`, card, `. Using placeholder.`);
+                }
+            }
+
+            const cardName = card ? (card.name || (card.type ? `Unknown ${card.type.replace('_', ' ')}` : 'Unknown Item')) : 'Unknown Item';
+            const cardRarity = card ? (card.rarityKey || card.rarity || '') : '';
+
+            const imgElement = document.createElement('img');
+            imgElement.src = cardImageSrc;
+            imgElement.alt = cardName;
+            imgElement.className = 'basket-card-image';
+            imgElement.onerror = function() { this.src = 'gui/fishing_game/tree-back.png'; this.onerror = null; };
 
             cardDiv.innerHTML = `
-                <img src="${cardImage}" alt="${item.cardData.name || 'Card'}" class="basket-card-image">
-                <div class="basket-card-name">${item.cardData.name || 'Unknown Item'}</div>
+                <!-- Image will be appended by JS -->
+                <div class="basket-card-name">${cardName}</div>
                 <div class="basket-card-quantity">x ${item.quantity}</div>
-                <div class="basket-card-rarity ${item.cardData.rarity || ''}">${item.cardData.rarity || ''}</div>
+                <div class="basket-card-rarity ${cardRarity}">${cardRarity}</div>
                 ${item.isLocked ? '<div class="basket-card-lock-icon">🔒</div>' : ''}
             `;
+            cardDiv.prepend(imgElement); // Prepend image so text overlays it if CSS is set up that way, or append if preferred
             cardDiv.dataset.instanceId = item.instanceId;
+            // console.log("[FishingBasketUI] Final cardImageSrc:", cardImageSrc, "for item name:", cardName); // REMOVE - Aggressive cleanup
+
 
             cardDiv.addEventListener('click', () => this.showCardDetailForBasketItem(item));
             this.cardsContainerElement.appendChild(cardDiv);
@@ -247,4 +290,4 @@ window.fishingBasketUi = {
 // Make globally available
 window.fishingBasketUi = fishingBasketUi;
 
-console.log("fishing-basket-ui.js loaded");
+// console.log("fishing-basket-ui.js loaded"); // REMOVE - Aggressive cleanup

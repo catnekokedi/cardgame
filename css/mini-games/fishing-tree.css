@@ -17,12 +17,13 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 45px; /* Changed gap to 45px as requested */
+    gap: 20px; /* Adjusted gap to 20px as per new request */
     padding: 10px 15px 20px 15px; /* Existing padding */
     box-sizing: border-box;
     align-items: center; /* Aligns items vertically within their cell */
     justify-items: center; /* Aligns items horizontally within their cell */
     align-content: center; /* Vertically centers the grid rows if container has extra space */
+    z-index: 10; /* Ensure tree is above sky (0) and water (1), on same layer as cat */
 }
 /* REMOVED #fishing-tree-container::before rule */
 

@@ -7,6 +7,7 @@
 var rarityFilterOrder = []; // Will be populated in initializeRarityAndGradeSystems
 var stringToRarityInt = {}; // Will be populated
 var intToRarityString = {}; // Will be populated
+var fixedCardProperties = {}; // Moved from window.fixedCardProperties to script scope
 
 function updateRarityMappings() {
     if (typeof RARITY_PACK_PULL_DISTRIBUTION !== 'undefined') {
@@ -107,9 +108,9 @@ function normalizeProbabilities(distArray, probField = 'prob') {
 }
 
 function adjustProbabilitiesAndPrices() {
-    if (typeof isDebugModeActive === 'undefined') {
-        console.warn("adjustProbabilitiesAndPrices: isDebugModeActive is not defined. Defaulting to false.");
-    }
+    // if (typeof isDebugModeActive === 'undefined') { // INFO
+        // console.warn("adjustProbabilitiesAndPrices: isDebugModeActive is not defined. Defaulting to false."); // INFO
+    // } // INFO
     if (typeof liveRarityPackPullDistribution === 'undefined' || liveRarityPackPullDistribution === null) {
         console.error("adjustProbabilitiesAndPrices: liveRarityPackPullDistribution not initialized.");
         initializeRarityAndGradeSystems();
@@ -191,40 +192,76 @@ function _internal_assignGradeAndPrice(intrinsicRarityKey) {
 }
 
 function getFixedGradeAndPrice(setAbbrIdentifier, cardIdNum) {
+    // console.log(`[RarityManager] getFixedGradeAndPrice called for Set: ${setAbbrIdentifier}, CardID: ${cardIdNum}`); // REMOVED DEBUG
+    let intrinsicRarityKey = 'base'; // Default
+
     if (typeof getCardIntrinsicRarity !== 'function') {
-        console.error("CRITICAL: getCardIntrinsicRarity function (from this file) not available.");
-        return { grade: 1, price: 1, rarityKey: 'base' };
-    }
-    if (typeof fixedCardProperties === 'undefined') {
-        fixedCardProperties = {};
+        console.error("[RarityManager] CRITICAL: getCardIntrinsicRarity function not available. Defaulting intrinsicRarity to 'base'.");
+        return { grade: 1, price: 1, rarityKey: 'base', name: `${setAbbrIdentifier} Card #${cardIdNum} (Error)` }; // Return a name property for fallback
     }
 
+    intrinsicRarityKey = getCardIntrinsicRarity(setAbbrIdentifier, cardIdNum);
+    // console.log(`[RarityManager] Intrinsic Rarity for ${setAbbrIdentifier}#${cardIdNum}: ${intrinsicRarityKey}`); // REMOVED DEBUG
+
+    // fixedCardProperties is now a script-level variable
     if (!fixedCardProperties[setAbbrIdentifier]) {
         fixedCardProperties[setAbbrIdentifier] = {};
     }
 
     if (fixedCardProperties[setAbbrIdentifier][cardIdNum]) {
+        // Name is NOT currently stored in fixedCardProperties. This function doesn't handle names.
+        // The name should come from window.cardData[setAbbrIdentifier][cardIdNum].name
+        // This log will show that props from cache lack a name.
+        // console.log(`[RarityManager] Returning cached props for ${setAbbrIdentifier}#${cardIdNum}:`, fixedCardProperties[setAbbrIdentifier][cardIdNum]); // REMOVED DEBUG
         return fixedCardProperties[setAbbrIdentifier][cardIdNum];
     } else {
-        const intrinsicRarityKey = getCardIntrinsicRarity(setAbbrIdentifier, cardIdNum);
         const { grade, price } = _internal_assignGradeAndPrice(intrinsicRarityKey);
 
-        fixedCardProperties[setAbbrIdentifier][cardIdNum] = { grade, price, rarityKey: intrinsicRarityKey };
-        return fixedCardProperties[setAbbrIdentifier][cardIdNum];
+        // This function DOES NOT KNOW THE CARD'S SPECIFIC NAME.
+        // Card names are not sourced from js/data/card-definitions.js.
+        // They would ideally come from a populated window.cardData object, but that's not reliably populated with details.
+        // For now, it only returns grade, price, and the actual rarityKey.
+        const props = { grade, price, rarityKey: intrinsicRarityKey };
+
+        // Attempt to get name from window.cardData if it happens to be populated for this specific card.
+        // This is unlikely for most cards given current system state.
+        if (typeof cardData !== 'undefined' && cardData[setAbbrIdentifier] && cardData[setAbbrIdentifier][cardIdNum] && cardData[setAbbrIdentifier][cardIdNum].name) {
+            props.name = cardData[setAbbrIdentifier][cardIdNum].name;
+        } else {
+            // props.name will be undefined. Callers like generateRandomCardForTree are responsible for providing a generic/fallback name.
+            // console.warn(`[RarityManager] Specific name not found in cardData for ${setAbbrIdentifier}#${cardIdNum}. Generic name will be used by caller.`); // REMOVED INFO
+        }
+
+        fixedCardProperties[setAbbrIdentifier][cardIdNum] = { ...props }; // Cache whatever we have determined.
+        // console.log(`[RarityManager] Calculated and cached props for ${setAbbrIdentifier}#${cardIdNum}. Name: ${props.name || 'N/A (expected, to be set by caller)'}. Returning props:`, props); // REMOVED DEBUG
+        return props;
     }
 }
 
 
 function getCardIntrinsicRarity(setAbbrIdentifier, cardIdNum) {
+    // console.log(`[RarityManager] getCardIntrinsicRarity called for Set: ${setAbbrIdentifier}, CardID: ${cardIdNum}`); // REMOVED DEBUG
+    // console.log(`[RarityManager] typeof getSetMetadata: ${typeof getSetMetadata}`); // REMOVED DEBUG
+    // Use direct variable access, not window property, as these are top-level consts in their file
+    // console.log(`[RarityManager] typeof RARITY_PACK_PULL_DISTRIBUTION: ${typeof RARITY_PACK_PULL_DISTRIBUTION}`); // REMOVED DEBUG
+    // console.log(`[RarityManager] typeof RARITY_SET_COMPOSITION_DISTRIBUTION: ${typeof RARITY_SET_COMPOSITION_DISTRIBUTION}`); // REMOVED DEBUG
+
     if (typeof getSetMetadata !== 'function' || typeof RARITY_PACK_PULL_DISTRIBUTION === 'undefined' || typeof RARITY_SET_COMPOSITION_DISTRIBUTION === 'undefined') {
-        console.error("getCardIntrinsicRarity: Missing global getSetMetadata function or RARITY_PACK_PULL_DISTRIBUTION/RARITY_SET_COMPOSITION_DISTRIBUTION.");
-        return RARITY_PACK_PULL_DISTRIBUTION[0]?.key || 'base';
+        console.error("[RarityManager] getCardIntrinsicRarity: Missing critical dependencies (getSetMetadata, RARITY_PACK_PULL_DISTRIBUTION, or RARITY_SET_COMPOSITION_DISTRIBUTION).");
+        return (RARITY_PACK_PULL_DISTRIBUTION && RARITY_PACK_PULL_DISTRIBUTION[0]?.key) || 'base';
     }
 
     const setMeta = getSetMetadata(setAbbrIdentifier);
+    // console.log(`[RarityManager] Metadata for ${setAbbrIdentifier}:`, setMeta ? JSON.parse(JSON.stringify(setMeta)) : "null/undefined"); // REMOVED DEBUG
+
+    if (!setMeta) {
+        // console.warn(`[RarityManager] No metadata found for set ${setAbbrIdentifier}! Returning default rarity.`); // REMOVED INFO (can be spammy)
+        return (RARITY_PACK_PULL_DISTRIBUTION && RARITY_PACK_PULL_DISTRIBUTION[0]?.key) || 'base';
+    }
+
     const defaultRarityKey = RARITY_PACK_PULL_DISTRIBUTION[0]?.key || 'base';
 
-    if (!setMeta || setMeta.name.startsWith("Unknown Set") || !setMeta.count || setMeta.count === 0) {
+    if (setMeta.name.startsWith("Unknown Set") || !setMeta.count || setMeta.count === 0) { // Check setMeta.name after ensuring setMeta exists
         return defaultRarityKey;
     }
     if (cardIdNum < 1 || cardIdNum > setMeta.count) {
@@ -232,7 +269,7 @@ function getCardIntrinsicRarity(setAbbrIdentifier, cardIdNum) {
     }
 
     const totalCardsInSet = setMeta.count;
-    const sortedCompositionTiers = RARITY_PACK_PULL_DISTRIBUTION.map(pullTier => {
+    const sortedCompositionTiers = RARITY_PACK_PULL_DISTRIBUTION.map(pullTier => { // This is the line reported in the error (around 234)
         const compositionTier = RARITY_SET_COMPOSITION_DISTRIBUTION.find(ct => ct.key === pullTier.key);
         return {
             key: pullTier.key,
@@ -389,7 +426,12 @@ function getCardIntrinsicRarity(setAbbrIdentifier, cardIdNum) {
 }
 
 function getRarityTierInfo(rarityIdentifier) {
-    if (typeof RARITY_PACK_PULL_DISTRIBUTION === 'undefined') return null;
+    // Use direct variable access
+    if (typeof RARITY_PACK_PULL_DISTRIBUTION === 'undefined') {
+        // This console.error is critical and should remain.
+        console.error("[RarityManager] getRarityTierInfo: RARITY_PACK_PULL_DISTRIBUTION is undefined.");
+        return null;
+    }
     if (typeof rarityIdentifier === 'string') {
         return RARITY_PACK_PULL_DISTRIBUTION.find(tier => tier.key === rarityIdentifier) || null;
     } else if (typeof rarityIdentifier === 'number') {

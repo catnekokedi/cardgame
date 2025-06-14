@@ -253,9 +253,10 @@ const fishingUi = {
                     </div>
                      <div class="fishing-basket-tabs">
                         <button class="game-button active" data-tab-type="all_caught">All Caught</button>
-                        <button class="game-button" data-tab-type="card">Fish</button>
+                        <button class="game-button" data-tab-type="fish_card">Fish</button>
                         <button class="game-button" data-tab-type="fruit_card">Fruit</button>
-                        <button class="game-button" data-tab-type="mineral_card">Minerals</button>
+                        <button class="game-button" data-tab-type="mineral_card">Rock</button>
+                        <button class="game-button" data-tab-type="bird_reward_card">Bird</button>
                     </div>
                     <div id="fishing-basket-grid" class="fishing-game-modal-scrollable-content fishing-basket-grid gallery-grid"></div>
                     <div class="fishing-game-modal-actions">
@@ -290,9 +291,10 @@ const fishingUi = {
                     </div>
                     <div id="fishing-shop-ticket-balances" class="fishing-shop-ticket-balances-area"></div>
                     <div class="fishing-shop-tabs">
-                        <button class="game-button active" data-tab-type="fish">Fish/Cards</button>
-                        <button class="game-button" data-tab-type="fruit">Fruit</button>
-                        <button class="game-button" data-tab-type="minerals">Minerals</button>
+                        <button class="game-button active" data-tab-type="fish_card">Fish</button>
+                        <button class="game-button" data-tab-type="fruit_card">Fruit</button>
+                        <button class="game-button" data-tab-type="mineral_card">Rock</button>
+                        <button class="game-button" data-tab-type="bird_reward_card">Bird</button>
                     </div>
                     <div class="fishing-game-modal-scrollable-content">
                         <div id="fishing-shop-exchange-info" class="fishing-shop-exchange-info-area"></div>
@@ -353,8 +355,17 @@ const fishingUi = {
                 tab.addEventListener('click', () => {
                     ui.basketTabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
-                    fishingGameState.selectedItemInBasket = null; 
-                    renderFishingBasket();
+                    fishingGameState.selectedItemInBasket = null;
+                    if (window.fishingBasketUi) { // Ensure fishingBasketUi is defined
+                        window.fishingBasketUi.currentFilters.type = tab.dataset.tabType;
+                         console.log("[FishingUI] Basket tab clicked. New type filter:", window.fishingBasketUi.currentFilters.type);
+                    }
+                    // renderFishingBasket is global and should use fishingBasketUi.currentFilters
+                    if (typeof renderFishingBasket === 'function') renderFishingBasket();
+                    else if (window.fishingBasketUi && typeof window.fishingBasketUi.renderBasket === 'function' && typeof fishingBasket !== 'undefined') {
+                        // Fallback if global renderFishingBasket isn't the primary way
+                        window.fishingBasketUi.renderBasket(fishingBasket.getBasketContentsForDisplay(window.fishingBasketUi.currentFilters));
+                    }
                     playSound('sfx_button_click_subtle.mp3');
                 });
             });
@@ -459,47 +470,80 @@ const fishingUi = {
             }
         }
     },
-    showBobber() { 
+    showBobber() {
+        console.log("[UI] showBobber: Called.");
         if (fishingGameState.ui.bobber) {
-            const waterPanel = fishingGameState.ui.waterDropArea; 
+            const waterPanel = fishingGameState.ui.waterDropArea;
             if (waterPanel) {
-                const maxX = waterPanel.offsetWidth - fishingGameState.ui.bobber.offsetWidth - 20; 
-                const maxY = waterPanel.offsetHeight * 0.4 + (waterPanel.offsetHeight * 0.6 * 0.2); 
-                const minY = waterPanel.offsetHeight * 0.5; 
+                console.log(`[UI] showBobber: waterPanel dimensions: offsetWidth=${waterPanel.offsetWidth}, offsetHeight=${waterPanel.offsetHeight}`);
+                if (waterPanel.offsetWidth === 0 || waterPanel.offsetHeight === 0) {
+                    console.warn("[UI] showBobber: waterPanel has zero width or height. Bobber positioning might be incorrect.");
+                }
+                const maxX = waterPanel.offsetWidth - fishingGameState.ui.bobber.offsetWidth - 20;
+                const maxY = waterPanel.offsetHeight * 0.4 + (waterPanel.offsetHeight * 0.6 * 0.2);
+                const minY = waterPanel.offsetHeight * 0.5;
 
                 fishingGameState.bobberPosition.x = Math.random() * maxX + 10;
                 fishingGameState.bobberPosition.y = Math.random() * (maxY - minY) + minY;
                 fishingGameState.ui.bobber.style.left = `${fishingGameState.bobberPosition.x}px`;
                 fishingGameState.ui.bobber.style.top = `${fishingGameState.bobberPosition.y}px`;
                 fishingGameState.ui.bobber.style.display = 'flex';
+                console.log(`[UI] showBobber: Bobber positioned at left=${fishingGameState.ui.bobber.style.left}, top=${fishingGameState.ui.bobber.style.top}. Display set to flex.`);
+            } else {
+                console.warn("[UI] showBobber: waterPanel element not found.");
             }
+        } else {
+            console.warn("[UI] showBobber: Bobber element not found in fishingGameState.ui.");
         }
     },
     hideBobber() { if (fishingGameState.ui.bobber) fishingGameState.ui.bobber.style.display = 'none'; },
     drawRodLine() {
+        console.log("[UI] drawRodLine: Called.");
         const canvas = fishingGameState.ui.rodLineCanvas;
-        const rodTipEl = document.getElementById('rod-tip'); 
+        const rodTipEl = document.getElementById('rod-tip');
         const bobberEl = fishingGameState.ui.bobber;
-    
+
+        if (!canvas) console.warn("[UI] drawRodLine: rodLineCanvas not found.");
+        if (!rodTipEl) console.warn("[UI] drawRodLine: rod-tip element not found.");
+        if (!bobberEl) console.warn("[UI] drawRodLine: bobber element not found.");
+
         if (!canvas || !rodTipEl || !bobberEl || bobberEl.style.display === 'none') {
-            if (canvas) { 
+            if (canvas) {
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                console.log("[UI] drawRodLine: Conditions not met (e.g., bobber hidden), canvas cleared.");
             }
             return;
         }
-    
+
+        console.log(`[UI] drawRodLine: Canvas dimensions: width=${canvas.width}, height=${canvas.height}`);
+        if (canvas.width === 0 || canvas.height === 0) {
+            console.warn("[UI] drawRodLine: Canvas has zero width or height. Line will not be visible.");
+            // Attempt to resize canvas if waterDropArea is available
+            if (fishingGameState.ui.waterDropArea && fishingGameState.ui.waterDropArea.offsetWidth > 0 && fishingGameState.ui.waterDropArea.offsetHeight > 0) {
+                canvas.width = fishingGameState.ui.waterDropArea.offsetWidth;
+                canvas.height = fishingGameState.ui.waterDropArea.offsetHeight;
+                console.log(`[UI] drawRodLine: Canvas resized to waterDropArea: width=${canvas.width}, height=${canvas.height}`);
+            }
+        }
+
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
         const rodTipRect = rodTipEl.getBoundingClientRect();
         const canvasRect = canvas.getBoundingClientRect();
+
+        if (canvasRect.width === 0 || canvasRect.height === 0) {
+            console.warn("[UI] drawRodLine: canvasRect has zero width or height. This might indicate canvas is not visible or not correctly attached to DOM for getBoundingClientRect to work.");
+        }
     
         const rodTipCanvasX = rodTipRect.left + rodTipRect.width / 2 - canvasRect.left;
         const rodTipCanvasY = rodTipRect.top + rodTipRect.height / 2 - canvasRect.top;
     
         const bobberCanvasX = fishingGameState.bobberPosition.x + bobberEl.offsetWidth / 2;
         const bobberCanvasY = fishingGameState.bobberPosition.y + bobberEl.offsetHeight / 2;
+
+        console.log(`[UI] drawRodLine: Line from rodTip (canvas coords: ${rodTipCanvasX.toFixed(2)}, ${rodTipCanvasY.toFixed(2)}) to bobber (canvas coords: ${bobberCanvasX.toFixed(2)}, ${bobberCanvasY.toFixed(2)})`);
     
         ctx.beginPath();
         ctx.moveTo(rodTipCanvasX, rodTipCanvasY);
@@ -542,26 +586,46 @@ const fishingUi = {
         }
     },
     showCatchPreview(item) { 
+        console.log(`%c[DisplayEvent] fishingUi.showCatchPreview CALLED for item:`, 'color: purple; font-weight: bold;', item && item.details ? item.details.name : item, item);
         const previewEl = fishingGameState.ui.catchPreview;
         const imgEl = fishingGameState.ui.catchPreviewImg;
         const nameEl = fishingGameState.ui.catchPreviewName;
         const rarityEl = fishingGameState.ui.catchPreviewRarity;
         const gradeEl = fishingGameState.ui.catchPreviewGrade;
+        const detailsContainer = fishingGameState.ui.catchPreview.querySelector('#fishing-catch-preview-details');
 
-        if (!previewEl || !imgEl || !nameEl || !rarityEl || !gradeEl) return;
 
-        if (item.type === 'ticket') {
-            imgEl.src = `gui/summon_tickets/ticket_${item.details.rarityKey}.png`;
+        if (!previewEl || !imgEl || !nameEl || !rarityEl || !gradeEl || !detailsContainer) {
+            console.error("FishingUI: Catch preview elements not found.", fishingGameState.ui);
+            return;
+        }
+
+        // Reset visibility first
+        detailsContainer.style.display = 'block';
+        nameEl.style.display = 'block';
+        rarityEl.style.display = 'block';
+        gradeEl.style.display = 'block';
+        imgEl.classList.remove('ticket-image');
+        imgEl.style.marginBottom = ''; // Default margin
+
+        if (item.type === 'card' || item.type === 'collectible_card' || item.type === 'fruit_card' || item.type === 'mineral_card') {
+            imgEl.src = item.details.imagePath || (typeof getCardImagePath === 'function' ? getCardImagePath(item.details.set, item.details.cardId) : 'gui/items/placeholder_icon.png');
+            detailsContainer.style.display = 'none'; // Hide the whole details text container
+            imgEl.style.marginBottom = '0'; // Remove margin below image when text is hidden
+        } else if (item.type === 'ticket') {
+            imgEl.src = item.details.imagePath || (typeof getSummonTicketImagePath === 'function' ? getSummonTicketImagePath(item.details.rarityKey) : `gui/summon_tickets/ticket_${item.details.rarityKey}.png`);
             imgEl.classList.add('ticket-image');
             nameEl.textContent = item.details.name;
-            rarityEl.textContent = ''; gradeEl.textContent = '';
-        } else if (item.type === 'card' || item.type === 'fruit_card' || item.type === 'mineral_card') {
-            imgEl.src = getCardImagePath(item.details.set, item.details.cardId);
-            imgEl.classList.remove('ticket-image');
-            nameEl.textContent = `${item.details.set}C${item.details.cardId}`;
-            const rarityInfo = getRarityTierInfo(item.details.rarityKey);
-            rarityEl.textContent = `Rarity: ${rarityInfo ? rarityInfo.name : item.details.rarityKey}`;
-            gradeEl.textContent = `Grade: ${item.details.grade}`;
+            rarityEl.style.display = 'none'; // Tickets don't show rarity text in this preview usually
+            gradeEl.style.display = 'none';  // Tickets don't have grades
+        } else { // Other item types - show all details if available
+             imgEl.src = item.details.imagePath || 'gui/items/placeholder_icon.png';
+             nameEl.textContent = item.details.name || "Unknown Item";
+             const rarityInfo = item.details.rarityKey ? getRarityTierInfo(item.details.rarityKey) : null;
+             rarityEl.textContent = rarityInfo ? `Rarity: ${rarityInfo.name}` : '';
+             rarityEl.style.display = rarityInfo ? 'block' : 'none';
+             gradeEl.textContent = item.details.grade ? `Grade: ${item.details.grade}` : "";
+             gradeEl.style.display = item.details.grade ? 'block' : 'none';
         }
         previewEl.style.display = 'flex';
         setTimeout(() => { previewEl.style.display = 'none'; }, 2500);

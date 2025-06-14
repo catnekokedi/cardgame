@@ -4,6 +4,7 @@
 // Global variable to store the current screen
 let currentScreen = null;
 let isGameInitialized = false;
+// window.cardDataLoaded = false; // Removed this flag
 let currentMiniGame = null; 
 let statsScreenTimeUpdateInterval = null; // For live time updates on stats screen
 
@@ -213,6 +214,7 @@ function showScreen(screenId, performSave = true) {
 
 function initGame() {
   isGameInitialized = false;
+  // window.cardDataLoaded = false; // Removed
   document.documentElement.lang = 'en';
 
   const loadingBarContainer = document.getElementById('loading-bar-container');
@@ -220,15 +222,17 @@ function initGame() {
 
   if (loadingBarContainer && loadingBarProgress) {
     loadingBarContainer.style.display = 'block';
-    loadingBarProgress.style.width = '10%';
+    loadingBarProgress.style.width = '10%'; // Reverted loading bar
   }
 
+  // Critical check for ALL_SET_DEFINITIONS (still important)
   if (typeof ALL_SET_DEFINITIONS === 'undefined') {
       console.error("FATAL: ALL_SET_DEFINITIONS not loaded from js/data/card-definitions.js. Game cannot initialize properly.");
       if (loadingBarContainer) loadingBarContainer.style.display = 'none';
       if (typeof showCustomAlert === 'function') showCustomAlert("Critical Error: Card definitions not loaded. Please refresh or check console.", null, 0);
       return;
   }
+  // Check other critical dependencies (original checks)
   if (typeof RARITY_PACK_PULL_DISTRIBUTION === 'undefined' || typeof getCardIntrinsicRarity !== 'function') {
       console.error("FATAL: Rarity system not loaded from js/data/card-rarity-definitions.js and js/core/rarity-grade-manager.js. Game cannot initialize properly.");
       if (loadingBarContainer) loadingBarContainer.style.display = 'none';
@@ -241,6 +245,28 @@ function initGame() {
       if (typeof showCustomAlert === 'function') showCustomAlert("Critical Error: Card odds system not loaded. Please refresh or check console.", null, 0);
       return;
   }
+
+  // Verification logs for cardData and ALL_SET_DEFINITIONS // REMOVE ALL THESE
+  // console.log('[Verification] typeof window.cardData:', typeof window.cardData); // REMOVED
+  // if (typeof window.cardData === 'object' && window.cardData !== null) { // REMOVED
+      // console.log('[Verification] window.cardData keys length:', Object.keys(window.cardData).length); // REMOVED
+      // if (Object.keys(window.cardData).length < 5 && Object.keys(window.cardData).length > 0) { // Log content only if it's small but not empty // REMOVED
+          // try { // REMOVED
+            // console.log('[Verification] window.cardData content sample (first key):', JSON.stringify(window.cardData[Object.keys(window.cardData)[0]])); // REMOVED
+          // } catch (e) { console.log('[Verification] window.cardData content sample could not be stringified.');} // REMOVED
+      // } else if (Object.keys(window.cardData).length === 0) { // REMOVED
+           // console.log('[Verification] window.cardData is empty object.'); // REMOVED
+      // } // REMOVED
+  // } else { // REMOVED
+      // console.error('[Verification] window.cardData is not an object or is null!'); // REMOVED
+  // } // REMOVED
+  // console.log('[Verification] typeof window.ALL_SET_DEFINITIONS:', typeof window.ALL_SET_DEFINITIONS); // REMOVED
+  // if (typeof window.ALL_SET_DEFINITIONS === 'object' && window.ALL_SET_DEFINITIONS !== null && typeof window.ALL_SET_DEFINITIONS.length === 'number') { // REMOVED
+      // console.log('[Verification] window.ALL_SET_DEFINITIONS length:', window.ALL_SET_DEFINITIONS.length > 0 ? window.ALL_SET_DEFINITIONS.length : 'EMPTY'); // REMOVED
+  // } else { // REMOVED
+      // console.error('[Verification] window.ALL_SET_DEFINITIONS is not an array/object or is null!'); // REMOVED
+  // } // REMOVED
+  // End of verification logs
 
   let screenToDisplayOnLoad = SCREENS.STATS;
   let miniGameToLoadOnLoad = null;
@@ -386,39 +412,42 @@ function initGame() {
   });
 
   if (loadingBarProgress) loadingBarProgress.style.width = '90%';
-  isGameInitialized = true;
-  console.log("Game initialized.");
-  if (typeof playSound === 'function') playSound('sfx_game_start.mp3');
+  // isGameInitialized = true; // Moved to the end of the async function
+  console.log("Main systems initialized, proceeding to UI and final setup...");
+  if (typeof playSound === 'function') playSound('sfx_game_start.mp3'); // Initial sound after main data load
 
 
-  setTimeout(() => {
-    if (loadingBarProgress) loadingBarProgress.style.width = '100%';
-    
-    if (miniGameToLoadOnLoad) {
-        if (typeof showScreen === 'function') showScreen(SCREENS.GAMES, false);
-        else console.error("showScreen is not a function at initGame setTimeout for miniGameToLoadOnLoad");
-        if (typeof loadMiniGame === 'function') loadMiniGame(miniGameToLoadOnLoad);
-    } else if (screenToDisplayOnLoad === SCREENS.PACK_SELECTION && typeof openingpack !== 'undefined' && openingpack.currentPack && openingpack.currentPack.length > 0 && !openingpack.areAllCardsInPackRevealed()) {
-        if (typeof showScreen === 'function') showScreen(SCREENS.PACK_SELECTION, false);
-        else console.error("showScreen is not a function at initGame setTimeout for pack selection resume");
-        if (typeof openingpack.showCorrectPackOpeningUI === 'function') {
-            openingpack.showCorrectPackOpeningUI(); 
-        }
-    } else if (screenToDisplayOnLoad && document.getElementById(screenToDisplayOnLoad)) {
-        if (typeof showScreen === 'function') showScreen(screenToDisplayOnLoad);
-        else console.error("showScreen is not a function at initGame setTimeout for general screen load");
-    } else {
-        if (typeof showScreen === 'function') showScreen(SCREENS.STATS); 
-        else console.error("showScreen is not a function at initGame setTimeout for fallback to STATS");
-    }
+  // The rest of UI initializations and screen display logic
+  // This part can run after essential data (like cardData) is ready.
+  if (loadingBarProgress) loadingBarProgress.style.width = '100%';
 
-    if (loadingBarContainer && loadingBarProgress) {
-        setTimeout(() => {
-            if (loadingBarContainer) loadingBarContainer.style.display = 'none';
-            if (loadingBarProgress) loadingBarProgress.style.width = '0%';
-        }, 500);
-    }
-  }, 0);
+  if (miniGameToLoadOnLoad) {
+      if (typeof showScreen === 'function') showScreen(SCREENS.GAMES, false);
+      else console.error("showScreen is not a function at initGame setTimeout for miniGameToLoadOnLoad");
+      if (typeof loadMiniGame === 'function') loadMiniGame(miniGameToLoadOnLoad);
+  } else if (screenToDisplayOnLoad === SCREENS.PACK_SELECTION && typeof openingpack !== 'undefined' && openingpack.currentPack && openingpack.currentPack.length > 0 && !openingpack.areAllCardsInPackRevealed()) {
+      if (typeof showScreen === 'function') showScreen(SCREENS.PACK_SELECTION, false);
+      else console.error("showScreen is not a function at initGame setTimeout for pack selection resume");
+      if (typeof openingpack.showCorrectPackOpeningUI === 'function') {
+          openingpack.showCorrectPackOpeningUI();
+      }
+  } else if (screenToDisplayOnLoad && document.getElementById(screenToDisplayOnLoad)) {
+      if (typeof showScreen === 'function') showScreen(screenToDisplayOnLoad);
+      else console.error("showScreen is not a function at initGame setTimeout for general screen load");
+  } else {
+      if (typeof showScreen === 'function') showScreen(SCREENS.STATS);
+      else console.error("showScreen is not a function at initGame setTimeout for fallback to STATS");
+  }
+
+  if (loadingBarContainer && loadingBarProgress) {
+      setTimeout(() => {
+          if (loadingBarContainer) loadingBarContainer.style.display = 'none';
+          if (loadingBarProgress) loadingBarProgress.style.width = '0%';
+      }, 500); // Short delay to ensure 100% is visible briefly
+  }
+
+  isGameInitialized = true; // Set game as initialized only after all async operations and UI are ready
+  console.log("Game fully initialized and ready.");
 }
 
 document.addEventListener('DOMContentLoaded', initGame);

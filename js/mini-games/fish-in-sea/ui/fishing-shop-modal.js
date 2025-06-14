@@ -7,9 +7,9 @@ function setupFishingShopModal() { // Renamed from setupShopModal for clarity
     // Event listeners for tabs and close button are set in fishingUi.addEventListeners
     // Initial render of ticket balances and items:
     renderFishingShopTicketBalances();
-    renderFishingShopItems('fish'); // Default to fish tab
+    renderFishingShopItems('fish_card'); // Default to fish_card tab
      // Activate the first tab if not already
-    const firstTab = shopModal.querySelector('.fishing-shop-tabs button[data-tab-type="fish"]');
+    const firstTab = shopModal.querySelector('.fishing-shop-tabs button[data-tab-type="fish_card"]');
     if (firstTab) {
         shopModal.querySelectorAll('.fishing-shop-tabs button').forEach(btn => btn.classList.remove('active'));
         firstTab.classList.add('active');
@@ -56,24 +56,34 @@ function renderFishingShopItems(tabType = 'fish') { // Renamed from renderShopIt
     let exchangeRatesConfig;
     let itemFilterType;
     let itemCategoryTitle = "";
+    // Ensure FISHING_CONFIG has these new exchange rate categories if they are to be exchangeable
+    // For now, this subtask focuses on display. We can use CARD_EXCHANGE_RATES as a fallback for Bird items.
 
     switch (tabType) {
-        case 'fruit':
-            exchangeRatesConfig = FISHING_CONFIG.FRUIT_EXCHANGE_RATES;
+        case 'fruit_card': // Match data-tab-type from HTML
+            exchangeRatesConfig = FISHING_CONFIG.FRUIT_EXCHANGE_RATES || {};
             itemFilterType = 'fruit_card';
             itemCategoryTitle = "Fruit Exchange Progress";
             break;
-        case 'minerals':
-            exchangeRatesConfig = FISHING_CONFIG.MINERAL_EXCHANGE_RATES;
+        case 'mineral_card': // Match data-tab-type from HTML
+            exchangeRatesConfig = FISHING_CONFIG.MINERAL_EXCHANGE_RATES || {};
             itemFilterType = 'mineral_card';
-            itemCategoryTitle = "Mineral Exchange Progress";
+            itemCategoryTitle = "Rock Exchange Progress"; // Renamed for consistency
             break;
-        default: // 'fish' or cards
-            exchangeRatesConfig = FISHING_CONFIG.CARD_EXCHANGE_RATES;
-            itemFilterType = 'card';
-            itemCategoryTitle = "Card Exchange Progress";
+        case 'bird_reward_card': // Match data-tab-type from HTML
+            exchangeRatesConfig = FISHING_CONFIG.BIRD_REWARD_EXCHANGE_RATES || FISHING_CONFIG.CARD_EXCHANGE_RATES || {}; // Fallback
+            itemFilterType = 'bird_reward_card';
+            itemCategoryTitle = "Bird Item Exchange Progress";
+            break;
+        case 'fish_card': // Match data-tab-type from HTML (default)
+        default:
+            exchangeRatesConfig = FISHING_CONFIG.CARD_EXCHANGE_RATES || {}; // CARD_EXCHANGE_RATES for fish_card
+            itemFilterType = 'fish_card';
+            itemCategoryTitle = "Fish Exchange Progress";
+            tabType = 'fish_card'; // Ensure tabType is set for default case
             break;
     }
+    console.log(`[Shop] Tab: ${tabType}, ItemFilterType: ${itemFilterType}, Config Used:`, exchangeRatesConfig);
     
     const progressDiv = document.createElement('div');
     progressDiv.className = 'fishing-shop-item-group';
@@ -107,10 +117,34 @@ function renderFishingShopItems(tabType = 'fish') { // Renamed from renderShopIt
     exchangeInfoArea.appendChild(progressDiv);
 
     const currentBasketItems = (typeof fishingBasket !== 'undefined' && Array.isArray(fishingBasket.basketContents)) ? fishingBasket.basketContents : [];
-    const itemsToDisplay = currentBasketItems.filter(item => item && item.cardData && item.cardData.type === itemFilterType && !item.isLocked);
+    // console.log(`[Shop] Rendering tab "${tabType}", initial filterType (for config) "${itemFilterType}". Total basket items: ${currentBasketItems.length}`);
+    // Log moved to after switch where itemFilterType is finalized for the current tabType
+
+    const itemsToDisplay = currentBasketItems.filter(item =>
+        item && item.cardData &&
+        item.cardData.type === itemFilterType && // Use the determined itemFilterType
+        !item.isLocked
+    );
+
+    // Existing log covers counts and types well.
+    console.log(`[Shop] For Tab "${tabType}" (using filter type "${itemFilterType}"): Displaying ${itemsToDisplay.length} of ${currentBasketItems.filter(i => i.cardData && i.cardData.type === itemFilterType).length} available (unlocked) items. Total basket items: ${currentBasketItems.length}`);
+
+    // Added verbose logging as requested for this subtask
+    console.log(`[ShopRender] Rendering tabType: "${tabType}", resolved itemFilterType: "${itemFilterType}"`);
+    try {
+        console.log(`[ShopRender] Current basket contents (for shop):`, JSON.parse(JSON.stringify(currentBasketItems)));
+        console.log(`[ShopRender] Items after filtering for shop display:`, JSON.parse(JSON.stringify(itemsToDisplay)));
+    } catch (e) {
+        console.error("[ShopRender] Error stringifying basket/items for logging:", e);
+        console.log("[ShopRender] Current basket (raw):", currentBasketItems);
+        console.log("[ShopRender] Items to display (raw):", itemsToDisplay);
+    }
+    // Original more detailed item logging (can be uncommented if simple list is preferred over full stringify)
+    // console.log(`[Shop] Items to display for "${tabType}":`, itemsToDisplay.map(i => ({name: i.cardData.name, type: i.cardData.type, source: i.cardData.source })));
+
 
     if (itemsToDisplay.length === 0) {
-        itemsGrid.innerHTML = `<p class="text-center text-xs text-gray-500" style="grid-column: 1 / -1;">No unlocked ${tabType.replace('_',' ')} items in basket for exchange.</p>`;
+        itemsGrid.innerHTML = `<p class="text-center text-xs text-gray-500" style="grid-column: 1 / -1;">No unlocked ${itemCategoryTitle.split(' ')[0]} items in basket for exchange.</p>`;
         return;
     }
     itemsToDisplay.forEach(item => {

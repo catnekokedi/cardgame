@@ -449,12 +449,32 @@
 }
 #fishing-catch-preview {
     position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
-    width: 85px; padding: 5px; background-color: rgba(255,255,255,0.97);
-    border: 1px solid #b8b8b8; border-radius: 3.5px; box-shadow: 0 1px 3.5px rgba(0,0,0,0.15);
-    z-index: 20; display: none; flex-direction: column; align-items: center;
+    /* width: 85px; */ /* Let width be auto or controlled by max-width of image */
+    width: auto; /* Allow it to shrink to content */
+    padding: 0; /* Was 5px */
+    background: transparent; /* Was rgba(255,255,255,0.97) */
+    border: none; /* Was 1px solid #b8b8b8 */
+    border-radius: 3.5px; /* Can keep radius for image if image itself doesn't have one */
+    box-shadow: none; /* Was 0 1px 3.5px rgba(0,0,0,0.15) */
+    z-index: 20;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    /* max-width: 100px; /* Constrain overall size */
+    /* max-height: 150px; */
 }
-#fishing-catch-preview img { width: 45px; height: 63px; margin-bottom: 2.5px; } 
-#fishing-catch-preview img.ticket-image { width: 35px; height: 49px; }
+#fishing-catch-preview img {
+    width: 70px; /* Increased size */
+    height: 98px; /* Increased size (maintaining 7:5 aspect ratio approx) */
+    margin-bottom: 0; /* Was 2.5px, removed as text details are hidden for cards */
+    border: none; /* Ensure no border on image itself */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Optional: add a slight shadow to the card image itself for depth */
+}
+#fishing-catch-preview img.ticket-image {
+    width: 50px; /* Adjusted ticket size */
+    height: 70px;
+    margin-bottom: 2.5px; /* Keep margin if text details are shown for tickets */
+}
 #fishing-catch-preview p { font-size: 0.55rem; margin: 0; text-align: center; color: #333;}
 
 

@@ -125,7 +125,15 @@ function showGallery(page = 1) {
 
         const cardWrapper = document.createElement('div');
         cardWrapper.className = `card ${card.rarityKey}`; // This div gets the 'card' and rarity class for effects
-        cardWrapper.onclick = () => showCardDetail(card.setIdentifier, card.id, card.rarityKey, 'gallery', card.instanceId, card.grade);
+
+        cardWrapper.onclick = () => {
+            console.log(`[Gallery] Clicked card: Set=${card.setIdentifier}, ID=${card.id}, Rarity=${card.rarityKey}, Grade=${card.grade}, InstanceID=${card.instanceId}. Attempting to show detail.`);
+            if (typeof showCardDetail === 'function') {
+                showCardDetail(card.setIdentifier, card.id, card.rarityKey, 'gallery', card.instanceId, card.grade);
+            } else {
+                console.error("[Gallery] showCardDetail function is not defined!");
+            }
+        };
 
         cardWrapper.appendChild(img);
         cardDivContainer.appendChild(cardWrapper); // Append wrapper to the container

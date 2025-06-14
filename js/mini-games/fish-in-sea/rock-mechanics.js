@@ -13,10 +13,10 @@ const BASE_ROCK_RESPAWN_TIME = 20000; // 20 seconds, can be randomized per rock
 
 // Rock Definitions: HP, card drop pool (placeholders), appearance
 const rockDefinitions = {
-    common: { hp: 5, color: '#A0A0A0', cardPool: ['mineral_common_1', 'mineral_common_2'], ticketChance: 0.05, name: "Common Rock", image: "rock_common.png", crackImages: ["rock_common_crack1.png", "rock_common_crack2.png", "rock_common_crack3.png"] },
-    uncommon: { hp: 8, color: '#60A0B0', cardPool: ['mineral_uncommon_1'], ticketChance: 0.1, name: "Uncommon Rock", image: "rock_uncommon.png", crackImages: ["rock_uncommon_crack1.png", "rock_uncommon_crack2.png", "rock_uncommon_crack3.png"] },
-    rare: { hp: 12, color: '#7070FF', cardPool: ['mineral_rare_1'], ticketChance: 0.2, name: "Rare Rock", image: "rock_rare.png", crackImages: ["rock_rare_crack1.png", "rock_rare_crack2.png", "rock_rare_crack3.png"] },
-    legendary: { hp: 20, color: '#FFD700', cardPool: ['mineral_legendary_1'], ticketChance: 0.35, name: "Legendary Rock", image: "rock_legendary.png", crackImages: ["rock_legendary_crack1.png", "rock_legendary_crack2.png", "rock_legendary_crack3.png"] }
+    common: { hp: 1, color: '#A0A0A0', cardPool: ['mineral_common_1', 'mineral_common_2'], ticketChance: 0.05, name: "Common Rock", image: "rock_common.png", crackImages: ["rock_common_crack1.png", "rock_common_crack2.png", "rock_common_crack3.png"] },
+    uncommon: { hp: 2, color: '#60A0B0', cardPool: ['mineral_uncommon_1'], ticketChance: 0.1, name: "Uncommon Rock", image: "rock_uncommon.png", crackImages: ["rock_uncommon_crack1.png", "rock_uncommon_crack2.png", "rock_uncommon_crack3.png"] },
+    rare: { hp: 3, color: '#7070FF', cardPool: ['mineral_rare_1'], ticketChance: 0.2, name: "Rare Rock", image: "rock_rare.png", crackImages: ["rock_rare_crack1.png", "rock_rare_crack2.png", "rock_rare_crack3.png"] },
+    legendary: { hp: 4, color: '#FFD700', cardPool: ['mineral_legendary_1'], ticketChance: 0.35, name: "Legendary Rock", image: "rock_legendary.png", crackImages: ["rock_legendary_crack1.png", "rock_legendary_crack2.png", "rock_legendary_crack3.png"] }
 };
 const rockRarities = Object.keys(rockDefinitions);
 
@@ -85,50 +85,72 @@ function spawnNewRock(slotIndex, initialDelay = 0) {
 
 // selectPickaxeTool and deselectPickaxeTool functions REMOVED
 
-/**
- * Handles hitting a rock.
- * @param {number} rockSlotIndex The index of the rock slot.
- */
+// Overwrite existing hitRock with this version:
 function hitRock(rockSlotIndex) {
-    // Removed pickaxe selection dependency for direct rock interaction
-    /*
-    if (!fishingGameState.pickaxeSelected) {
-        if(typeof showCustomAlert === 'function') { // Changed to showCustomAlert
-            showCustomAlert("Select the pickaxe tool first!", null, 1500);
-        }
-        return;
-    }
-    */
     const rock = rockSlots[rockSlotIndex];
-    if (!rock || rock.isRespawning) {
-        console.log("No active rock in this slot or rock is respawning.");
+
+    if (!rock || rock.isRespawning || (rock.hp !== undefined && rock.hp <= 0)) {
+        // console.log(`[RockHP-Guard] Slot ${rockSlotIndex}: Invalid, respawning, or already broken (HP: ${rock ? rock.hp : 'N/A'}). Ignoring hit.`);
         return;
     }
 
     const now = Date.now();
     if (now - (rockLastHitTime[rockSlotIndex] || 0) < ROCK_HIT_COOLDOWN) {
-        // console.log("Rock hit on cooldown."); // Can be spammy
+        // console.log(`[RockHP-Cooldown] Slot ${rockSlotIndex}: Hit on cooldown.`);
         return;
     }
     rockLastHitTime[rockSlotIndex] = now;
 
-    rock.hp -= 1; // Player always deals 1 damage per hit for now
-    // Max 3 crack stages. Stage 0 = no cracks, Stage 1 = 1/3 damage, Stage 2 = 2/3 damage, Stage 3 = almost broken
-    rock.cracks = Math.min(3, Math.floor(((rock.maxHp - rock.hp) / rock.maxHp) * 4));
+    if (rock.hp === undefined) {
+        console.error(`[RockHP-Error] Slot ${rockSlotIndex}: HP is undefined. MaxHP: ${rock.maxHp}. Defaulting HP.`);
+        rock.hp = rock.maxHp !== undefined ? rock.maxHp : 1;
+    }
 
+    rock.hp -= 1;
+    // console.log(`[RockHP-Hit] Slot ${rockSlotIndex}: Hit registered. HP after decrement: ${rock.hp}`);
 
-    if (typeof playSound === 'function') playSound('sfx_rock_hit.mp3');
+    if (rock.hp < 0) {
+        console.warn(`[RockHP-Clamp] Slot ${rockSlotIndex}: HP was ${rock.hp}. Clamping to 0.`);
+        rock.hp = 0;
+    }
 
-    if (rock.hp <= 0) {
-        console.log(`Rock in slot ${rockSlotIndex} destroyed!`);
-        grantRockRewards(rock.definition);
+    if (typeof playSound === 'function') {
+        playSound('sfx_rock_hit.mp3');
+    }
+
+    if (rock.hp === 0) {
+        // console.log(`[RockHP-Destroyed] Slot ${rockSlotIndex}: Destroyed (HP reached 0).`);
+        let rockDefinitionForRewards = rock.definition;
+        if (!rockDefinitionForRewards) {
+            console.error(`[RockHP-Error] Slot ${rockSlotIndex}: Missing definition for rewards. Rarity: ${rock.rarity}. Attempting to reconstruct.`);
+            if (rock.rarity && rockDefinitions[rock.rarity]) {
+                rockDefinitionForRewards = rockDefinitions[rock.rarity];
+            } else {
+                console.error(`[RockHP-Error] Slot ${rockSlotIndex}: Cannot reconstruct definition for rarity ${rock.rarity}. Rewards may be incorrect.`);
+            }
+        }
+        if (rockDefinitionForRewards) {
+            grantRockRewards(rockDefinitionForRewards);
+        }
 
         rockSlots[rockSlotIndex] = {
             isRespawning: true,
-            respawnTimer: BASE_ROCK_RESPAWN_TIME + (Math.random() * 5000 - 2500) // Add some variance
+            respawnTimer: BASE_ROCK_RESPAWN_TIME + (Math.random() * 5000 - 2500)
         };
-        console.log(`Rock in slot ${rockSlotIndex} will respawn in about ${Math.round(rockSlots[rockSlotIndex].respawnTimer/1000)}s.`);
-        if (typeof playSound === 'function') playSound('sfx_rock_destroy.mp3');
+        if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.renderRocks === 'function') {
+            fishingRocksUi.renderRocks(getRockSlotsData());
+        }
+        if (typeof playSound === 'function') {
+            playSound('sfx_rock_destroy.mp3');
+        }
+        return;
+    } else {
+        // Update cracks only if not destroyed
+        if (rock.maxHp !== undefined && rock.maxHp > 0) {
+           rock.cracks = Math.min(3, Math.floor(((rock.maxHp - rock.hp) / rock.maxHp) * 4));
+        } else {
+           rock.cracks = rock.cracks || 0;
+        }
     }
 
     if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.renderRocks === 'function') {
@@ -199,9 +221,10 @@ function grantRockRewards(rockDef) {
                         rarity: fixedProps.rarityKey, // Actual card rarity
                         price: fixedProps.price,
                         imagePath: getCardImagePath(randomSetDef.abbr, cardIdNum),
-                        type: 'collectible_card', // Mark as a standard collectible card
+                        type: 'mineral_card', // Standardized type for items from rocks
                         source: 'mining'
                     };
+                    console.log(`[RockMechanics] Generated mineral/card: Name=${generatedCardData.name}, Type=${generatedCardData.type}, Source=${generatedCardData.source}`);
                 }
             }
         }
@@ -218,38 +241,23 @@ function grantRockRewards(rockDef) {
             price: generatedCardData.price,
             grade: generatedCardData.grade,
             imagePath: generatedCardData.imagePath || getCardImagePath(generatedCardData.set, generatedCardData.id),
-            type: generatedCardData.type, // 'collectible_card' or 'mineral'
+            type: generatedCardData.type, // Should be 'mineral_card' from generation step
             source: generatedCardData.source || 'mining'
         };
-
-        console.log("Rock dropped item, adding to basket:", cardDataForBasket);
+        // Logging already present for cardDataForBasket here is good.
+        // console.log("Rock dropped item, adding to basket:", cardDataForBasket);
         if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
             window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
 
-            // Show temporary display
-            const displayData = {
-                type: cardDataForBasket.type === 'collectible_card' ? 'card' : cardDataForBasket.type,
-                details: cardDataForBasket,
-                set: cardDataForBasket.set,
-                id: cardDataForBasket.id,
-                cardId: cardDataForBasket.id,
-                name: cardDataForBasket.name,
-                rarityKey: cardDataForBasket.rarityKey,
-                grade: cardDataForBasket.grade,
-                imagePath: cardDataForBasket.imagePath
-            };
-
-            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
-                window.fishingUi.showCaughtItemDisplay(displayData);
-            } else if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+            // Show temporary display using showCatchPreview
+            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
                 const previewItem = {
-                    type: displayData.type === 'mineral' ? 'material' : 'card', // Adjust for showCatchPreview
-                    details: displayData.details
+                    type: cardDataForBasket.type, // Should be 'mineral_card'
+                    details: cardDataForBasket // Pass the whole cardDataForBasket as details
                 };
                 window.fishingUi.showCatchPreview(previewItem);
-            } else if (typeof showTemporaryCollectedItem === 'function') {
-                showTemporaryCollectedItem(displayData);
             }
+            // Fallback to showTemporaryCollectedItem removed.
 
         } else {
             console.warn("fishingBasket.addCardToBasket function not found. Item from rock not added to basket.");
@@ -260,20 +268,32 @@ function grantRockRewards(rockDef) {
 
     // Ticket chance remains, handled independently of the card/mineral drop
     if (Math.random() < rockDef.ticketChance) {
-        const ticketType = "common_summon_ticket"; // Placeholder, could also be biased by rockDef.rarity
-        // console.log(`Granted Summon Ticket: ${ticketType}`); // Original log
-        if (typeof addSummonTickets === 'function') {
-            const ticketRarityKey = ticketType.replace('_summon_ticket',''); // e.g., "common"
-            addSummonTickets(ticketRarityKey, 1);
-            if(typeof showCustomModal === 'function') {
-                // Construct a more user-friendly name if possible
-                const rarityInfo = typeof getRarityTierInfo === 'function' ? getRarityTierInfo(ticketRarityKey) : null;
-                const ticketDisplayName = rarityInfo ? `${rarityInfo.name} Summon Ticket` : ticketType.replace(/_/g, ' ');
-                showCustomModal(`Found a ${ticketDisplayName}!`, "success");
+        if (typeof summonTicketRarities !== 'undefined' && summonTicketRarities.length > 0 && typeof addSummonTickets === 'function') {
+            const randomTicketRarityKey = summonTicketRarities[Math.floor(Math.random() * summonTicketRarities.length)];
+            addSummonTickets(randomTicketRarityKey, 1); // e.g., addSummonTickets('rare', 1)
+
+            const rarityInfo = typeof getRarityTierInfo === 'function' ? getRarityTierInfo(randomTicketRarityKey) : null;
+            const ticketDisplayName = rarityInfo ? `${rarityInfo.name} Summon Ticket` : `${randomTicketRarityKey} Summon Ticket`;
+            // console.log(`Rock granted Summon Ticket: ${ticketDisplayName}`); // Log below is more specific
+
+            // Display logic for the ticket (already good)
+            const ticketDisplayData = {
+                name: ticketDisplayName,
+                imagePath: typeof getSummonTicketImagePath === 'function' ? getSummonTicketImagePath(randomTicketRarityKey) : `gui/summon_tickets/ticket_${randomTicketRarityKey}.png`,
+                type: 'ticket',
+                source: 'mining', // Add source for consistency if this object were to be used for basket
+                details: { rarityKey: randomTicketRarityKey, name: ticketDisplayName, source: 'mining' }
+            };
+            console.log(`[RockMechanics] Granted Summon Ticket: ${ticketDisplayName}, Type=${ticketDisplayData.type}, Source=${ticketDisplayData.source}`);
+
+
+            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+                 window.fishingUi.showCatchPreview(ticketDisplayData); // ticketDisplayData now includes source in details
             }
-            console.log(`Granted Summon Ticket: ${ticketRarityKey} (originally ${ticketType})`);
+            // Fallbacks to showTemporaryCollectedItem and showCustomModal removed for tickets from this point.
+            // addSummonTickets handles its own user feedback if showCatchPreview is not available.
         } else {
-            console.warn("addSummonTickets function not found. Ticket not granted.");
+            console.warn("summonTicketRarities array not defined/empty, or addSummonTickets function missing. Cannot grant random ticket from rock.");
         }
     }
 }
