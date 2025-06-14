@@ -322,6 +322,7 @@ function collectCardFromTree(slotIndex) {
             window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
 
             // Standardize to use showCatchPreview
+            /*
             if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
                 const itemTypeForPreview = (cardDataForBasket.type === 'collectible_card' || cardDataForBasket.type === 'fruit_card' || cardDataForBasket.type === 'mineral_card') ? 'card' : cardDataForBasket.type;
                 const previewItem = {
@@ -342,6 +343,21 @@ function collectCardFromTree(slotIndex) {
                     console.warn("playSound function not found, cannot play collection sound.");
                 }
                 window.fishingUi.showCatchPreview(previewItem);
+            }
+            */
+            // Play sound on collection (moved here to be before the global display)
+            if (typeof playSound === 'function') {
+                playSound('sfx/ui_notification_simple.wav');
+            } else {
+                console.warn("playSound function not found, cannot play collection sound.");
+            }
+
+            // Use global temporary item display for consistency with other rewards
+            if (typeof window.showTemporaryCollectedItem === 'function') {
+                // cardDataForBasket should have name, imagePath, set, id, etc.
+                window.showTemporaryCollectedItem(cardDataForBasket);
+            } else {
+                console.warn("window.showTemporaryCollectedItem function not found. Cannot display tree reward globally.");
             }
             // Fallback to showTemporaryCollectedItem removed to ensure single display path.
             // If showCatchPreview is not available, nothing will be shown by this function,

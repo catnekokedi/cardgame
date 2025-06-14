@@ -113,13 +113,29 @@ const birdMechanics = {
                 if (window.birdUi && typeof window.birdUi.showRewardDropped === 'function') {
                     window.birdUi.showRewardDropped(bird, reward);
                 }
-                 // Show temporary display using existing fishing UI
+                // Show temporary display using existing fishing UI
+                /*
                 if (window.fishingUi && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
                     const displayData = this.formatRewardForDisplay(reward);
                     window.fishingUi.showCaughtItemDisplay(displayData);
                 }
+                */
 
+                // basketItem should have been prepared by this.formatRewardForBasket(reward) earlier in this 'if (reward)' block.
+                // Play sound for bird reward (NEW - for consistency with tree)
+                if (typeof playSound === 'function') {
+                    playSound('sfx/ui_notification_simple.wav'); // Match tree reward sound
+                } else {
+                    console.warn("playSound function not found, cannot play bird collection sound.");
+                }
 
+                // Use global temporary item display for consistency
+                if (typeof window.showTemporaryCollectedItem === 'function') {
+                    // basketItem is already formatted and available from the addCardToBasket call block
+                    window.showTemporaryCollectedItem(this.formatRewardForBasket(reward)); // Use the formatted basketItem
+                } else {
+                    console.warn("window.showTemporaryCollectedItem function not found. Cannot display bird reward globally.");
+                }
             } else {
                 // console.log("Bird dropped nothing."); // INFO - Event driven, okay
                  if (window.birdUi && typeof window.birdUi.showRewardDropped === 'function') {
