@@ -54,7 +54,7 @@ window.fishingBasketUi = {
             }
         });
 
-        console.log("Fishing Basket UI initialized.");
+        // console.log("Fishing Basket UI initialized."); // REMOVE - Aggressive cleanup
         this.populateRarityFilter(); // Populate filter options
     },
 
@@ -123,32 +123,51 @@ window.fishingBasketUi = {
             // cardData: { set, id, rarity, price, name, imagePath, type, source }
             // console.log("[FishingBasketUI] Rendering item.cardData:", item.cardData, "Quantity:", item.quantity, "Source:", item.cardData.source); // REMOVE - Aggressive cleanup
 
-            let cardImageSrc = 'gui/items/placeholder_icon.png'; // Default fallback
-            // New check for known error items
-            const errorItemTypes = ['error_card_generation', 'error_card_missing_data', 'error_card_save_load'];
-            if (item.cardData && (item.cardData.id === 'error_card' || item.cardData.set === 'fish_in_sea_error' || errorItemTypes.includes(item.cardData.type))) {
-                cardImageSrc = 'gui/fishing_game/tree-back.png';
-            } else if (item.cardData && item.cardData.imagePath) { // Prioritize direct imagePath if available
-                cardImageSrc = item.cardData.imagePath;
-            } else if (item.cardData && item.cardData.set && item.cardData.id && typeof getCardImagePath === 'function') {
-                // This assumes getCardImagePath is a global function that takes set and id
-                cardImageSrc = getCardImagePath(item.cardData.set, item.cardData.id);
-            } else if (item.cardData && item.cardData.type === 'summon_ticket' && item.cardData.rarityKey && typeof getSummonTicketImagePath === 'function') {
-                // Specific fallback for summon tickets if imagePath was missing but rarityKey exists
-                cardImageSrc = getSummonTicketImagePath(item.cardData.rarityKey);
-            }
-            // console.log("[FishingBasketUI] Determined cardImageSrc:", cardImageSrc, "for item name:", item.cardData.name); // Moved log after all conditions
+            let cardImageSrc = 'gui/fishing_game/tree-back.png'; // Default to placeholder
+            const card = item.cardData;
 
-            const cardName = item.cardData.name || (item.cardData.type ? `Unknown ${item.cardData.type.replace('_', ' ')}` : 'Unknown Item');
-            const cardRarity = item.cardData.rarityKey || item.cardData.rarity || '';
+            if (card) {
+                const errorItemTypes = ['error_card_generation', 'error_card_missing_data', 'error_card_save_load'];
+                if (card.id === 'error_card' || card.set === 'fish_in_sea_error' || errorItemTypes.includes(card.type)) {
+                    // cardImageSrc is already set to tree-back.png, so this condition is met.
+                } else if (card.imagePath && typeof card.imagePath === 'string' && card.imagePath.includes('/')) {
+                    cardImageSrc = card.imagePath;
+                } else if (card.set && card.id && (typeof card.id === 'number' || !isNaN(parseInt(card.id)))) {
+                    const numericId = parseInt(card.id); // Ensure numeric ID for getCardImagePath
+                    if (numericId > 0) { // Check if parsing was successful and ID is valid
+                        const pathFromUtil = getCardImagePath(card.set, numericId);
+                        if (pathFromUtil && !pathFromUtil.includes('undefined') && !pathFromUtil.includes('No+Set+Meta')) {
+                            cardImageSrc = pathFromUtil;
+                        } else {
+                            // console.warn(`[BasketRender] getCardImagePath returned problematic path for ${card.set}#${numericId}: ${pathFromUtil}. Using placeholder.`);
+                        }
+                    } else {
+                         // console.warn(`[BasketRender] Invalid numericId for ${card.set}#${card.id}. Using placeholder.`);
+                    }
+                } else if (card.type === 'summon_ticket' && card.rarityKey && typeof getSummonTicketImagePath === 'function') {
+                    cardImageSrc = getSummonTicketImagePath(card.rarityKey);
+                } else {
+                    // console.warn(`[BasketRender] Could not determine valid image path for card:`, card, `. Using placeholder.`);
+                }
+            }
+
+            const cardName = card ? (card.name || (card.type ? `Unknown ${card.type.replace('_', ' ')}` : 'Unknown Item')) : 'Unknown Item';
+            const cardRarity = card ? (card.rarityKey || card.rarity || '') : '';
+
+            const imgElement = document.createElement('img');
+            imgElement.src = cardImageSrc;
+            imgElement.alt = cardName;
+            imgElement.className = 'basket-card-image';
+            imgElement.onerror = function() { this.src = 'gui/fishing_game/tree-back.png'; this.onerror = null; };
 
             cardDiv.innerHTML = `
-                <img src="${cardImageSrc}" alt="${cardName}" class="basket-card-image">
+                <!-- Image will be appended by JS -->
                 <div class="basket-card-name">${cardName}</div>
                 <div class="basket-card-quantity">x ${item.quantity}</div>
                 <div class="basket-card-rarity ${cardRarity}">${cardRarity}</div>
                 ${item.isLocked ? '<div class="basket-card-lock-icon">🔒</div>' : ''}
             `;
+            cardDiv.prepend(imgElement); // Prepend image so text overlays it if CSS is set up that way, or append if preferred
             cardDiv.dataset.instanceId = item.instanceId;
             // console.log("[FishingBasketUI] Final cardImageSrc:", cardImageSrc, "for item name:", cardName); // REMOVE - Aggressive cleanup
 
@@ -271,4 +290,4 @@ window.fishingBasketUi = {
 // Make globally available
 window.fishingBasketUi = fishingBasketUi;
 
-console.log("fishing-basket-ui.js loaded");
+// console.log("fishing-basket-ui.js loaded"); // REMOVE - Aggressive cleanup

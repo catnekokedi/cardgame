@@ -54,11 +54,11 @@ function startFishingGame(gameContentEl, gameResultEl) {
     if (typeof window.fishingRocksUi !== 'undefined' && typeof window.fishingRocksUi.initializeRockUI === 'function') window.fishingRocksUi.initializeRockUI(); else console.warn("fishingRocksUi.initializeRockUI function not found.");
 
     // Core fishing mechanics (fish movement, bite logic)
-    console.log("[Main] Attempting to call window.fishingMechanics.initializeFishingMechanics()");
+    // console.log("[Fixed] Attempting to call window.fishingMechanics.initializeFishingMechanics()"); // Commented out for aggressive cleanup
     if (typeof window.fishingMechanics !== 'undefined' && typeof window.fishingMechanics.initializeFishingMechanics === 'function') {
-        window.fishingMechanics.initializeFishingMechanics();
+       window.fishingMechanics.initializeFishingMechanics();
     } else {
-        console.error("[Main] window.fishingMechanics or initializeFishingMechanics not found!");
+       console.error("[Fixed] CRITICAL: window.fishingMechanics or initializeFishingMechanics method not found!");
     }
     // UI for new core fishing game elements (sea container, fish rendering)
     // if (typeof window.fishingGameUi !== 'undefined' && typeof window.fishingGameUi.initializeFishingUIElements === 'function') window.fishingGameUi.initializeFishingUIElements(); else console.warn("fishingGameUi.initializeFishingUIElements function not found."); // Commented out as per task

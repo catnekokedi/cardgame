@@ -26,7 +26,7 @@ const birdMechanics = {
         if (skyBoundaries) {
             this.skyBoundaries = skyBoundaries;
         }
-        console.log("Bird Mechanics Initialized");
+        // console.log("Bird Mechanics Initialized"); // REMOVE - Aggressive cleanup
         // Potentially spawn initial birds
         for (let i = 0; i < this.maxBirds / 2; i++) {
             this.spawnBird();
@@ -340,4 +340,4 @@ const birdMechanics = {
 // Expose to global scope for other modules
 window.birdMechanics = birdMechanics;
 
-console.log("bird-mechanics.js loaded");
+// console.log("bird-mechanics.js loaded"); // REMOVE - Aggressive cleanup

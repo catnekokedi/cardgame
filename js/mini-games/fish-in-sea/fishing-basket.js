@@ -324,4 +324,4 @@ function addItemToBasket(cardData, quantity = 1) {
 }
 */
 
-console.log("fishing-basket.js loaded and attached to window.fishingBasket");
+// console.log("fishing-basket.js loaded and attached to window.fishingBasket"); // REMOVE - Aggressive cleanup

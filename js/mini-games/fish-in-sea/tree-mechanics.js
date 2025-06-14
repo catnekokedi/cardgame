@@ -164,7 +164,7 @@ function initializeTree() {
     if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.updateMoistureDisplay === 'function') {
         fishingTreeUi.updateMoistureDisplay(treeMoisture);
     }
-    console.log("Tree initialized");
+    // console.log("Tree initialized"); // REMOVE - Aggressive cleanup
 }
 
 function setConstantMoistureSupply(isActive) {
@@ -174,9 +174,9 @@ function setConstantMoistureSupply(isActive) {
         if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.updateMoistureDisplay === 'function') {
             fishingTreeUi.updateMoistureDisplay(treeMoisture);
         }
-        console.log("Constant moisture supply ACTIVE. Tree moisture set to max.");
+        // console.log("Constant moisture supply ACTIVE. Tree moisture set to max."); // REMOVE - Aggressive cleanup
     } else {
-        console.log("Constant moisture supply DEACTIVATED.");
+        // console.log("Constant moisture supply DEACTIVATED."); // REMOVE - Aggressive cleanup
     }
 }
 
@@ -277,9 +277,9 @@ function getTreeSlotsData() {
 }
 
 function collectCardFromTree(slotIndex) {
-    console.log("[TreeMechanics] collectCardFromTree called for slotIndex", slotIndex);
+    // console.log("[TreeMechanics] collectCardFromTree called for slotIndex", slotIndex); // REMOVE - Aggressive cleanup
     if (slotIndex < 0 || slotIndex >= treeSlots.length) {
-        console.error(`Invalid slot index: ${slotIndex}`);
+        console.error(`Invalid slot index: ${slotIndex}`); // Keep error
         return null;
     }
 
@@ -352,10 +352,10 @@ function collectCardFromTree(slotIndex) {
         if (typeof fishingTreeUi !== 'undefined' && typeof fishingTreeUi.renderTreeSlots === 'function') {
             fishingTreeUi.renderTreeSlots(getTreeSlotsData());
         }
-        // console.log(`Slot ${slotIndex} cleared after collecting ${collectedCardDetails.name || 'item'}.`); // INFO
+        // console.log(`Slot ${slotIndex} cleared after collecting ${collectedCardDetails.name || 'item'}.`); // REMOVED INFO
         return { ...collectedCardDetails };
     } else {
-        // console.log(`No revealed card to collect in slot ${slotIndex}. Current state: ${slot ? slot.state : 'empty'}`); // INFO
+        // console.log(`No revealed card to collect in slot ${slotIndex}. Current state: ${slot ? slot.state : 'empty'}`); // REMOVED INFO
         return null;
     }
 }
@@ -453,4 +453,4 @@ if (typeof window.collectCardFromTree === 'undefined') {
     window.collectCardFromTree = collectCardFromTree;
 }
 
-console.log("tree-mechanics.js loaded with UI integration points and new generation logic.");
+// console.log("tree-mechanics.js loaded with UI integration points and new generation logic."); // REMOVE - Aggressive cleanup
