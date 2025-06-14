@@ -35,7 +35,7 @@ function initializeRocks() {
     if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.renderRocks === 'function') {
         fishingRocksUi.renderRocks(getRockSlotsData());
     }
-    console.log("Rock mechanics initialized. Slots:", rockSlots);
+    // console.log("Rock mechanics initialized. Slots:", rockSlots); // Aggressively removed
 }
 
 /**
@@ -77,10 +77,7 @@ function spawnNewRock(slotIndex, initialDelay = 0) {
         isRespawning: false,
         respawnTimer: 0,
     };
-    // If an initial delay was specified (e.g. for staggering first spawns, not typical respawn)
-    // This logic might be better handled by manageRockSpawnsAndRespawns setting a timer when a slot is truly empty.
-    // For now, assume initialDelay = 0 for direct spawning.
-    console.log(`New ${randomRarity} rock spawned in slot ${slotIndex}.`);
+    // console.log(`New ${randomRarity} rock spawned in slot ${slotIndex}.`); // Aggressively removed
 }
 
 // selectPickaxeTool and deselectPickaxeTool functions REMOVED
@@ -90,27 +87,29 @@ function hitRock(rockSlotIndex) {
     const rock = rockSlots[rockSlotIndex];
 
     if (!rock || rock.isRespawning || (rock.hp !== undefined && rock.hp <= 0)) {
+        // This path should be silent unless debugging is specifically enabled for it.
         // console.log(`[RockHP-Guard] Slot ${rockSlotIndex}: Invalid, respawning, or already broken (HP: ${rock ? rock.hp : 'N/A'}). Ignoring hit.`);
         return;
     }
 
     const now = Date.now();
     if (now - (rockLastHitTime[rockSlotIndex] || 0) < ROCK_HIT_COOLDOWN) {
-        // console.log(`[RockHP-Cooldown] Slot ${rockSlotIndex}: Hit on cooldown.`);
-        return;
+        return; // Silently return if on cooldown
     }
     rockLastHitTime[rockSlotIndex] = now;
 
-    if (rock.hp === undefined) {
-        console.error(`[RockHP-Error] Slot ${rockSlotIndex}: HP is undefined. MaxHP: ${rock.maxHp}. Defaulting HP.`);
+    if (rock.hp === undefined) { // This indicates a problem with rock initialization
+        console.error(`[RockHP-Fix] Slot ${rockSlotIndex}: HP is undefined. MaxHP: ${rock.maxHp}. Defaulting HP.`);
         rock.hp = rock.maxHp !== undefined ? rock.maxHp : 1;
     }
 
+    // console.log(`[RockHP-Fix] Slot ${rockSlotIndex}: HP before hit: ${rock.hp}`); // Keep this for user test
     rock.hp -= 1;
-    // console.log(`[RockHP-Hit] Slot ${rockSlotIndex}: Hit registered. HP after decrement: ${rock.hp}`);
+    // console.log(`[RockHP-Fix] Slot ${rockSlotIndex}: HP after decrement: ${rock.hp}`); // Keep this for user test
+
 
     if (rock.hp < 0) {
-        console.warn(`[RockHP-Clamp] Slot ${rockSlotIndex}: HP was ${rock.hp}. Clamping to 0.`);
+        console.warn(`[RockHP-Fix] Slot ${rockSlotIndex}: HP was ${rock.hp + 1} before decrement, became ${rock.hp}, CLAMPING to 0.`);
         rock.hp = 0;
     }
 
@@ -119,14 +118,14 @@ function hitRock(rockSlotIndex) {
     }
 
     if (rock.hp === 0) {
-        // console.log(`[RockHP-Destroyed] Slot ${rockSlotIndex}: Destroyed (HP reached 0).`);
+        // console.log(`[RockHP-Fix] Slot ${rockSlotIndex}: Destroyed (HP reached 0).`); // Keep this
         let rockDefinitionForRewards = rock.definition;
         if (!rockDefinitionForRewards) {
-            console.error(`[RockHP-Error] Slot ${rockSlotIndex}: Missing definition for rewards. Rarity: ${rock.rarity}. Attempting to reconstruct.`);
+            console.error(`[RockHP-Fix] Slot ${rockSlotIndex}: Missing definition for rewards. Rarity: ${rock.rarity}. Attempting to reconstruct.`);
             if (rock.rarity && rockDefinitions[rock.rarity]) {
                 rockDefinitionForRewards = rockDefinitions[rock.rarity];
             } else {
-                console.error(`[RockHP-Error] Slot ${rockSlotIndex}: Cannot reconstruct definition for rarity ${rock.rarity}. Rewards may be incorrect.`);
+                console.error(`[RockHP-Fix] Slot ${rockSlotIndex}: Cannot reconstruct definition for rarity ${rock.rarity}.`);
             }
         }
         if (rockDefinitionForRewards) {
@@ -145,7 +144,7 @@ function hitRock(rockSlotIndex) {
         }
         return;
     } else {
-        // Update cracks only if not destroyed
+        // Update cracks
         if (rock.maxHp !== undefined && rock.maxHp > 0) {
            rock.cracks = Math.min(3, Math.floor(((rock.maxHp - rock.hp) / rock.maxHp) * 4));
         } else {
@@ -224,7 +223,7 @@ function grantRockRewards(rockDef) {
                         type: 'mineral_card', // Standardized type for items from rocks
                         source: 'mining'
                     };
-                    console.log(`[RockMechanics] Generated mineral/card: Name=${generatedCardData.name}, Type=${generatedCardData.type}, Source=${generatedCardData.source}`);
+                    // console.log(`[RockMechanics] Generated mineral/card: Name=${generatedCardData.name}, Type=${generatedCardData.type}, Source=${generatedCardData.source}`); // Aggressively removed
                 }
             }
         }
@@ -244,54 +243,44 @@ function grantRockRewards(rockDef) {
             type: generatedCardData.type, // Should be 'mineral_card' from generation step
             source: generatedCardData.source || 'mining'
         };
-        // Logging already present for cardDataForBasket here is good.
-        // console.log("Rock dropped item, adding to basket:", cardDataForBasket);
         if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
             window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
 
-            // Show temporary display using showCatchPreview
             if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
                 const previewItem = {
-                    type: cardDataForBasket.type, // Should be 'mineral_card'
-                    details: cardDataForBasket // Pass the whole cardDataForBasket as details
+                    type: cardDataForBasket.type,
+                    details: cardDataForBasket
                 };
                 window.fishingUi.showCatchPreview(previewItem);
             }
-            // Fallback to showTemporaryCollectedItem removed.
-
         } else {
             console.warn("fishingBasket.addCardToBasket function not found. Item from rock not added to basket.");
         }
     } else {
-        console.log("No specific item generated from rock break (neither collectible nor fallback).");
+        // console.log("No specific item generated from rock break (neither collectible nor fallback)."); // Aggressively removed
     }
 
     // Ticket chance remains, handled independently of the card/mineral drop
     if (Math.random() < rockDef.ticketChance) {
         if (typeof summonTicketRarities !== 'undefined' && summonTicketRarities.length > 0 && typeof addSummonTickets === 'function') {
             const randomTicketRarityKey = summonTicketRarities[Math.floor(Math.random() * summonTicketRarities.length)];
-            addSummonTickets(randomTicketRarityKey, 1); // e.g., addSummonTickets('rare', 1)
+            addSummonTickets(randomTicketRarityKey, 1);
 
             const rarityInfo = typeof getRarityTierInfo === 'function' ? getRarityTierInfo(randomTicketRarityKey) : null;
             const ticketDisplayName = rarityInfo ? `${rarityInfo.name} Summon Ticket` : `${randomTicketRarityKey} Summon Ticket`;
-            // console.log(`Rock granted Summon Ticket: ${ticketDisplayName}`); // Log below is more specific
 
-            // Display logic for the ticket (already good)
             const ticketDisplayData = {
                 name: ticketDisplayName,
                 imagePath: typeof getSummonTicketImagePath === 'function' ? getSummonTicketImagePath(randomTicketRarityKey) : `gui/summon_tickets/ticket_${randomTicketRarityKey}.png`,
                 type: 'ticket',
-                source: 'mining', // Add source for consistency if this object were to be used for basket
+                source: 'mining',
                 details: { rarityKey: randomTicketRarityKey, name: ticketDisplayName, source: 'mining' }
             };
-            console.log(`[RockMechanics] Granted Summon Ticket: ${ticketDisplayName}, Type=${ticketDisplayData.type}, Source=${ticketDisplayData.source}`);
-
+            // console.log(`[RockMechanics] Granted Summon Ticket: ${ticketDisplayName}, Type=${ticketDisplayData.type}, Source=${ticketDisplayData.source}`); // Aggressively removed
 
             if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
-                 window.fishingUi.showCatchPreview(ticketDisplayData); // ticketDisplayData now includes source in details
+                 window.fishingUi.showCatchPreview(ticketDisplayData);
             }
-            // Fallbacks to showTemporaryCollectedItem and showCustomModal removed for tickets from this point.
-            // addSummonTickets handles its own user feedback if showCatchPreview is not available.
         } else {
             console.warn("summonTicketRarities array not defined/empty, or addSummonTickets function missing. Cannot grant random ticket from rock.");
         }
@@ -315,11 +304,9 @@ function getRockDataForSave() {
                 cracks: slot.cracks,
                 isRespawning: slot.isRespawning,
                 respawnTimer: slot.respawnTimer
-                // Note: 'definition' is not saved, it's reconstructed on load from rarity
             };
             return null;
         }),
-        // pickaxeSelected: pickaxeSelected // Removed
     };
 }
 
@@ -330,33 +317,30 @@ function loadRockData(data) {
             if (slotData && slotData.rarity && rockDefinitions[slotData.rarity]) {
                 return {
                     ...slotData,
-                    definition: rockDefinitions[slotData.rarity] // Re-link definition
+                    definition: rockDefinitions[slotData.rarity]
                 };
-            } else if (slotData && slotData.isRespawning) { // Handle slots that were respawning
+            } else if (slotData && slotData.isRespawning) {
                 return slotData;
             }
-            return null; // Invalid slot data or empty slot
+            return null;
         });
-        // Ensure all slots are processed, fill with null if data is sparse
         for(let i=0; i < MAX_ROCKS; i++) {
-            if(!rockSlots[i]) { // If a slot wasn't properly loaded (e.g. null from save or bad data)
-                rockSlots[i] = { isRespawning: true, respawnTimer: BASE_ROCK_RESPAWN_TIME * Math.random() }; // Mark for fresh respawn
+            if(!rockSlots[i]) {
+                rockSlots[i] = { isRespawning: true, respawnTimer: BASE_ROCK_RESPAWN_TIME * Math.random() };
             }
         }
     } else {
-        initializeRocks(); // Fallback to fresh initialization
-        return; // Exit early after initializing
+        initializeRocks();
+        return;
     }
-
-    // deselectPickaxeTool(); // Removed, as tool state is removed
 
     if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.renderRocks === 'function') {
         fishingRocksUi.renderRocks(getRockSlotsData());
     }
-    console.log("Rock data loaded.");
+    // console.log("Rock data loaded."); // Aggressively removed
 }
 
 // Make initializeRocks globally accessible
 window.initializeRocks = initializeRocks;
 
-console.log("rock-mechanics.js loaded");
+// console.log("rock-mechanics.js loaded"); // Aggressively removed

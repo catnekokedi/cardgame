@@ -70,7 +70,7 @@ const birdUi = {
     showRewardDropped: function(birdData, reward) {
         // Placeholder for visual feedback when a bird drops a reward (or nothing)
         // This could be a small animation or particle effect near the bird
-        console.log(`Bird ${birdData.id} UI: Reward dropped - ${reward ? reward.name : 'nothing'}`);
+        console.log(`Bird ${birdData.id} UI: ${reward ? 'Reward dropped - ' + reward.name : 'Did not drop a reward this time.'}`);
         const birdElement = this.birdElements[birdData.id];
         if (birdElement) {
             // Example: make bird flash or change image briefly using opacity
