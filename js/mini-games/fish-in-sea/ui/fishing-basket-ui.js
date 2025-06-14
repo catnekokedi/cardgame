@@ -8,7 +8,7 @@ window.fishingBasketUi = {
     rarityFilterElement: null,
     sellAllButtonElement: null,
     collectAllButtonElement: null,
-    currentFilters: { rarity: 'all' }, // Default filter
+    currentFilters: { rarity: 'all', type: 'all_caught' }, // Default filters
 
     /**
      * Initializes basket UI elements and event listeners.

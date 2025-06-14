@@ -25,6 +25,8 @@ window.isGameActive = true; // New: Tracks if the game tab is currently active a
 
 window.currentActiveSetVersion = 'v1'; // 'v1' or 'v2'
 
+window.cardData = window.cardData || {}; // Ensure cardData is at least an empty object
+
 window.isDebugModeActive = false;
 window.cheatsPasswordEntered = false; // Used by stats.js, but fundamentally state
 window.unlockedSets = [];

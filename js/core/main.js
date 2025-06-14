@@ -1,9 +1,71 @@
 
 // js/core/main.js
 
+async function loadAllCardData() {
+    if (typeof ALL_SET_DEFINITIONS === 'undefined' || ALL_SET_DEFINITIONS === null) {
+        console.error("ALL_SET_DEFINITIONS is not defined. Cannot load card data.");
+        // Potentially set a flag or show an error to the user
+        window.cardDataLoaded = false;
+        return false;
+    }
+
+    window.cardData = window.cardData || {}; // Ensure it exists
+
+    console.log("[CardDataLoad] Starting to load card data for all sets...");
+
+    const setLoadPromises = ALL_SET_DEFINITIONS.map(async (setDefinition) => {
+        const setAbbr = setDefinition.abbr;
+        // Path construction based on observed structure in getSetMetadata and ALL_SET_DEFINITIONS
+        // Using folderName and version for a more robust path.
+        const versionFolder = setDefinition.version === 'v2' ? 'yuki' : 'new'; // Example, adjust if actual folder names are 'v1', 'v2'
+        // const jsonPath = `carddatajson/${versionFolder}/${setDefinition.folderName}.json`;
+        // The getSetMetadata used `carddatajson/${setDefinition.name}.json` which is problematic.
+        // A common convention is `carddatajson/${setDefinition.abbr}.json` or `carddatajson/${setDefinition.folderName}.json`
+        // Let's assume setDefinition.abbr is used for JSON filenames for now, as it's unique.
+        // If image paths are like `cards-new/001/001.jpg`, JSON might be `carddatajson/new/001.json` or just `carddatajson/DRI.json`
+        // Given getSetMetadata used `setDefinition.name` for cardDataPath, let's try that, but escape it.
+        // However, the prompt example used setAbbr. Using setAbbr is safer.
+        const filename = setDefinition.abbr; // Using ABBR for JSON filename as it's cleaner
+        const jsonPath = `carddatajson/${filename}.json`;
+
+
+        try {
+            // console.log(`[CardDataLoad] Fetching card data for set: ${setAbbr} from ${jsonPath}`);
+            const response = await fetch(jsonPath);
+            if (!response.ok) {
+                // It's common for not all defined sets to have a JSON file (e.g., promo sets, energy sets)
+                // So, this might not always be a hard error, but good to log.
+                console.warn(`[CardDataLoad] HTTP error! status: ${response.status} for ${jsonPath}. Set ${setAbbr} data might be intentionally missing or path is incorrect.`);
+                window.cardData[setAbbr] = {}; // Assign empty object if file not found or error
+                return; // Continue to next set
+            }
+            const setData = await response.json();
+            window.cardData[setAbbr] = setData;
+            // console.log(`[CardDataLoad] Successfully loaded and parsed card data for set: ${setAbbr}`);
+        } catch (error) {
+            console.error(`[CardDataLoad] Failed to load or parse card data for set ${setAbbr} from ${jsonPath}:`, error);
+            window.cardData[setAbbr] = {}; // Assign empty object on error
+        }
+    });
+
+    try {
+        await Promise.all(setLoadPromises);
+        console.log(`[CardDataLoad] All card data loading attempted. Loaded ${Object.keys(window.cardData).length} sets.`);
+        // console.log("[CardDataLoad] Final window.cardData (sample):", Object.keys(window.cardData).length > 0 ? JSON.stringify(window.cardData[Object.keys(window.cardData)[0]], null, 2) : "Empty");
+        window.cardDataLoaded = true; // Set a flag indicating data loading is complete
+        return true;
+    } catch (error) { // Should not be reached if individual errors are caught, but as a fallback.
+        console.error("[CardDataLoad] A critical error occurred during Promise.all for card data loading:", error);
+        window.cardDataLoaded = false;
+        return false;
+    }
+}
+
+
 // Global variable to store the current screen
 let currentScreen = null;
-let isGameInitialized = false;
+let isGameInitialized = false; // This will be set to true after all async operations in initGame
+window.cardDataLoaded = false; // Flag to track card data loading status
 let currentMiniGame = null; 
 let statsScreenTimeUpdateInterval = null; // For live time updates on stats screen
 
@@ -211,8 +273,9 @@ function showScreen(screenId, performSave = true) {
 }
 
 
-function initGame() {
-  isGameInitialized = false;
+async function initGame() { // Make initGame async
+  isGameInitialized = false; // Set to false initially
+  window.cardDataLoaded = false;
   document.documentElement.lang = 'en';
 
   const loadingBarContainer = document.getElementById('loading-bar-container');
@@ -220,25 +283,39 @@ function initGame() {
 
   if (loadingBarContainer && loadingBarProgress) {
     loadingBarContainer.style.display = 'block';
-    loadingBarProgress.style.width = '10%';
+    loadingBarProgress.style.width = '5%'; // Start loading bar
   }
 
+  // Critical check for ALL_SET_DEFINITIONS before attempting to load cardData
   if (typeof ALL_SET_DEFINITIONS === 'undefined') {
-      console.error("FATAL: ALL_SET_DEFINITIONS not loaded from js/data/card-definitions.js. Game cannot initialize properly.");
+      console.error("FATAL: ALL_SET_DEFINITIONS not loaded. Cannot proceed with card data loading or game initialization.");
       if (loadingBarContainer) loadingBarContainer.style.display = 'none';
-      if (typeof showCustomAlert === 'function') showCustomAlert("Critical Error: Card definitions not loaded. Please refresh or check console.", null, 0);
+      if (typeof showCustomAlert === 'function') showCustomAlert("Critical Error: Core set definitions not loaded. Please refresh.", null, 0);
       return;
   }
-  if (typeof RARITY_PACK_PULL_DISTRIBUTION === 'undefined' || typeof getCardIntrinsicRarity !== 'function') {
-      console.error("FATAL: Rarity system not loaded from js/data/card-rarity-definitions.js and js/core/rarity-grade-manager.js. Game cannot initialize properly.");
+
+  // Load all card data first
+  await loadAllCardData();
+  if (!window.cardDataLoaded) {
+      console.error("FATAL: Card data failed to load. Game cannot initialize properly.");
       if (loadingBarContainer) loadingBarContainer.style.display = 'none';
-      if (typeof showCustomAlert === 'function') showCustomAlert("Critical Error: Rarity system not loaded. Please refresh or check console.", null, 0);
+      if (typeof showCustomAlert === 'function') showCustomAlert("Critical Error: Failed to load card data. Please refresh or check console.", null, 0);
+      return; // Stop initialization if card data isn't loaded
+  }
+  if (loadingBarProgress) loadingBarProgress.style.width = '25%';
+
+
+  // Check other critical dependencies AFTER card data loading attempt
+  if (typeof RARITY_PACK_PULL_DISTRIBUTION === 'undefined' || typeof window.getCardIntrinsicRarity !== 'function') {
+      console.error("FATAL: Rarity system not defined or getCardIntrinsicRarity is missing. Game cannot initialize properly.");
+      if (loadingBarContainer) loadingBarContainer.style.display = 'none';
+      if (typeof showCustomAlert === 'function') showCustomAlert("Critical Error: Rarity system components missing. Please refresh.", null, 0);
       return;
   }
-   if (typeof initializeRarityAndGradeSystems !== 'function' || typeof getFixedGradeAndPrice !== 'function') {
-      console.error("FATAL: Card odds system not loaded from js/core/rarity-grade-manager.js. Game cannot initialize properly.");
+   if (typeof initializeRarityAndGradeSystems !== 'function' || typeof window.getFixedGradeAndPrice !== 'function') {
+      console.error("FATAL: Card odds system components (initializeRarityAndGradeSystems or getFixedGradeAndPrice) missing. Game cannot initialize properly.");
       if (loadingBarContainer) loadingBarContainer.style.display = 'none';
-      if (typeof showCustomAlert === 'function') showCustomAlert("Critical Error: Card odds system not loaded. Please refresh or check console.", null, 0);
+      if (typeof showCustomAlert === 'function') showCustomAlert("Critical Error: Card odds system components missing. Please refresh.", null, 0);
       return;
   }
 
@@ -386,39 +463,42 @@ function initGame() {
   });
 
   if (loadingBarProgress) loadingBarProgress.style.width = '90%';
-  isGameInitialized = true;
-  console.log("Game initialized.");
-  if (typeof playSound === 'function') playSound('sfx_game_start.mp3');
+  // isGameInitialized = true; // Moved to the end of the async function
+  console.log("Main systems initialized, proceeding to UI and final setup...");
+  if (typeof playSound === 'function') playSound('sfx_game_start.mp3'); // Initial sound after main data load
 
 
-  setTimeout(() => {
-    if (loadingBarProgress) loadingBarProgress.style.width = '100%';
-    
-    if (miniGameToLoadOnLoad) {
-        if (typeof showScreen === 'function') showScreen(SCREENS.GAMES, false);
-        else console.error("showScreen is not a function at initGame setTimeout for miniGameToLoadOnLoad");
-        if (typeof loadMiniGame === 'function') loadMiniGame(miniGameToLoadOnLoad);
-    } else if (screenToDisplayOnLoad === SCREENS.PACK_SELECTION && typeof openingpack !== 'undefined' && openingpack.currentPack && openingpack.currentPack.length > 0 && !openingpack.areAllCardsInPackRevealed()) {
-        if (typeof showScreen === 'function') showScreen(SCREENS.PACK_SELECTION, false);
-        else console.error("showScreen is not a function at initGame setTimeout for pack selection resume");
-        if (typeof openingpack.showCorrectPackOpeningUI === 'function') {
-            openingpack.showCorrectPackOpeningUI(); 
-        }
-    } else if (screenToDisplayOnLoad && document.getElementById(screenToDisplayOnLoad)) {
-        if (typeof showScreen === 'function') showScreen(screenToDisplayOnLoad);
-        else console.error("showScreen is not a function at initGame setTimeout for general screen load");
-    } else {
-        if (typeof showScreen === 'function') showScreen(SCREENS.STATS); 
-        else console.error("showScreen is not a function at initGame setTimeout for fallback to STATS");
-    }
+  // The rest of UI initializations and screen display logic
+  // This part can run after essential data (like cardData) is ready.
+  if (loadingBarProgress) loadingBarProgress.style.width = '100%';
 
-    if (loadingBarContainer && loadingBarProgress) {
-        setTimeout(() => {
-            if (loadingBarContainer) loadingBarContainer.style.display = 'none';
-            if (loadingBarProgress) loadingBarProgress.style.width = '0%';
-        }, 500);
-    }
-  }, 0);
+  if (miniGameToLoadOnLoad) {
+      if (typeof showScreen === 'function') showScreen(SCREENS.GAMES, false);
+      else console.error("showScreen is not a function at initGame setTimeout for miniGameToLoadOnLoad");
+      if (typeof loadMiniGame === 'function') loadMiniGame(miniGameToLoadOnLoad);
+  } else if (screenToDisplayOnLoad === SCREENS.PACK_SELECTION && typeof openingpack !== 'undefined' && openingpack.currentPack && openingpack.currentPack.length > 0 && !openingpack.areAllCardsInPackRevealed()) {
+      if (typeof showScreen === 'function') showScreen(SCREENS.PACK_SELECTION, false);
+      else console.error("showScreen is not a function at initGame setTimeout for pack selection resume");
+      if (typeof openingpack.showCorrectPackOpeningUI === 'function') {
+          openingpack.showCorrectPackOpeningUI();
+      }
+  } else if (screenToDisplayOnLoad && document.getElementById(screenToDisplayOnLoad)) {
+      if (typeof showScreen === 'function') showScreen(screenToDisplayOnLoad);
+      else console.error("showScreen is not a function at initGame setTimeout for general screen load");
+  } else {
+      if (typeof showScreen === 'function') showScreen(SCREENS.STATS);
+      else console.error("showScreen is not a function at initGame setTimeout for fallback to STATS");
+  }
+
+  if (loadingBarContainer && loadingBarProgress) {
+      setTimeout(() => {
+          if (loadingBarContainer) loadingBarContainer.style.display = 'none';
+          if (loadingBarProgress) loadingBarProgress.style.width = '0%';
+      }, 500); // Short delay to ensure 100% is visible briefly
+  }
+
+  isGameInitialized = true; // Set game as initialized only after all async operations and UI are ready
+  console.log("Game fully initialized and ready.");
 }
 
 document.addEventListener('DOMContentLoaded', initGame);

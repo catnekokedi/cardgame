@@ -253,9 +253,10 @@ const fishingUi = {
                     </div>
                      <div class="fishing-basket-tabs">
                         <button class="game-button active" data-tab-type="all_caught">All Caught</button>
-                        <button class="game-button" data-tab-type="card">Fish</button>
+                        <button class="game-button" data-tab-type="fish_card">Fish</button>
                         <button class="game-button" data-tab-type="fruit_card">Fruit</button>
                         <button class="game-button" data-tab-type="mineral_card">Minerals</button>
+                        <button class="game-button" data-tab-type="bird_reward_card">Bird</button>
                     </div>
                     <div id="fishing-basket-grid" class="fishing-game-modal-scrollable-content fishing-basket-grid gallery-grid"></div>
                     <div class="fishing-game-modal-actions">
@@ -290,9 +291,10 @@ const fishingUi = {
                     </div>
                     <div id="fishing-shop-ticket-balances" class="fishing-shop-ticket-balances-area"></div>
                     <div class="fishing-shop-tabs">
-                        <button class="game-button active" data-tab-type="fish">Fish/Cards</button>
-                        <button class="game-button" data-tab-type="fruit">Fruit</button>
-                        <button class="game-button" data-tab-type="minerals">Minerals</button>
+                        <button class="game-button active" data-tab-type="fish_card">Fish</button>
+                        <button class="game-button" data-tab-type="fruit_card">Fruit</button>
+                        <button class="game-button" data-tab-type="mineral_card">Minerals</button>
+                        <button class="game-button" data-tab-type="bird_reward_card">Bird</button>
                     </div>
                     <div class="fishing-game-modal-scrollable-content">
                         <div id="fishing-shop-exchange-info" class="fishing-shop-exchange-info-area"></div>
@@ -353,8 +355,17 @@ const fishingUi = {
                 tab.addEventListener('click', () => {
                     ui.basketTabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
-                    fishingGameState.selectedItemInBasket = null; 
-                    renderFishingBasket();
+                    fishingGameState.selectedItemInBasket = null;
+                    if (window.fishingBasketUi) { // Ensure fishingBasketUi is defined
+                        window.fishingBasketUi.currentFilters.type = tab.dataset.tabType;
+                         console.log("[FishingUI] Basket tab clicked. New type filter:", window.fishingBasketUi.currentFilters.type);
+                    }
+                    // renderFishingBasket is global and should use fishingBasketUi.currentFilters
+                    if (typeof renderFishingBasket === 'function') renderFishingBasket();
+                    else if (window.fishingBasketUi && typeof window.fishingBasketUi.renderBasket === 'function' && typeof fishingBasket !== 'undefined') {
+                        // Fallback if global renderFishingBasket isn't the primary way
+                        window.fishingBasketUi.renderBasket(fishingBasket.getBasketContentsForDisplay(window.fishingBasketUi.currentFilters));
+                    }
                     playSound('sfx_button_click_subtle.mp3');
                 });
             });

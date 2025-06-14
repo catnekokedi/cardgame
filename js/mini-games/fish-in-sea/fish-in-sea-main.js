@@ -160,13 +160,27 @@ function updateFishingGameLoop() {
         return;
     }
     // console.log("Fishing game loop running...");
+    console.log("[MainLoop] updateFishingGameLoop called. RodCast:", fishingGameState.isRodCast, "HasHooked:", fishingGameState.hasHookedFish);
     
     const deltaTimeMs = 100; // Game loop interval in milliseconds
     const deltaTimeInSeconds = deltaTimeMs / 1000.0;
 
     if (typeof window.fishingMechanics !== 'undefined') {
         if (typeof window.fishingMechanics.updateFishMovement === 'function') window.fishingMechanics.updateFishMovement(deltaTimeInSeconds);
-        if (typeof window.fishingMechanics.checkForBite === 'function') window.fishingMechanics.checkForBite(deltaTimeInSeconds);
+
+        // Condition for calling checkForBite is handled inside fishingMechanics.checkForBite
+        // It will check fishingGameState.isRodCast && !fishingGameState.hasHookedFish etc.
+        // Logging the call here to ensure loop is trying.
+        if (fishingGameState.isRodCast && !fishingGameState.hasHookedFish) {
+            console.log("[MainLoop] Conditions met for trying to check for bite. Calling fishingMechanics.checkForBite()");
+        } else if (fishingGameState.hasHookedFish) {
+            // This is when the bite timer should be active and counting down inside checkForBite
+            console.log("[MainLoop] Fish is hooked. checkForBite will manage biteTimer.");
+        }
+        // Always call checkForBite if mechanics are available, it has internal checks.
+        if (typeof window.fishingMechanics.checkForBite === 'function') {
+            window.fishingMechanics.checkForBite(deltaTimeInSeconds);
+        }
     }
 
     if (typeof updateTreeFruitGrowth === 'function') updateTreeFruitGrowth(deltaTimeMs);

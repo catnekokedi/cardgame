@@ -31,6 +31,7 @@ const fishingTreeUi = {
         }
 
         slotsData.forEach((slot, index) => {
+            console.log("TreeSlotUI: Rendering slot", index, "State:", slot ? slot.state : "null", "SlotData:", slot);
             const slotDiv = document.createElement('div');
             slotDiv.classList.add('tree-card-slot');
             slotDiv.dataset.slotIndex = index;
@@ -63,6 +64,7 @@ const fishingTreeUi = {
                         slotDiv.style.backgroundImage = `url('https://placehold.co/40x56/8B4513/FFFFFF?text=Fruit')`; // Distinct placeholder
                         console.warn("Revealed tree card missing cardData or imagePath, using fallback placeholder.", slot);
                     }
+                    console.log("TreeSlotUI: Assigning onclick to revealed slot", index); // Added log
                     slotDiv.onclick = () => {
                         if (typeof collectCardFromTree === 'function') {
                             collectCardFromTree(index);

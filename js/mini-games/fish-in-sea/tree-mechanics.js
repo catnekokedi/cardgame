@@ -44,12 +44,23 @@ function getRandomRarityFromWeights(weights) {
  * Generates a random card for the tree based on defined rarities.
  */
 function generateRandomCardForTree() {
+    console.log('[TreeMechanics] generateRandomCardForTree: Entered function.');
+    console.log('[TreeMechanics] generateRandomCardForTree: Available sets in window.cardData:', Object.keys(window.cardData || {}));
+    console.log('[TreeMechanics] generateRandomCardForTree: Checking typeof dependencies:');
+    console.log('  typeof getActiveSetDefinitions:', typeof getActiveSetDefinitions);
+    console.log('  typeof cardData:', typeof cardData);
+    console.log('  typeof getFixedGradeAndPrice:', typeof getFixedGradeAndPrice);
+    console.log('  typeof getCardImagePath:', typeof getCardImagePath);
+    console.log('  typeof getCardIntrinsicRarity:', typeof getCardIntrinsicRarity);
+
     const targetRarityKey = getRandomRarityFromWeights(treeRarityWeights);
+    console.log('[TreeMechanics] generateRandomCardForTree: Target rarity key:', targetRarityKey);
     if (!targetRarityKey) {
         console.error("Tree: Could not determine target rarity from weights.");
         return null;
     }
 
+    // This check should ideally not fail now if previous steps were successful
     if (typeof getActiveSetDefinitions !== 'function' ||
         typeof cardData === 'undefined' ||
         typeof getFixedGradeAndPrice !== 'function' ||
@@ -89,10 +100,13 @@ function generateRandomCardForTree() {
     });
 
     if (possibleCards.length > 0) {
-        return possibleCards[Math.floor(Math.random() * possibleCards.length)];
+        const chosenCard = possibleCards[Math.floor(Math.random() * possibleCards.length)];
+        console.log(`[TreeMechanics] generateRandomCardForTree: Found ${possibleCards.length} cards for rarity '${targetRarityKey}'. Chosen: ${chosenCard.name}`);
+        return chosenCard;
     } else {
-        console.warn(`Tree: No cards found for target rarity '${targetRarityKey}'. Trying a fallback to 'base' rarity.`);
+        console.warn(`[TreeMechanics] generateRandomCardForTree: No cards found for target rarity '${targetRarityKey}'. Trying a fallback to 'base' rarity.`);
         // Fallback: try to get any 'base' card if specific rarity fails
+        const fallbackCards = [];
         activeSets.forEach(setDef => {
             if (cardData[setDef.abbr]) {
                 for (const cardIdKey in cardData[setDef.abbr]) {
@@ -100,7 +114,7 @@ function generateRandomCardForTree() {
                     if (getCardIntrinsicRarity(setDef.abbr, cardIdNum) === 'base') {
                          const cardEntry = cardData[setDef.abbr][cardIdKey];
                          const fixedProps = getFixedGradeAndPrice(setDef.abbr, cardIdNum);
-                         possibleCards.push({
+                         fallbackCards.push({
                             set: setDef.abbr, id: cardIdNum, name: cardEntry.name || `${setDef.name} Card #${cardIdNum}`,
                             rarity: fixedProps.rarityKey, price: fixedProps.price, grade: fixedProps.grade,
                             imagePath: getCardImagePath(setDef.abbr, cardIdNum), type: 'collectible_card'
@@ -109,11 +123,13 @@ function generateRandomCardForTree() {
                 }
             }
         });
-        if (possibleCards.length > 0) {
-            return possibleCards[Math.floor(Math.random() * possibleCards.length)];
+        if (fallbackCards.length > 0) {
+            const chosenFallbackCard = fallbackCards[Math.floor(Math.random() * fallbackCards.length)];
+            console.log(`[TreeMechanics] generateRandomCardForTree: Found ${fallbackCards.length} fallback 'base' cards. Chosen: ${chosenFallbackCard.name}`);
+            return chosenFallbackCard;
         }
     }
-    console.error("Tree: Failed to generate any card, even fallback 'base' card.");
+    console.error("[TreeMechanics] generateRandomCardForTree: Failed to generate any card, even fallback 'base' card.");
     return null;
 }
 
@@ -181,14 +197,16 @@ function updateTreeFruitGrowth(deltaTime) {
             maturationProgress[i] = currentProgress;
 
             if (currentProgress >= 100) {
+                console.log(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} matured. Attempting to generate card.`);
                 const finalCardData = generateRandomCardForTree();
+                console.log(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} generated card data:`, finalCardData ? finalCardData.name : "None");
+
                 if (finalCardData) {
                     treeSlots[i].state = "revealed";
                     treeSlots[i].card = finalCardData;
-                    console.log(`Slot ${i}: Card matured and revealed as ${finalCardData.name} (${finalCardData.rarity})`);
+                    console.log(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} successfully revealed as ${finalCardData.name} (${finalCardData.rarity})`);
                 } else {
-                    // Failed to generate a card, assign a very basic fallback and log error
-                    console.error(`Slot ${i}: Failed to generate card data upon maturation. Assigning generic fallback.`);
+                    console.error(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} still failed to generate card after generateRandomCardForTree. Using error fallback.`);
                     treeSlots[i].state = "revealed"; // Still reveal, but with fallback
                     treeSlots[i].card = {
                         type: "error_card_generation",
@@ -249,6 +267,7 @@ function getTreeSlotsData() {
 }
 
 function collectCardFromTree(slotIndex) {
+    console.log("[TreeMechanics] collectCardFromTree called for slotIndex", slotIndex);
     if (slotIndex < 0 || slotIndex >= treeSlots.length) {
         console.error(`Invalid slot index: ${slotIndex}`);
         return null;
@@ -264,13 +283,13 @@ function collectCardFromTree(slotIndex) {
             name: collectedCardDetails.name || `${collectedCardDetails.type ? (collectedCardDetails.type.charAt(0).toUpperCase() + collectedCardDetails.type.slice(1)) : 'Mystic'} Item`,
             rarity: collectedCardDetails.rarityKey || collectedCardDetails.rarity || 'common',
             rarityKey: collectedCardDetails.rarityKey || collectedCardDetails.rarity || 'common',
-            price: collectedCardDetails.price || (collectedCardDetails.type === 'collectible_card' ? 0 : 15),
-            grade: collectedCardDetails.grade || (collectedCardDetails.type === 'collectible_card' ? 'S' : null),
-            imagePath: collectedCardDetails.imagePath || (typeof getCardImagePath === 'function' ? getCardImagePath(collectedCardDetails.set, collectedCardDetails.id) : null) || `gui/fishing_game/${collectedCardDetails.type || 'fruit_placeholder'}.png`,
+            price: collectedCardDetails.price || 0, // Price comes from generated card
+            grade: collectedCardDetails.grade || null, // Grade comes from generated card
+            imagePath: collectedCardDetails.imagePath, // imagePath comes from generated card
             source: 'tree',
-            type: collectedCardDetails.type || (collectedCardDetails.set ? 'card' : 'fruit_card')
+            type: 'fruit_card' // Standardized type for items from the tree
         };
-
+        console.log(`[TreeMechanics] Item for basket from tree slot ${slotIndex}: Name=${cardDataForBasket.name}, Type=${cardDataForBasket.type}, Source=${cardDataForBasket.source}`);
         console.log(`Collecting item from slot ${slotIndex} directly to basket:`, cardDataForBasket);
 
         if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {

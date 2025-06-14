@@ -1,20 +1,20 @@
 
 // js/core/card-utils.js
 
-function getActiveSetDefinitions() {
+window.getActiveSetDefinitions = function() {
     if (typeof window.ALL_SET_DEFINITIONS === 'undefined' || typeof window.currentActiveSetVersion === 'undefined') {
         console.error("getActiveSetDefinitions: Core dependencies (window.ALL_SET_DEFINITIONS or window.currentActiveSetVersion) missing.");
         return [];
     }
     return window.ALL_SET_DEFINITIONS.filter(set => set.version === window.currentActiveSetVersion);
-}
+};
 
-function getAllSetDefinitionsForCurrentVersion() { // Alias for clarity in some contexts
-    return getActiveSetDefinitions();
-}
+window.getAllSetDefinitionsForCurrentVersion = function() { // Alias for clarity in some contexts
+    return window.getActiveSetDefinitions(); // Use window.getActiveSetDefinitions
+};
 
 
-function getSetMetadata(setAbbrIdentifier) {
+window.getSetMetadata = function(setAbbrIdentifier) {
     if (typeof window.ALL_SET_DEFINITIONS === 'undefined') {
         console.error("getSetMetadata: window.ALL_SET_DEFINITIONS is not available.");
         return { 
@@ -70,9 +70,9 @@ function getCardImagePath(setAbbrIdentifier, cardId) {
     if (!meta || meta.name.startsWith("Unknown Set")) return `https://placehold.co/130x182/CF6679/FFFFFF?text=No+Set+Meta`;
     // Use the specific cardImageFolder from the metadata
     return `${meta.cardImageFolder}/${meta.folderName}/${String(cardId).padStart(3, '0')}.jpg`;
-}
+};
 
-function initializeSetMappings() {
+window.initializeSetMappings = function() {
     if (typeof window.ALL_SET_DEFINITIONS === 'undefined') {
         console.error("initializeSetMappings: window.ALL_SET_DEFINITIONS is not available.");
         return;
@@ -84,7 +84,7 @@ function initializeSetMappings() {
         window.setIdentifierToName[def.abbr] = def.name;
         window.setNameToIdentifier[def.name.toLowerCase().trim()] = def.abbr;
     });
-}
+};
 
 /**
  * Updates the collection for a single card.
@@ -94,10 +94,10 @@ function initializeSetMappings() {
  *          If not provided, they should have been determined and cached by getFixedGradeAndPrice already.
  * @param {number} [countAdjustment=1] - How much to adjust the count by.
  */
-function updateCollectionSingleCard(cardDetails, countAdjustment = 1) {
+window.updateCollectionSingleCard = function(cardDetails, countAdjustment = 1) {
     const { set: setAbbrIdentifier, cardId: cardIdNum } = cardDetails;
 
-    if (typeof getFixedGradeAndPrice !== 'function') {
+    if (typeof window.getFixedGradeAndPrice !== 'function') { // Check window.getFixedGradeAndPrice
         console.error("updateCollectionSingleCard: getFixedGradeAndPrice is not available.");
         return;
     }
@@ -120,7 +120,7 @@ function updateCollectionSingleCard(cardDetails, countAdjustment = 1) {
     if (!cardEntry) {
         const { rarityKey, grade, price } = (cardDetails.rarityKey && cardDetails.grade !== undefined && cardDetails.price !== undefined)
             ? { rarityKey: cardDetails.rarityKey, grade: cardDetails.grade, price: cardDetails.price }
-            : getFixedGradeAndPrice(setAbbrIdentifier, cardIdNum);
+            : window.getFixedGradeAndPrice(setAbbrIdentifier, cardIdNum); // Use window.getFixedGradeAndPrice
 
         window.collection[setAbbrIdentifier][cardIdNum] = { // Access via window
             count: Math.max(0, countAdjustment),
@@ -131,9 +131,9 @@ function updateCollectionSingleCard(cardDetails, countAdjustment = 1) {
     } else {
         cardEntry.count = Math.max(0, cardEntry.count + countAdjustment);
     }
-}
+};
 
-function updateBalance() {
+window.updateBalance = function() {
     const numericBalanceStr = window.balance.toLocaleString(); // e.g., "10,000"
 
     const desktopTokiValue = document.getElementById('toki-value');

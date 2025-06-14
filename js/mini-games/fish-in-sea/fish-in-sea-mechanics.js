@@ -148,13 +148,30 @@ window.fishingMechanics = {
     },
 
     checkForBite(deltaTime) { // deltaTime in seconds
-        // console.log("[Mechanics] checkForBite: Called with deltaTime=" + deltaTime + ". State: isRodCast=" + fishingGameState.isRodCast + ", isReeling=" + fishingGameState.isReeling + ", hasHookedFish=" + fishingGameState.hasHookedFish);
+        console.log(`%c[Mechanics] checkForBite: ENTERED. deltaTime: ${deltaTime}`, 'color: blue; font-weight: bold;');
+        console.log(`%c[Mechanics] checkForBite: Initial State - isRodCast: ${fishingGameState.isRodCast}, isReeling: ${fishingGameState.isReeling}, hasHookedFish: ${fishingGameState.hasHookedFish}, biteTimer: ${fishingGameState.biteTimer}`, 'color: blue;');
+
         if (!fishingGameState.isRodCast || fishingGameState.isReeling || fishingGameState.hasHookedFish) {
-            // This log can be very noisy, enable if needed for detailed debugging.
-            // console.log("[Mechanics] checkForBite: Conditions not met or already hooked, returning early.");
+            console.log(`%c[Mechanics] checkForBite: Entered initial 'if' block. Condition was true. (!isRodCast=${!fishingGameState.isRodCast}, isReeling=${fishingGameState.isReeling}, hasHookedFish=${fishingGameState.hasHookedFish})`, 'color: orange;');
+            // This is the path taken if a fish is already hooked (hasHookedFish = true)
+            // or if rod is not cast, or if currently reeling.
+            // The biteTimer management should only happen if a fish is ALREADY hooked.
+            if (fishingGameState.hasHookedFish && fishingGameState.biteTimer > 0) {
+                console.log(`%c[Mechanics] checkForBite: Managing bite timer: ${fishingGameState.biteTimer}`, 'color: orange;');
+                fishingGameState.biteTimer -= (deltaTime * 1000); // Ensure deltaTime is valid
+                if (fishingGameState.biteTimer <= 0) {
+                    console.log(`%c[Mechanics] checkForBite: Bite timer expired. Escaping.`, 'color: red; font-weight: bold;');
+                    this.handleFishEscape();
+                }
+            }
+            // Only log EXITING EARLY if not managing an active bite timer that just led to escape
+            if (fishingGameState.biteTimer > 0 || !fishingGameState.hasHookedFish) { // if timer still running, or if we exited for other reasons
+                 console.log(`%c[Mechanics] checkForBite: EXITING EARLY due to initial 'if' condition.`, 'color: orange; font-weight: bold;');
+            }
             return;
         }
 
+        console.log(`%c[Mechanics] checkForBite: Proceeding to check activeFish for new bites. Active fish count: ${this.activeFish.length}`, 'color: green;');
         this.activeFish.forEach(fish => {
             if (fishingGameState.hasHookedFish) return; // Already a fish on the hook
 
@@ -188,15 +205,24 @@ window.fishingMechanics = {
             }
         });
 
-        // If a fish is hooked, manage the bite timer
+        // If a fish is hooked (hasHookedFish became true in the loop above), manage the bite timer.
+        // This block is actually redundant because the initial 'if' condition at the start of the function
+        // now handles the bite timer management if hasHookedFish is true upon entry.
+        // If a fish gets hooked within the forEach loop, the biteTimer is initialized,
+        // and its countdown will be handled in subsequent calls to checkForBite by the logic in the initial 'if'.
+
+        // Original bite timer management (now effectively handled by the top 'if' block):
+        /*
         if (fishingGameState.hasHookedFish && fishingGameState.biteTimer > 0) {
-            fishingGameState.biteTimer -= (deltaTime * 1000); // Convert deltaTime to ms for timer
-            // console.log(`[Mechanics] checkForBite: Fish hooked. biteTimer remaining: ${fishingGameState.biteTimer}`);
+            // This specific log might be noisy if placed here, better handled by the top block's logic.
+            // console.log(`%c[Mechanics] checkForBite: (Post-loop) Fish hooked. biteTimer remaining: ${fishingGameState.biteTimer}`, 'color: purple;');
+            fishingGameState.biteTimer -= (deltaTime * 1000);
             if (fishingGameState.biteTimer <= 0) {
-                console.log("[Mechanics] checkForBite: Bite timer expired.");
+                console.log("%c[Mechanics] checkForBite: (Post-loop) Bite timer expired. Escaping.", 'color: red; font-weight: bold;');
                 this.handleFishEscape();
             }
         }
+        */
     },
 
     handleFishEscape() {
@@ -283,9 +309,10 @@ window.fishingMechanics = {
                         price: caughtItem.details.price,
                         grade: caughtItem.details.grade,
                         imagePath: getCardImagePath(caughtItem.details.set, caughtItem.details.cardId), // Ensure getCardImagePath is available
-                        type: 'card', // Generic type for basket filtering
-                        source: 'fishing' // Original source
+                        type: 'fish_card', // Standardized type
+                        source: 'fishing'
                     };
+                    console.log(`[FishMechanics] Item for basket from fishing: Name=${cardDataForBasket.name}, Type=${cardDataForBasket.type}, Source=${cardDataForBasket.source}`);
 
                     if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
                         window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
@@ -306,24 +333,30 @@ window.fishingMechanics = {
                             };
                             window.fishingUi.showCatchPreview({ type: 'card', details: previewDetails });
                         } else if (caughtItem.type === 'ticket') {
-                            // caughtItem for tickets is already suitable: { type: 'ticket', details: { rarityKey, name } }
-                            // showCatchPreview will derive imagePath for tickets.
-                            window.fishingUi.showCatchPreview(caughtItem);
+                            const ticketPreviewDetails = {
+                                ...caughtItem.details, // rarityKey, name
+                                source: 'fishing', // Add source for display consistency
+                                // imagePath will be derived by showCatchPreview or its fallback
+                            };
+                            window.fishingUi.showCatchPreview({ type: 'ticket', details: ticketPreviewDetails });
+                            console.log(`[FishMechanics] Ticket from fishing for display: Name=${ticketPreviewDetails.name}, Type=ticket, Source=${ticketPreviewDetails.source}`);
                         }
                     } else if (typeof showTemporaryCollectedItem === 'function') {
                         // Fallback if showCatchPreview is not available
-                        if (caughtItem.type === 'card') {
-                            showTemporaryCollectedItem(cardDataForBasket); // cardDataForBasket is flat and suitable
+                        if (caughtItem.type === 'card') { // Note: caughtItem.type is 'card', cardDataForBasket.type is 'fish_card'
+                            showTemporaryCollectedItem(cardDataForBasket);
                         } else if (caughtItem.type === 'ticket') {
-                             // showTemporaryCollectedItem needs a flat object with imagePath
                             showTemporaryCollectedItem({
                                 name: caughtItem.details.name,
                                 imagePath: (typeof getSummonTicketImagePath === 'function' ? getSummonTicketImagePath(caughtItem.details.rarityKey) : ''),
                                 type: 'ticket',
-                                rarityKey: caughtItem.details.rarityKey
+                                rarityKey: caughtItem.details.rarityKey,
+                                source: 'fishing'
                             });
                         }
                     }
+                } else { // Not a card or ticket, but determineCatch should always return one of these
+                    console.warn("[FishMechanics] determineCatch returned an unknown item type:", caughtItem);
                 }
                 // Common success sounds and spawning new fish
                 if (typeof playSound === 'function') playSound('sfx_fishing_win.mp3');
@@ -369,10 +402,11 @@ window.fishingMechanics = {
             const ticketRarityInfo = typeof getRarityTierInfo !== 'undefined' ? getRarityTierInfo(randomTicketRarityKey) : {name: randomTicketRarityKey};
             if (typeof addSummonTickets === 'function') addSummonTickets(randomTicketRarityKey, 1);
             else console.warn("addSummonTickets function not found.");
-            return { type: 'ticket', details: { rarityKey: randomTicketRarityKey, name: `${ticketRarityInfo.name} Ticket` }};
+            return { type: 'ticket', details: { rarityKey: randomTicketRarityKey, name: `${ticketRarityInfo.name} Ticket`, source: 'fishing' }};
         } else {
             // ... (existing card logic remains the same)
-            // This part is complex and seems to rely on many external functions (getRarityTierInfo, getActiveSetDefinitions etc.)
+            // The card object returned by determineCatch will have type: 'card'
+            // The source: 'fishing' and specific type: 'fish_card' will be set in reelRod when preparing cardDataForBasket.
             // Assuming these functions are globally available and part of the broader game context.
             let pullRarityKey = 'base'; // Default or determine by fishData.rarity if available
             const baseProbabilities = (typeof liveRarityPackPullDistribution !== 'undefined' && liveRarityPackPullDistribution) ? liveRarityPackPullDistribution : (FISHING_CONFIG?.RARITY_DISTRIBUTION || [{key:'base', packProb:1}]);
@@ -416,7 +450,7 @@ window.fishingMechanics = {
                 const fixedProps = typeof getFixedGradeAndPrice === 'function' ? getFixedGradeAndPrice(fallbackSet.abbr, cardId) : {rarityKey: 'base', grade:'S', price:10};
                 cardDetails = {set: fallbackSet.abbr, cardId, rarityKey: fixedProps.rarityKey, grade: fixedProps.grade, price: fixedProps.price};
             }
-            return { type: 'card', details: cardDetails, isCardPlaceholder: true, name: "Fish Card" }; // Mark as placeholder
+            return { type: 'card', details: cardDetails, name: "Fish Card" }; // Removed isCardPlaceholder, name is generic here
         }
     },
 

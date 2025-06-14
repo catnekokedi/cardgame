@@ -242,7 +242,7 @@ const birdMechanics = {
                                 price: fixedProps.price,
                                 grade: fixedProps.grade,
                                 imagePath: getCardImagePath(setDef.abbr, cardIdNum),
-                                type: 'collectible_card',
+                                type: 'bird_reward_card', // Standardized type
                                 source: 'bird'
                             });
                         }
@@ -251,9 +251,12 @@ const birdMechanics = {
             });
 
             if (possibleCards.length > 0) {
-                return possibleCards[Math.floor(Math.random() * possibleCards.length)];
+                const chosenCard = possibleCards[Math.floor(Math.random() * possibleCards.length)];
+                console.log(`[BirdMechanics] Generated card: Name=${chosenCard.name}, Type=${chosenCard.type}, Source=${chosenCard.source}, Rarity=${chosenCard.rarity}`);
+                return chosenCard;
             } else {
                 console.warn(`BirdMechanics: No cards found for target rarity '${targetPullRarityKey}'. Trying fallback to 'base'.`);
+                const fallbackPossibleCards = []; // Use a new array for fallback
                 activeSets.forEach(setDef => { // Fallback to 'base'
                     if (cardData[setDef.abbr]) {
                         for (const cardIdKey in cardData[setDef.abbr]) {
@@ -261,17 +264,19 @@ const birdMechanics = {
                             if (getCardIntrinsicRarity(setDef.abbr, cardIdNum) === 'base') {
                                 const cardEntry = cardData[setDef.abbr][cardIdKey];
                                 const fixedProps = getFixedGradeAndPrice(setDef.abbr, cardIdNum);
-                                possibleCards.push({
+                                fallbackPossibleCards.push({ // Add to new array
                                     set: setDef.abbr, id: cardIdNum, name: cardEntry.name || `${setDef.name} Card #${cardIdNum} (Bird)`,
                                     rarity: fixedProps.rarityKey, price: fixedProps.price, grade: fixedProps.grade,
-                                    imagePath: getCardImagePath(setDef.abbr, cardIdNum), type: 'collectible_card', source: 'bird'
+                                    imagePath: getCardImagePath(setDef.abbr, cardIdNum), type: 'bird_reward_card', source: 'bird' // Ensure type is correct here too
                                 });
                             }
                         }
                     }
                 });
-                if (possibleCards.length > 0) {
-                    return possibleCards[Math.floor(Math.random() * possibleCards.length)];
+                if (fallbackPossibleCards.length > 0) { // Check new array
+                    const chosenFallbackCard = fallbackPossibleCards[Math.floor(Math.random() * fallbackPossibleCards.length)];
+                    console.log(`[BirdMechanics] Generated fallback card: Name=${chosenFallbackCard.name}, Type=${chosenFallbackCard.type}, Source=${chosenFallbackCard.source}, Rarity=${chosenFallbackCard.rarity}`);
+                    return chosenFallbackCard;
                 }
             }
             console.error("BirdMechanics: Failed to generate any card, even fallback 'base' card.");

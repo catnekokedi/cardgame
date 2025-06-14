@@ -240,14 +240,25 @@ window.fishingBasket = { // Ensure it's explicitly on window
      * @returns {Array<object>} Filtered and sorted basket contents.
      */
     getBasketContentsForDisplay: function(filters = {}) {
+        console.log("[FishingBasket] getBasketContentsForDisplay with filters:", JSON.parse(JSON.stringify(filters)));
         let displayData = [];
         if (Array.isArray(this.basketContents)) {
             displayData = [...this.basketContents];
+
+            // Filter by type (for tabs)
+            if (filters.type && filters.type !== 'all_caught') {
+                console.log(`[FishingBasket] Filtering by type: ${filters.type}`);
+                displayData = displayData.filter(item => item && item.cardData && item.cardData.type === filters.type);
+            }
+
+            // Filter by rarity
             if (filters.rarity && filters.rarity !== 'all') {
-                displayData = displayData.filter(item => item && item.cardData && item.cardData.rarity === filters.rarity);
+                console.log(`[FishingBasket] Filtering by rarity: ${filters.rarity}`);
+                displayData = displayData.filter(item => item && item.cardData && (item.cardData.rarity === filters.rarity || item.cardData.rarityKey === filters.rarity));
             }
             // Add sorting if needed
         }
+        console.log(`[FishingBasket] Items after filtering for type '${filters.type || 'any'}' and rarity '${filters.rarity || 'any'}': ${displayData.length} items.`);
         return displayData;
     },
 

@@ -199,9 +199,10 @@ function grantRockRewards(rockDef) {
                         rarity: fixedProps.rarityKey, // Actual card rarity
                         price: fixedProps.price,
                         imagePath: getCardImagePath(randomSetDef.abbr, cardIdNum),
-                        type: 'collectible_card', // Mark as a standard collectible card
+                        type: 'mineral_card', // Standardized type for items from rocks
                         source: 'mining'
                     };
+                    console.log(`[RockMechanics] Generated mineral/card: Name=${generatedCardData.name}, Type=${generatedCardData.type}, Source=${generatedCardData.source}`);
                 }
             }
         }
@@ -218,37 +219,24 @@ function grantRockRewards(rockDef) {
             price: generatedCardData.price,
             grade: generatedCardData.grade,
             imagePath: generatedCardData.imagePath || getCardImagePath(generatedCardData.set, generatedCardData.id),
-            type: generatedCardData.type, // 'collectible_card' or 'mineral'
+            type: generatedCardData.type, // Should be 'mineral_card' from generation step
             source: generatedCardData.source || 'mining'
         };
-
-        console.log("Rock dropped item, adding to basket:", cardDataForBasket);
+        // Logging already present for cardDataForBasket here is good.
+        // console.log("Rock dropped item, adding to basket:", cardDataForBasket);
         if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
             window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
 
-            // Show temporary display
-            const displayData = {
-                type: cardDataForBasket.type === 'collectible_card' ? 'card' : cardDataForBasket.type,
-                details: cardDataForBasket,
-                set: cardDataForBasket.set,
-                id: cardDataForBasket.id,
-                cardId: cardDataForBasket.id,
-                name: cardDataForBasket.name,
-                rarityKey: cardDataForBasket.rarityKey,
-                grade: cardDataForBasket.grade,
-                imagePath: cardDataForBasket.imagePath
-            };
-
-            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
-                window.fishingUi.showCaughtItemDisplay(displayData);
-            } else if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+            // Show temporary display using showCatchPreview
+            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
                 const previewItem = {
-                    type: displayData.type === 'mineral' ? 'material' : 'card', // Adjust for showCatchPreview
-                    details: displayData.details
+                    type: cardDataForBasket.type, // Should be 'mineral_card'
+                    details: cardDataForBasket // Pass the whole cardDataForBasket as details
                 };
                 window.fishingUi.showCatchPreview(previewItem);
             } else if (typeof showTemporaryCollectedItem === 'function') {
-                showTemporaryCollectedItem(displayData);
+                // Fallback if showCatchPreview is not available
+                showTemporaryCollectedItem(cardDataForBasket);
             }
 
         } else {
@@ -266,23 +254,25 @@ function grantRockRewards(rockDef) {
 
             const rarityInfo = typeof getRarityTierInfo === 'function' ? getRarityTierInfo(randomTicketRarityKey) : null;
             const ticketDisplayName = rarityInfo ? `${rarityInfo.name} Summon Ticket` : `${randomTicketRarityKey} Summon Ticket`;
-            console.log(`Rock granted Summon Ticket: ${ticketDisplayName}`);
+            // console.log(`Rock granted Summon Ticket: ${ticketDisplayName}`); // Log below is more specific
 
-            // Display logic for the ticket
+            // Display logic for the ticket (already good)
             const ticketDisplayData = {
                 name: ticketDisplayName,
                 imagePath: typeof getSummonTicketImagePath === 'function' ? getSummonTicketImagePath(randomTicketRarityKey) : `gui/summon_tickets/ticket_${randomTicketRarityKey}.png`,
-                type: 'ticket', // Consistent type for display handlers
-                details: { rarityKey: randomTicketRarityKey, name: ticketDisplayName } // For fishingUi.showCatchPreview
+                type: 'ticket',
+                source: 'mining', // Add source for consistency if this object were to be used for basket
+                details: { rarityKey: randomTicketRarityKey, name: ticketDisplayName, source: 'mining' }
             };
+            console.log(`[RockMechanics] Granted Summon Ticket: ${ticketDisplayName}, Type=${ticketDisplayData.type}, Source=${ticketDisplayData.source}`);
+
 
             if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
-                 window.fishingUi.showCatchPreview(ticketDisplayData);
+                 window.fishingUi.showCatchPreview(ticketDisplayData); // ticketDisplayData now includes source in details
             } else if (typeof showTemporaryCollectedItem === 'function') {
-                // showTemporaryCollectedItem might need adjustment if it expects specific fields not in ticketDisplayData directly
-                showTemporaryCollectedItem({ name: ticketDisplayData.name, imagePath: ticketDisplayData.imagePath, type: ticketDisplayData.type });
+                showTemporaryCollectedItem({ name: ticketDisplayData.name, imagePath: ticketDisplayData.imagePath, type: ticketDisplayData.type, source: ticketDisplayData.source });
             } else if(typeof showCustomModal === 'function') {
-                 showCustomModal(`Found a ${ticketDisplayName}!`, "success");
+                 showCustomModal(`Found a ${ticketDisplayName}! (from Mining)`, "success");
             }
         } else {
             console.warn("summonTicketRarities array not defined/empty, or addSummonTickets function missing. Cannot grant random ticket from rock.");
