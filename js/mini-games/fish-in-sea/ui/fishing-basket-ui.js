@@ -69,6 +69,9 @@ window.fishingBasketUi = {
             const option = document.createElement('option');
             option.value = rarity;
             option.textContent = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+            if (rarity === 'all') {
+                option.selected = true; // Make 'All' selected by default
+            }
             this.rarityFilterElement.appendChild(option);
         });
     },
@@ -121,8 +124,12 @@ window.fishingBasketUi = {
             console.log("[FishingBasketUI] Rendering item.cardData:", item.cardData, "Quantity:", item.quantity, "Source:", item.cardData.source);
 
             let cardImageSrc = 'gui/items/placeholder_icon.png'; // Default fallback
-            if (item.cardData && item.cardData.imagePath) {
-                cardImageSrc = item.cardData.imagePath; // Prioritize direct imagePath if available
+            // New check for known error items
+            const errorItemTypes = ['error_card_generation', 'error_card_missing_data', 'error_card_save_load'];
+            if (item.cardData && (item.cardData.id === 'error_card' || item.cardData.set === 'fish_in_sea_error' || errorItemTypes.includes(item.cardData.type))) {
+                cardImageSrc = 'gui/fishing_game/tree-back.png';
+            } else if (item.cardData && item.cardData.imagePath) { // Prioritize direct imagePath if available
+                cardImageSrc = item.cardData.imagePath;
             } else if (item.cardData && item.cardData.set && item.cardData.id && typeof getCardImagePath === 'function') {
                 // This assumes getCardImagePath is a global function that takes set and id
                 cardImageSrc = getCardImagePath(item.cardData.set, item.cardData.id);
@@ -130,7 +137,7 @@ window.fishingBasketUi = {
                 // Specific fallback for summon tickets if imagePath was missing but rarityKey exists
                 cardImageSrc = getSummonTicketImagePath(item.cardData.rarityKey);
             }
-            console.log("[FishingBasketUI] Determined cardImageSrc:", cardImageSrc, "for item name:", item.cardData.name);
+            // console.log("[FishingBasketUI] Determined cardImageSrc:", cardImageSrc, "for item name:", item.cardData.name); // Moved log after all conditions
 
             const cardName = item.cardData.name || (item.cardData.type ? `Unknown ${item.cardData.type.replace('_', ' ')}` : 'Unknown Item');
             const cardRarity = item.cardData.rarityKey || item.cardData.rarity || '';
@@ -143,6 +150,8 @@ window.fishingBasketUi = {
                 ${item.isLocked ? '<div class="basket-card-lock-icon">🔒</div>' : ''}
             `;
             cardDiv.dataset.instanceId = item.instanceId;
+            console.log("[FishingBasketUI] Final cardImageSrc:", cardImageSrc, "for item name:", cardName);
+
 
             cardDiv.addEventListener('click', () => this.showCardDetailForBasketItem(item));
             this.cardsContainerElement.appendChild(cardDiv);

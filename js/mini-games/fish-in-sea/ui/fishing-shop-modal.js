@@ -7,9 +7,9 @@ function setupFishingShopModal() { // Renamed from setupShopModal for clarity
     // Event listeners for tabs and close button are set in fishingUi.addEventListeners
     // Initial render of ticket balances and items:
     renderFishingShopTicketBalances();
-    renderFishingShopItems('fish'); // Default to fish tab
+    renderFishingShopItems('fish_card'); // Default to fish_card tab
      // Activate the first tab if not already
-    const firstTab = shopModal.querySelector('.fishing-shop-tabs button[data-tab-type="fish"]');
+    const firstTab = shopModal.querySelector('.fishing-shop-tabs button[data-tab-type="fish_card"]');
     if (firstTab) {
         shopModal.querySelectorAll('.fishing-shop-tabs button').forEach(btn => btn.classList.remove('active'));
         firstTab.classList.add('active');
@@ -68,7 +68,7 @@ function renderFishingShopItems(tabType = 'fish') { // Renamed from renderShopIt
         case 'mineral_card': // Match data-tab-type from HTML
             exchangeRatesConfig = FISHING_CONFIG.MINERAL_EXCHANGE_RATES || {};
             itemFilterType = 'mineral_card';
-            itemCategoryTitle = "Mineral Exchange Progress";
+            itemCategoryTitle = "Rock Exchange Progress"; // Renamed for consistency
             break;
         case 'bird_reward_card': // Match data-tab-type from HTML
             exchangeRatesConfig = FISHING_CONFIG.BIRD_REWARD_EXCHANGE_RATES || FISHING_CONFIG.CARD_EXCHANGE_RATES || {}; // Fallback
@@ -126,8 +126,20 @@ function renderFishingShopItems(tabType = 'fish') { // Renamed from renderShopIt
         !item.isLocked
     );
 
-    console.log(`[Shop] For Tab "${tabType}" (using filter type "${itemFilterType}"): Displaying ${itemsToDisplay.length} of ${currentBasketItems.filter(i => i.cardData.type === itemFilterType).length} available (unlocked) items. Total basket items: ${currentBasketItems.length}`);
-    // More detailed item logging if needed:
+    // Existing log covers counts and types well.
+    console.log(`[Shop] For Tab "${tabType}" (using filter type "${itemFilterType}"): Displaying ${itemsToDisplay.length} of ${currentBasketItems.filter(i => i.cardData && i.cardData.type === itemFilterType).length} available (unlocked) items. Total basket items: ${currentBasketItems.length}`);
+
+    // Added verbose logging as requested for this subtask
+    console.log(`[ShopRender] Rendering tabType: "${tabType}", resolved itemFilterType: "${itemFilterType}"`);
+    try {
+        console.log(`[ShopRender] Current basket contents (for shop):`, JSON.parse(JSON.stringify(currentBasketItems)));
+        console.log(`[ShopRender] Items after filtering for shop display:`, JSON.parse(JSON.stringify(itemsToDisplay)));
+    } catch (e) {
+        console.error("[ShopRender] Error stringifying basket/items for logging:", e);
+        console.log("[ShopRender] Current basket (raw):", currentBasketItems);
+        console.log("[ShopRender] Items to display (raw):", itemsToDisplay);
+    }
+    // Original more detailed item logging (can be uncommented if simple list is preferred over full stringify)
     // console.log(`[Shop] Items to display for "${tabType}":`, itemsToDisplay.map(i => ({name: i.cardData.name, type: i.cardData.type, source: i.cardData.source })));
 
 

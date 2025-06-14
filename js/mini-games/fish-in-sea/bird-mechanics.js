@@ -84,9 +84,14 @@ const birdMechanics = {
 
     handleBirdClick: function(birdId) {
         const bird = this.birds.find(b => b.id === birdId);
-        if (!bird || bird.state !== 'flying') return;
+        if (!bird || bird.state !== 'flying') {
+            if (bird) { // Only log if bird exists but is in wrong state
+                console.log(`[BirdClick] Bird ${birdId} already clicked or not in 'flying' state. Current state: ${bird.state}`);
+            }
+            return;
+        }
 
-        console.log("Bird clicked:", birdId);
+        // console.log("Bird clicked:", birdId); // INFO - Event driven, probably okay
         bird.state = 'clicked'; // Prevent multi-click, can be used for animation
 
         if (Math.random() < this.dropChance) {
@@ -94,7 +99,7 @@ const birdMechanics = {
             const reward = this.generateReward(isTicket);
 
             if (reward) {
-                console.log("Bird drops:", reward);
+                // console.log("Bird drops:", reward); // INFO - Event driven, this is okay for now, as [BirdGenFinal] is more specific.
                 if (window.fishingBasket && typeof window.fishingBasket.addCardToBasket === 'function') {
                     // Adapt reward structure if necessary for addCardToBasket
                     // addCardToBasket expects (cardData, quantity)
@@ -116,13 +121,13 @@ const birdMechanics = {
 
 
             } else {
-                console.log("Bird dropped nothing.");
+                // console.log("Bird dropped nothing."); // INFO - Event driven, okay
                  if (window.birdUi && typeof window.birdUi.showRewardDropped === 'function') {
                     window.birdUi.showRewardDropped(bird, null); // Indicate nothing dropped
                 }
             }
         } else {
-            console.log("Bird dropped nothing (failed dropChance).");
+            // console.log("Bird dropped nothing (failed dropChance)."); // INFO - Event driven, okay
             if (window.birdUi && typeof window.birdUi.showRewardDropped === 'function') {
                 window.birdUi.showRewardDropped(bird, null);
             }
@@ -195,10 +200,10 @@ const birdMechanics = {
                         imagePath: getSummonTicketImagePath(targetPullRarityKey), // Use helper for path
                         source: 'bird'
                     };
-                    console.log(`[BirdGenFinal] Generated Ticket: ID=${reward.id}, Name="${reward.name}", Rarity=${reward.rarity}, Image=${reward.imagePath}`);
+                    console.log(`[BirdGenFinal] Generated Ticket: ID=${reward.id}, Name="${reward.name}", Rarity=${reward.rarity}, Image=${reward.imagePath}`); // Good - event based
                     return reward;
                 } else {
-                    console.warn(`BirdMechanics: No summon tickets found for rarity '${targetPullRarityKey}'. Falling back.`);
+                    // console.warn(`BirdMechanics: No summon tickets found for rarity '${targetPullRarityKey}'. Falling back.`); // INFO
                     // Fallback: try any ticket or a default one if main logic fails
                     const allTickets = Object.values(summonTicketDefinitions);
                     if (allTickets.length > 0) {
@@ -208,7 +213,7 @@ const birdMechanics = {
                             rarity: fallbackTicket.rarityKey, rarityKey: fallbackTicket.rarityKey,
                             imagePath: getSummonTicketImagePath(fallbackTicket.rarityKey), source: 'bird'
                         };
-                        console.log(`[BirdGenFinal] Generated Ticket: ID=${reward.id}, Name="${reward.name}", Rarity=${reward.rarity}, Image=${reward.imagePath}`);
+                        console.log(`[BirdGenFinal] Generated Ticket: ID=${reward.id}, Name="${reward.name}", Rarity=${reward.rarity}, Image=${reward.imagePath}`); // Good - event based
                         return reward;
                     }
                 }
@@ -216,11 +221,13 @@ const birdMechanics = {
             console.error("BirdMechanics: summonTicketDefinitions or getSummonTicketImagePath not available.");
             return null;
         } else {
-            // Card generation logic (adapted from rock-mechanics)
-            if (typeof getActiveSetDefinitions !== 'function' || typeof cardData === 'undefined' ||
-                typeof getCardIntrinsicRarity !== 'function' || typeof getFixedGradeAndPrice !== 'function' ||
-                typeof getCardImagePath !== 'function') {
-                console.error("BirdMechanics: Missing critical global functions for card generation.");
+            // Card generation logic - REWRITTEN to align with tree-mechanics (Turn 65)
+            if (typeof getActiveSetDefinitions !== 'function' ||
+                typeof getCardIntrinsicRarity !== 'function' ||
+                typeof getFixedGradeAndPrice !== 'function' ||
+                typeof getCardImagePath !== 'function' ||
+                typeof window.ALL_SET_DEFINITIONS === 'undefined') { // Used by getActiveSetDefinitions
+                console.error("BirdMechanics: Missing critical global functions or ALL_SET_DEFINITIONS for card generation.");
                 return null;
             }
 
@@ -232,63 +239,71 @@ const birdMechanics = {
 
             let possibleCards = [];
             activeSets.forEach(setDef => {
-                if (cardData[setDef.abbr]) {
-                    for (const cardIdKey in cardData[setDef.abbr]) {
-                        const cardIdNum = parseInt(cardIdKey);
-                        if (getCardIntrinsicRarity(setDef.abbr, cardIdNum) === targetPullRarityKey) {
-                            const cardEntry = cardData[setDef.abbr][cardIdKey];
-                            const fixedProps = getFixedGradeAndPrice(setDef.abbr, cardIdNum);
-                            possibleCards.push({
-                                set: setDef.abbr,
-                                id: cardIdNum,
-                                name: cardEntry.name || `${setDef.name} Card #${cardIdNum} (Bird)`,
-                                rarity: fixedProps.rarityKey,
-                                price: fixedProps.price,
-                                grade: fixedProps.grade,
-                                imagePath: getCardImagePath(setDef.abbr, cardIdNum),
-                                type: 'bird_reward_card', // Standardized type
-                                source: 'bird'
-                            });
-                        }
-                    }
+                if (!setDef || typeof setDef.abbr === 'undefined' || typeof setDef.count !== 'number') {
+                    // console.warn(`[BirdGen] Skipping set due to missing abbr or count:`, setDef); // INFO
+                    return;
                 }
-            });
-
-            if (possibleCards.length > 0) {
-                const reward = possibleCards[Math.floor(Math.random() * possibleCards.length)]; // Assign to 'reward'
-                // console.log(`[BirdMechanics] Generated card: Name=${reward.name}, Type=${reward.type}, Source=${reward.source}, Rarity=${reward.rarity}`); // Old log
-                console.log(`[BirdGenFinal] Generated Card: ID=${reward.id}, Set=${reward.set}, Name="${reward.name}", Rarity=${reward.rarity}, Image=${reward.imagePath}`);
-                return reward;
-            } else {
-                console.warn(`BirdMechanics: No cards found for target rarity '${targetPullRarityKey}'. Trying fallback to 'base'.`);
-                const fallbackPossibleCards = [];
-                activeSets.forEach(setDef => {
-                    if (cardData[setDef.abbr]) {
-                        for (const cardIdKey in cardData[setDef.abbr]) {
-                            const cardIdNum = parseInt(cardIdKey);
-                            if (getCardIntrinsicRarity(setDef.abbr, cardIdNum) === 'base') {
-                                const cardEntry = cardData[setDef.abbr][cardIdKey];
-                                const fixedProps = getFixedGradeAndPrice(setDef.abbr, cardIdNum);
-                                fallbackPossibleCards.push({
-                                    set: setDef.abbr, id: cardIdNum, name: cardEntry.name || `${setDef.name} Card #${cardIdNum} (Bird)`,
-                                    rarity: fixedProps.rarityKey, price: fixedProps.price, grade: fixedProps.grade,
-                                    imagePath: getCardImagePath(setDef.abbr, cardIdNum), type: 'bird_reward_card', source: 'bird'
+                for (let cardIdNum = 1; cardIdNum <= setDef.count; cardIdNum++) {
+                    try {
+                        const intrinsicRarity = getCardIntrinsicRarity(setDef.abbr, cardIdNum);
+                        if (intrinsicRarity === targetPullRarityKey) {
+                            const fixedProps = getFixedGradeAndPrice(setDef.abbr, cardIdNum);
+                            if (fixedProps) {
+                                possibleCards.push({
+                                    set: setDef.abbr,
+                                    id: cardIdNum,
+                                    name: fixedProps.name || `${setDef.name} Card #${cardIdNum}`, // Fallback name
+                                    rarity: fixedProps.rarityKey,
+                                    price: fixedProps.price,
+                                    grade: fixedProps.grade,
+                                    imagePath: getCardImagePath(setDef.abbr, cardIdNum, fixedProps.imageType || 'standard', fixedProps),
+                                    type: 'bird_reward_card',
+                                    source: 'bird'
                                 });
                             }
                         }
+                    } catch (e) { /* ignore errors during iteration */ }
+                }
+            });
+
+            // console.log(`[BirdGen] Found ${possibleCards.length} cards for target rarity '${targetPullRarityKey}'.`); // DEBUG
+
+            if (possibleCards.length > 0) {
+                const reward = possibleCards[Math.floor(Math.random() * possibleCards.length)];
+                console.log(`[BirdGenFinal] Generated Card: ID=${reward.id}, Set=${reward.set}, Name="${reward.name}", Rarity=${reward.rarity}, Image=${reward.imagePath}`);
+                return reward;
+            } else if (targetPullRarityKey !== 'base') { // Fallback to 'base' if no cards found for target and target wasn't already 'base'
+                // console.warn(`BirdMechanics: No cards found for target rarity '${targetPullRarityKey}'. Trying fallback to 'base'.`); // INFO
+                possibleCards = []; // Reset for fallback search
+                activeSets.forEach(setDef => {
+                    if (!setDef || typeof setDef.abbr === 'undefined' || typeof setDef.count !== 'number') return;
+                    for (let cardIdNum = 1; cardIdNum <= setDef.count; cardIdNum++) {
+                        try {
+                            if (getCardIntrinsicRarity(setDef.abbr, cardIdNum) === 'base') {
+                                const fixedProps = getFixedGradeAndPrice(setDef.abbr, cardIdNum);
+                                if (fixedProps) {
+                                    possibleCards.push({
+                                        set: setDef.abbr, id: cardIdNum, name: fixedProps.name || `${setDef.name} Card #${cardIdNum}`,
+                                        rarity: fixedProps.rarityKey, price: fixedProps.price, grade: fixedProps.grade,
+                                        imagePath: getCardImagePath(setDef.abbr, cardIdNum, fixedProps.imageType || 'standard', fixedProps),
+                                        type: 'bird_reward_card', source: 'bird'
+                                    });
+                                }
+                            }
+                        } catch (e) { /* ignore */ }
                     }
                 });
-                if (fallbackPossibleCards.length > 0) {
-                    const reward = fallbackPossibleCards[Math.floor(Math.random() * fallbackPossibleCards.length)]; // Assign to 'reward'
-                    // console.log(`[BirdMechanics] Generated fallback card: Name=${reward.name}, Type=${reward.type}, Source=${reward.source}, Rarity=${reward.rarity}`); // Old log
+                // console.log(`[BirdGen] Fallback: Found ${possibleCards.length} 'base' rarity cards.`); // DEBUG
+                if (possibleCards.length > 0) {
+                    const reward = possibleCards[Math.floor(Math.random() * possibleCards.length)];
                     console.log(`[BirdGenFinal] Generated Card: ID=${reward.id}, Set=${reward.set}, Name="${reward.name}", Rarity=${reward.rarity}, Image=${reward.imagePath}`);
                     return reward;
                 }
             }
+
             console.error("BirdMechanics: Failed to generate any card, even fallback 'base' card.");
             return null;
         }
-        // Removed comments about where the log should go as they are now implemented above.
     },
 
     getRandomRarity: function() {

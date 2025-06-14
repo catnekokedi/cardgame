@@ -98,7 +98,7 @@ function hitRock(rockSlotIndex) {
         return;
     }
 
-    // Cooldown check (existing logic should be fine)
+    // Cooldown check
     const now = Date.now();
     if (now - (rockLastHitTime[rockSlotIndex] || 0) < ROCK_HIT_COOLDOWN) {
         // console.log(`[RockHP] Rock hit on cooldown for slot ${rockSlotIndex}.`);
@@ -106,18 +106,18 @@ function hitRock(rockSlotIndex) {
     }
     rockLastHitTime[rockSlotIndex] = now;
 
-    // Decrement HP
-    if (rock.hp === undefined) { // Should not happen if initialized correctly
-        console.error(`[RockHP] Rock in slot ${rockSlotIndex} has undefined HP! MaxHP: ${rock.maxHp}. Setting HP to maxHp.`);
-        rock.hp = rock.maxHp; // Initialize if undefined
+    // Defensive check for undefined HP - should be set by spawnNewRock
+    if (rock.hp === undefined) {
+        console.error(`[RockHP] Rock in slot ${rockSlotIndex} has undefined HP! MaxHP: ${rock.maxHp}. Setting HP to maxHp if possible.`);
+        rock.hp = rock.maxHp !== undefined ? rock.maxHp : 1; // Fallback to 1 if maxHp also missing
     }
-    rock.hp -= 1;
-    // console.log(`[RockHP] Rock slot ${rockSlotIndex} hit. HP before clamp: ${rock.hp}`);
 
+    rock.hp -= 1;
+    // console.log(`[RockHP] Rock slot ${rockSlotIndex} hit. HP after decrement: ${rock.hp}`);
 
     // Clamp HP at 0 if it went below
     if (rock.hp < 0) {
-        console.warn(`[RockHP] Rock HP for slot ${rockSlotIndex} went below 0 (${rock.hp}), clamping to 0.`);
+        console.warn(`[RockHP] Rock HP for slot ${rockSlotIndex} was ${rock.hp}, clamping to 0.`);
         rock.hp = 0;
     }
 
@@ -125,36 +125,36 @@ function hitRock(rockSlotIndex) {
 
     if (rock.hp === 0) {
         console.log(`[RockHP] Rock in slot ${rockSlotIndex} destroyed! HP reached 0.`);
-        // Ensure rock.definition is valid before passing to grantRockRewards
-        if (!rock.definition) {
-            console.error(`[RockHP] Rock in slot ${rockSlotIndex} has no definition! Cannot grant rewards. Rarity: ${rock.rarity}`);
-            // Attempt to reconstruct definition if possible, or use a default
+        let rockDefinitionForRewards = rock.definition;
+        if (!rockDefinitionForRewards) {
+            console.error(`[RockHP] Rock in slot ${rockSlotIndex} has no definition! Rarity: ${rock.rarity}. Attempting to reconstruct.`);
             if (rock.rarity && rockDefinitions[rock.rarity]) {
-                rock.definition = rockDefinitions[rock.rarity];
+                rockDefinitionForRewards = rockDefinitions[rock.rarity];
+                console.log(`[RockHP] Reconstructed definition for rock rarity ${rock.rarity}.`);
             } else {
-                // Fallback to a default definition or skip rewards
                 console.error(`[RockHP] Cannot reconstruct definition for rock rarity ${rock.rarity}. Rewards may be incorrect or skipped.`);
-                // Potentially use a default common rock definition for rewards or handle appropriately
             }
         }
-        if (rock.definition) { // Grant rewards only if definition is available
-            grantRockRewards(rock.definition);
+        if (rockDefinitionForRewards) {
+            grantRockRewards(rockDefinitionForRewards);
         }
 
-
-        // Set to respawning state
         rockSlots[rockSlotIndex] = {
             isRespawning: true,
             respawnTimer: BASE_ROCK_RESPAWN_TIME + (Math.random() * 5000 - 2500)
         };
-        // console.log(`[RockHP] Rock in slot ${rockSlotIndex} will respawn in about ${Math.round(rockSlots[rockSlotIndex].respawnTimer/1000)}s.`);
+        if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.renderRocks === 'function') {
+            fishingRocksUi.renderRocks(getRockSlotsData()); // Update UI immediately after setting to respawn
+        }
         if (typeof playSound === 'function') playSound('sfx_rock_destroy.mp3');
+        return; // Exit after breaking the rock
     } else {
         // Update cracks only if not destroyed
-        if (rock.maxHp > 0) { // Avoid division by zero if maxHp is somehow not set
+        if (rock.maxHp !== undefined && rock.maxHp > 0) {
            rock.cracks = Math.min(3, Math.floor(((rock.maxHp - rock.hp) / rock.maxHp) * 4));
         } else {
-           rock.cracks = 0;
+           // console.warn(`[RockHP] maxHp not set or zero for rock ${rockSlotIndex}, cannot calculate cracks.`);
+           rock.cracks = rock.cracks || 0; // Keep existing cracks or default to 0
         }
     }
 

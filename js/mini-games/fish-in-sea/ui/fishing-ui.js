@@ -432,14 +432,24 @@ const fishingUi = {
 
     addEventListeners() { 
         const ui = fishingGameState.ui;
-        if (ui.bobber) ui.bobber.addEventListener('click', () => fishingMechanics.handleBobberClick(false));
+        if (ui.bobber) ui.bobber.addEventListener('click', () => {
+            if (window.fishingMechanics) {
+                window.fishingMechanics.handleBobberClick(false);
+            } else {
+                console.error("fishingMechanics not available on window object for bobber click!");
+            }
+        });
         
         if (ui.catContainer) {
             ui.catContainer.addEventListener('click', () => {
                 if (document.querySelector('.custom-modal-overlay[style*="display: flex"]')) return;
                 if (Array.from(document.querySelectorAll('.fishing-game-modal-overlay')).some(m => m.style.display === 'flex')) return;
                 if (!fishingGameState.isRodCast && !fishingGameState.isReeling && !this.isToolSelected()) {
-                    fishingMechanics.castRod();
+                    if (window.fishingMechanics) {
+                        window.fishingMechanics.castRod();
+                    } else {
+                        console.error("fishingMechanics not available on window object for cat container click!");
+                    }
                 }
             });
         }

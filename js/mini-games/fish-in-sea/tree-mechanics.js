@@ -44,13 +44,13 @@ function getRandomRarityFromWeights(weights) {
  * Generates a random card for the tree based on defined rarities using utility functions.
  */
 function generateRandomCardForTree() {
-    // Keep existing typeof logs for dependencies for now for diagnostics
-    console.log('[TreeGen] typeof getActiveSetDefinitions:', typeof getActiveSetDefinitions);
-    console.log('[TreeGen] typeof window.cardData:', typeof window.cardData, 'Keys:', Object.keys(window.cardData || {}).length); // window.cardData is not directly used by this new func
-    console.log('[TreeGen] typeof getFixedGradeAndPrice:', typeof getFixedGradeAndPrice);
-    console.log('[TreeGen] typeof getCardImagePath:', typeof getCardImagePath);
-    console.log('[TreeGen] typeof getCardIntrinsicRarity:', typeof getCardIntrinsicRarity);
-    console.log('[TreeGen] typeof window.ALL_SET_DEFINITIONS:', typeof window.ALL_SET_DEFINITIONS);
+    // Keep existing typeof logs for dependencies for now for diagnostics // REMOVE THESE
+    // console.log('[TreeGen] typeof getActiveSetDefinitions:', typeof getActiveSetDefinitions); // DEBUG
+    // console.log('[TreeGen] typeof window.cardData:', typeof window.cardData, 'Keys:', Object.keys(window.cardData || {}).length); // DEBUG
+    // console.log('[TreeGen] typeof getFixedGradeAndPrice:', typeof getFixedGradeAndPrice); // DEBUG
+    // console.log('[TreeGen] typeof getCardImagePath:', typeof getCardImagePath); // DEBUG
+    // console.log('[TreeGen] typeof getCardIntrinsicRarity:', typeof getCardIntrinsicRarity); // DEBUG
+    // console.log('[TreeGen] typeof window.ALL_SET_DEFINITIONS:', typeof window.ALL_SET_DEFINITIONS); // DEBUG
 
     if (typeof getActiveSetDefinitions !== 'function' ||
         typeof getFixedGradeAndPrice !== 'function' ||
@@ -66,7 +66,7 @@ function generateRandomCardForTree() {
         console.error("Tree: Could not determine target rarity from weights.");
         return null;
     }
-    console.log(`[TreeGen] Target Rarity Key: ${targetRarityKey}`);
+    // console.log(`[TreeGen] Target Rarity Key: ${targetRarityKey}`); // DEBUG
 
     const activeSets = getActiveSetDefinitions(); // This should give { abbr: 'SET_CODE', name: 'Set Name', count: X, folderName: '...' }
     if (!activeSets || activeSets.length === 0) {
@@ -77,7 +77,7 @@ function generateRandomCardForTree() {
     let possibleCards = [];
     activeSets.forEach(setDef => {
         if (!setDef || typeof setDef.abbr === 'undefined' || typeof setDef.count !== 'number') {
-            console.warn(`[TreeGen] Skipping set due to missing abbr or count:`, setDef);
+            // console.warn(`[TreeGen] Skipping set due to missing abbr or count:`, setDef); // INFO
             return; // Skip this set definition if it's malformed
         }
 
@@ -108,15 +108,15 @@ function generateRandomCardForTree() {
             }
         }
     });
-    console.log(`[TreeGen] Found ${possibleCards.length} cards for target rarity '${targetRarityKey}'.`);
+    // console.log(`[TreeGen] Found ${possibleCards.length} cards for target rarity '${targetRarityKey}'.`); // DEBUG
 
     if (possibleCards.length > 0) {
         const selectedCard = possibleCards[Math.floor(Math.random() * possibleCards.length)];
         // console.log(`[TreeGen] Selected card: ${selectedCard.name}`); // Old log commented out
-        console.log(`[TreeGenFinal] Generated: ID=${selectedCard.id}, Set=${selectedCard.set}, Name="${selectedCard.name}", Rarity=${selectedCard.rarity}, Image=${selectedCard.imagePath}`);
+        console.log(`[TreeGenFinal] Generated: ID=${selectedCard.id}, Set=${selectedCard.set}, Name="${selectedCard.name}", Rarity=${selectedCard.rarity}, Image=${selectedCard.imagePath}`); // This one is good - event based
         return selectedCard;
     } else {
-        console.warn(`Tree: No cards found for target rarity '${targetRarityKey}'. Trying fallback to 'base' rarity.`);
+        // console.warn(`Tree: No cards found for target rarity '${targetRarityKey}'. Trying fallback to 'base' rarity.`); // INFO
         // Fallback to 'base' rarity (similar loop but targetRarityKey is 'base')
         // Re-initialize possibleCards for fallback search
         possibleCards = [];
@@ -139,11 +139,11 @@ function generateRandomCardForTree() {
                 } catch (e) { /* ignore */ }
             }
         });
-        console.log(`[TreeGen] Fallback: Found ${possibleCards.length} 'base' rarity cards.`);
+        // console.log(`[TreeGen] Fallback: Found ${possibleCards.length} 'base' rarity cards.`); // DEBUG
         if (possibleCards.length > 0) {
             const selectedCard = possibleCards[Math.floor(Math.random() * possibleCards.length)];
             // console.log(`[TreeGen] Selected fallback card: ${selectedCard.name}`); // Old log commented out
-            console.log(`[TreeGenFinal] Generated: ID=${selectedCard.id}, Set=${selectedCard.set}, Name="${selectedCard.name}", Rarity=${selectedCard.rarity}, Image=${selectedCard.imagePath}`);
+            console.log(`[TreeGenFinal] Generated: ID=${selectedCard.id}, Set=${selectedCard.set}, Name="${selectedCard.name}", Rarity=${selectedCard.rarity}, Image=${selectedCard.imagePath}`); // This one is good - event based
             return selectedCard;
         }
     }
@@ -199,7 +199,7 @@ function updateTreeFruitGrowth(deltaTime) {
                 maturationProgress[i] = 0;
                 slotTimers[i] = 0;
                 slotsChanged = true;
-                console.log(`Slot ${i}: New unknown fruit/card started growing.`);
+                // console.log(`Slot ${i}: New unknown fruit/card started growing.`); // INFO
             }
         } else if (treeSlots[i].state === "growing" || treeSlots[i].state === "unmatured") {
             const moistureFactor = treeMoisture > 0 ? treeMoisture / MAX_MOISTURE : 0.1;
@@ -211,14 +211,14 @@ function updateTreeFruitGrowth(deltaTime) {
             maturationProgress[i] = currentProgress;
 
             if (currentProgress >= 100) {
-                console.log(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} matured. Attempting to generate card.`);
+                // console.log(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} matured. Attempting to generate card.`); // INFO
                 const finalCardData = generateRandomCardForTree();
-                console.log(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} generated card data:`, finalCardData ? finalCardData.name : "None");
+                // console.log(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} generated card data:`, finalCardData ? finalCardData.name : "None"); // INFO (TreeGenFinal is more specific)
 
                 if (finalCardData) {
                     treeSlots[i].state = "revealed";
                     treeSlots[i].card = finalCardData; // finalCardData now includes type: 'fruit_card' and source: 'tree'
-                    console.log(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} successfully revealed as ${finalCardData.name} (${finalCardData.rarity})`);
+                    // console.log(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} successfully revealed as ${finalCardData.name} (${finalCardData.rarity})`); // INFO (TreeGenFinal is more specific)
                 } else {
                     console.error(`[TreeMechanics] updateTreeFruitGrowth: Slot ${i} still failed to generate card after generateRandomCardForTree. Using error fallback.`);
                     treeSlots[i].state = "revealed";
@@ -287,22 +287,38 @@ function collectCardFromTree(slotIndex) {
 
     const slot = treeSlots[slotIndex];
     if (slot && slot.state === "revealed" && slot.card) {
-        const collectedCardDetails = slot.card; // This now has type: 'fruit_card', source: 'tree'
+        const collectedCardDetails = slot.card;
+        console.log('[TreeCollect] Initial slot.card details:', JSON.parse(JSON.stringify(collectedCardDetails)));
 
         const cardDataForBasket = {
             id: collectedCardDetails.id,
             set: collectedCardDetails.set,
             name: collectedCardDetails.name,
-            rarity: collectedCardDetails.rarityKey || collectedCardDetails.rarity,
-            rarityKey: collectedCardDetails.rarityKey || collectedCardDetails.rarity,
-            price: collectedCardDetails.price || 0,
-            grade: collectedCardDetails.grade || null,
+            rarity: collectedCardDetails.rarity,
+            rarityKey: collectedCardDetails.rarityKey || collectedCardDetails.rarity, // Ensure rarityKey is preferred if available
+            price: collectedCardDetails.price, // Expect these to be defined by generateRandomCardForTree
+            grade: collectedCardDetails.grade, // Expect these to be defined by generateRandomCardForTree
             imagePath: collectedCardDetails.imagePath,
-            source: collectedCardDetails.source, // Should be 'tree'
-            type: collectedCardDetails.type    // Should be 'fruit_card'
+
+            type: 'fruit_card', // Explicitly set as per categorization plan
+            source: 'tree'      // Explicitly set
         };
-        console.log(`[TreeMechanics] Item for basket from tree slot ${slotIndex}: Name=${cardDataForBasket.name}, Type=${cardDataForBasket.type}, Source=${cardDataForBasket.source}`);
-        // console.log(`Collecting item from slot ${slotIndex} directly to basket:`, cardDataForBasket); // Redundant with above
+
+        // Add checks for essential missing properties and log errors if so
+        if (cardDataForBasket.id === undefined || cardDataForBasket.set === undefined ||
+            cardDataForBasket.name === undefined || cardDataForBasket.imagePath === undefined ||
+            cardDataForBasket.rarity === undefined || cardDataForBasket.price === undefined ||
+            cardDataForBasket.grade === undefined ) { // Check for undefined explicitly
+            console.error('[TreeCollect] CRITICAL: Missing essential details in cardDataForBasket from tree slot!',
+                          JSON.parse(JSON.stringify(cardDataForBasket)),
+                          'Original slot.card was:',
+                          JSON.parse(JSON.stringify(collectedCardDetails)));
+            // Optionally, create a full error object for cardDataForBasket here if needed
+        }
+
+        console.log('[TreeCollect] Prepared cardDataForBasket:', JSON.parse(JSON.stringify(cardDataForBasket)));
+        // The old log is now covered by the new [TreeCollect] log above.
+        // console.log(`[TreeMechanics] Item for basket from tree slot ${slotIndex}: Name=${cardDataForBasket.name}, Type=${cardDataForBasket.type}, Source=${cardDataForBasket.source}`);
 
         if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
             window.fishingBasket.addCardToBasket(cardDataForBasket, 1);

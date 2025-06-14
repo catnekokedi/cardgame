@@ -65,11 +65,31 @@ function getSetMetadata(setAbbrIdentifier) {
     };
 }
 
-function getCardImagePath(setAbbrIdentifier, cardId) {
+function getCardImagePath(setAbbrIdentifier, cardId, imageType = 'standard', cardDefinition = null) { // Added unused params for signature consistency if ever needed
+    const errorSets = ['fish_in_sea_error', 'error_card_generation', 'error_card_missing_data', 'error_card_save_load'];
+    if (!setAbbrIdentifier || typeof cardId !== 'number' || cardId < 1 || errorSets.includes(setAbbrIdentifier)) {
+        // console.warn(`[getCardImagePath] Invalid cardId (${cardId}) or error/missing set (${setAbbrIdentifier}). Returning default placeholder.`); // INFO
+        return 'gui/fishing_game/tree-back.png'; // Default placeholder for errors
+    }
+
     const meta = getSetMetadata(setAbbrIdentifier);
-    if (!meta || meta.name.startsWith("Unknown Set")) return `https://placehold.co/130x182/CF6679/FFFFFF?text=No+Set+Meta`;
+    if (!meta || meta.name.startsWith("Unknown Set")) {
+        // console.warn(`[getCardImagePath] No set metadata for ${setAbbrIdentifier}. Returning default placeholder.`); // INFO
+        return 'gui/fishing_game/tree-back.png'; // Default placeholder if set info is missing
+    }
+
     // Use the specific cardImageFolder from the metadata
-    return `${meta.cardImageFolder}/${meta.folderName}/${String(cardId).padStart(3, '0')}.jpg`;
+    // Version and extension are now implicitly handled by meta.cardImageFolder and meta.folderName structure
+    // Assuming cardId is numeric and needs padding.
+    // TODO: Consider if cardId can be non-numeric or not need padding based on set version (meta.version)
+    let extension = '.jpg'; // Default
+    if (meta.version === 'v2') { // Example: v2 might use .png
+        extension = '.png';
+    }
+    if (setAbbrIdentifier === "PRE") extension = '.png'; // Specific set using png
+    // More specific image types or extensions could be handled here if needed via imageType or cardDefinition
+
+    return `${meta.cardImageFolder}/${meta.folderName}/${String(cardId).padStart(3, '0')}${extension}`;
 }
 
 function initializeSetMappings() {

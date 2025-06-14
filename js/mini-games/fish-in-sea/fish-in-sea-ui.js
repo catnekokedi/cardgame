@@ -255,7 +255,7 @@ const fishingUi = {
                         <button class="game-button active" data-tab-type="all_caught">All Caught</button>
                         <button class="game-button" data-tab-type="fish_card">Fish</button>
                         <button class="game-button" data-tab-type="fruit_card">Fruit</button>
-                        <button class="game-button" data-tab-type="mineral_card">Minerals</button>
+                        <button class="game-button" data-tab-type="mineral_card">Rock</button>
                         <button class="game-button" data-tab-type="bird_reward_card">Bird</button>
                     </div>
                     <div id="fishing-basket-grid" class="fishing-game-modal-scrollable-content fishing-basket-grid gallery-grid"></div>
@@ -293,7 +293,7 @@ const fishingUi = {
                     <div class="fishing-shop-tabs">
                         <button class="game-button active" data-tab-type="fish_card">Fish</button>
                         <button class="game-button" data-tab-type="fruit_card">Fruit</button>
-                        <button class="game-button" data-tab-type="mineral_card">Minerals</button>
+                        <button class="game-button" data-tab-type="mineral_card">Rock</button>
                         <button class="game-button" data-tab-type="bird_reward_card">Bird</button>
                     </div>
                     <div class="fishing-game-modal-scrollable-content">

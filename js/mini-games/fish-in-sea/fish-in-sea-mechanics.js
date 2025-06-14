@@ -177,13 +177,13 @@ window.fishingMechanics = {
 
             // Log details for the first fish only in this iteration of activeFish
             if (!loggedThisCall && fishIndex === 0 && this.activeFish.length > 0) {
-                console.log(`[FishCheck] Fish 0: Pos(${fish.x.toFixed(1)}, ${fish.y.toFixed(1)}), Hook(${this.hookPosition.x.toFixed(1)}, ${this.hookPosition.y.toFixed(1)}), Dist: ${distance.toFixed(1)}, BiteDist: ${this.biteDistance}`);
+                // console.log(`[FishCheck] Fish 0: Pos(${fish.x.toFixed(1)}, ${fish.y.toFixed(1)}), Hook(${this.hookPosition.x.toFixed(1)}, ${this.hookPosition.y.toFixed(1)}), Dist: ${distance.toFixed(1)}, BiteDist: ${this.biteDistance}`); // DEBUG - Potentially spammy
                 loggedThisCall = true;
             }
 
             if (distance < this.biteDistance) {
                 // This console log should be very specific to when a fish is actually close enough
-                console.log(`[FishCheck] Fish ${fish.id} is CLOSE. Dist: ${distance.toFixed(1)}`);
+                // console.log(`[FishCheck] Fish ${fish.id} is CLOSE. Dist: ${distance.toFixed(1)}`); // DEBUG - Potentially spammy
                 if (Math.random() < (this.biteChancePerSecond * deltaTime)) {
                     // This log is critical for when a bite actually occurs
                     console.log(`%c[FishCheck] Fish ${fish.id} is BITING! Setting hasHookedFish.`, 'color: green; font-weight: bold;');
@@ -510,3 +510,4 @@ window.fishingMechanics = {
         return { ticketType: targetTicketType, count: ticketsAwardedThisRule, itemsConsumedCount: itemsConsumedFromBasketThisRule };
     }
 };
+console.log("[MechanicsInit] fish-in-sea-mechanics.js loaded and fishingMechanics prepared.");
