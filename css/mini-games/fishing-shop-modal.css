@@ -1,17 +1,33 @@
 /* Styling for the Fishing Exchange Shop Modal */
 
+/* Modal Content Area */
+/* Targeting .fishing-game-modal-content which is likely the main modal box for fishing game modals */
+.fishing-game-modal-content.fishing-shop-modal-content {
+    max-width: 850px; /* Increased width to accommodate more tabs */
+    /* If this doesn't take effect, we might need to check global modal styles in other files */
+}
+/* Fallback if the above is not specific enough or if fishing-shop-modal-content is used alone */
+.fishing-shop-modal-content {
+    max-width: 850px; /* Increased width */
+}
+
+
 /* Tabs */
 .fishing-shop-tabs {
     display: flex;
-    flex-wrap: wrap; /* Allow tabs to wrap to the next line if they don't fit */
-    justify-content: center; /* Center tabs if they don't fill the width */
+    /* flex-wrap: nowrap; /* Default, but explicitly stating or removing 'wrap' */
+    justify-content: space-around; /* Distribute tabs nicely */
     margin-bottom: 10px; /* Space below the tabs */
+    padding: 5px 0; /* Padding for the container */
 }
 
 .fishing-shop-tabs .game-button {
-    margin: 5px; /* Spacing around each tab button */
+    margin: 0 4px; /* Reduced horizontal margin */
     padding: 8px 12px; /* Adjust padding as needed */
     font-size: 0.9em; /* Slightly smaller font for more tabs */
+    flex-grow: 1; /* Allow tabs to grow and fill available space */
+    text-align: center; /* Center text within tabs */
+    white-space: nowrap; /* Prevent text inside button from wrapping */
 }
 
 /* Active tab styling - ensure this is distinct enough */
@@ -111,11 +127,28 @@
     font-size: 0.75em; /* Adjust if too small/large */
 }
 
-/* Responsive adjustments for smaller screens if necessary */
+/* Responsive adjustments */
+@media (max-width: 768px) { /* Adjust breakpoint if tabs start wrapping too soon */
+    .fishing-game-modal-content.fishing-shop-modal-content,
+    .fishing-shop-modal-content {
+        max-width: 95%; /* Use percentage for smaller screens */
+    }
+
+    .fishing-shop-tabs .game-button {
+        font-size: 0.85em; /* Slightly smaller font on medium screens */
+        padding: 8px 10px;
+    }
+}
+
 @media (max-width: 600px) {
+    .fishing-shop-tabs {
+        /* On smaller screens, allow wrapping if necessary, but try to fit first */
+    }
     .fishing-shop-tabs .game-button {
         padding: 6px 8px;
-        font-size: 0.8em;
+        font-size: 0.8em; /* Further reduce font size */
+        flex-grow: 0; /* Don't force grow if they might wrap */
+        flex-basis: auto; /* Reset basis if they wrap */
     }
 
     #fishing-shop-pagination button {
@@ -131,4 +164,57 @@
     .fishing-game-modal-scrollable-content {
         max-height: 300px; /* Adjust for smaller screens */
     }
+}
+
+@media (max-width: 480px) { /* Breakpoint for very small screens where wrapping is likely needed */
+    .fishing-shop-tabs {
+        flex-wrap: wrap; /* Explicitly allow wrapping */
+    }
+    .fishing-shop-tabs .game-button {
+        flex-basis: calc(33.33% - 8px); /* Example: 3 tabs per row */
+        font-size: 0.75em;
+        margin: 3px;
+    }
+}
+
+/* Styles for the tab-specific exchange progress area */
+.fishing-shop-current-tab-exchange-info-area {
+    padding: 10px 15px;
+    margin-bottom: 15px; /* Space before the items grid */
+    border-bottom: 1px solid #ddd; /* Separator line */
+    background-color: #f9f9f9; /* Slightly different background */
+    border-radius: 4px;
+    font-size: 0.9em;
+    max-height: 150px; /* Max height for this area if many rules exist */
+    overflow-y: auto;   /* Scroll if content exceeds max-height */
+}
+
+/* Styling for each line of exchange progress */
+.fishing-shop-current-tab-exchange-info-area .exchange-progress-entry {
+    margin: 5px 0;
+    color: #333;
+}
+
+.fishing-shop-current-tab-exchange-info-area .exchange-progress-entry strong {
+    color: #000;
+    font-weight: 600;
+}
+
+/* Styling for messages like 'Select a specific category...' or 'No exchange options...' */
+.fishing-shop-current-tab-exchange-info-area .text-center.text-sm.text-gray-500,
+.fishing-shop-current-tab-exchange-info-area > .fishing-shop-item-group > p:only-child { /* Targets the 'No exchange options' message if it's the only child */
+    font-style: italic;
+    color: #777;
+    padding: 10px 0;
+    text-align: center;
+}
+
+/* Minor adjustment if a title (h4) was used inside fishing-shop-item-group */
+.fishing-shop-current-tab-exchange-info-area .fishing-shop-item-group h4 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
 }

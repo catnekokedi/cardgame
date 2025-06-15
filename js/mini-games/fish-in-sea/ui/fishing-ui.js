@@ -128,8 +128,9 @@ const fishingUi = {
             fishingGameState.ui.shopTabs = fishingGameState.ui.shopModal.querySelectorAll('.fishing-shop-tabs button');
             fishingGameState.ui.shopItemsGrid = fishingGameState.ui.shopModal.querySelector('#fishing-shop-items-grid');
             fishingGameState.ui.shopSellAllBtn = fishingGameState.ui.shopModal.querySelector('#fishing-shop-sell-all-btn');
-            fishingGameState.ui.shopExchangeInfo = fishingGameState.ui.shopModal.querySelector('#fishing-shop-exchange-info');
+            // fishingGameState.ui.shopExchangeInfo = fishingGameState.ui.shopModal.querySelector('#fishing-shop-exchange-info'); // This line might be obsolete or needs to point to the new div if it's a general info area.
             fishingGameState.ui.shopTicketBalances = fishingGameState.ui.shopModal.querySelector('#fishing-shop-ticket-balances');
+            fishingGameState.ui.shopCurrentTabExchangeInfo = fishingGameState.ui.shopModal.querySelector('#fishing-shop-current-tab-exchange-info'); // Cache the new element
         }
         if (fishingGameState.ui.cardDetailFishingBasketModal) {
              fishingGameState.ui.cardDetailFishingBasketCloseBtn = fishingGameState.ui.cardDetailFishingBasketModal.querySelector('.fishing-basket-detail-close-button');
@@ -358,6 +359,7 @@ const fishingUi = {
                         <button class="game-button" data-tab-type="bird_reward_card">Bird</button>
                     </div>
                     <div class="fishing-game-modal-scrollable-content">
+                        <div id="fishing-shop-current-tab-exchange-info" class="fishing-shop-current-tab-exchange-info-area"></div> <!-- New DIV -->
                         <div id="fishing-shop-items-grid" class="fishing-basket-grid gallery-grid"></div>
                         <div id="fishing-shop-pagination" class="pagination-controls"></div>
                     </div>
