@@ -25,7 +25,7 @@ window.fishingBasketUi = {
      */
     initializeBasketUI: function() {
         this.modalElement = document.getElementById('fishing-basket-modal');
-        this.basketIconElement = document.getElementById('fishing-basket-icon');
+        this.basketIconElement = document.getElementById('fishing-tool-basket'); // Corrected ID
         this.cardsContainerElement = document.getElementById('basket-cards-container');
         this.closeButtonElement = document.getElementById('close-fishing-basket-modal');
 
@@ -41,13 +41,48 @@ window.fishingBasketUi = {
         this.sellAllButtonElement = document.getElementById('fishing-basket-sell-all');
         this.collectAllButtonElement = document.getElementById('fishing-basket-collect-all');
 
-        if (!this.modalElement || !this.basketIconElement || !this.cardsContainerElement || !this.closeButtonElement ||
-            !this.newRarityFilterElement || !this.sortFilterElement || !this.typeFilterContainerElement ||
-            !this.sellAllButtonElement || !this.collectAllButtonElement) {
-            console.error("One or more fishing basket UI elements are missing from the DOM.");
-            return;
+        const elementsToCheck = {
+            modalElement: 'fishing-basket-modal',
+            basketIconElement: 'fishing-tool-basket', // Corrected ID in map
+            cardsContainerElement: 'basket-cards-container',
+            closeButtonElement: 'close-fishing-basket-modal',
+            typeFilterContainerElement: 'fishing-basket-type-filter-container',
+            typeFilterDisplayElement: 'fishing-basket-type-filter-display',
+            typeFilterPanelElement: 'fishing-basket-type-filter-panel',
+            typeFilterSearchElement: 'fishing-basket-type-filter-search',
+            typeFilterOptionsElement: 'fishing-basket-type-filter-options',
+            newRarityFilterElement: 'fishing-basket-rarity-filter-new',
+            sortFilterElement: 'fishing-basket-sort-filter',
+            sellAllButtonElement: 'fishing-basket-sell-all',
+            collectAllButtonElement: 'fishing-basket-collect-all'
+        };
+
+        let missingElementIds = [];
+        for (const key in elementsToCheck) {
+            if (this[key] === null) {
+                missingElementIds.push(elementsToCheck[key]);
+            }
         }
 
+        if (missingElementIds.length > 0) {
+            console.error("Fishing Basket UI Initialization Error: The following crucial DOM elements could not be found: " + missingElementIds.join(', ') + ". Please ensure index.html is up to date and these elements exist.");
+            // Optional: Display a user-facing message or disable functionality
+            if (this.basketIconElement) { // If at least the icon exists, maybe disable it
+                 this.basketIconElement.style.opacity = '0.5';
+                 this.basketIconElement.title = 'Fishing basket is currently unavailable due to an error.';
+                 // Attempt to remove listener if it was already added, though in this flow it might not be.
+                 // However, this specific function is not passed to addEventListener directly so it cannot be removed this way.
+                 // this.basketIconElement.removeEventListener('click', () => this.openBasketModal());
+                 // Instead, make the basketIconElement click do nothing or show an error
+                 this.basketIconElement.onclick = () => {
+                    if(typeof showCustomModal === 'function') showCustomModal("Fishing basket is currently unavailable due to a setup error. Please check console (F12) for details.", "error");
+                    console.error("Fishing basket icon clicked, but UI is not properly initialized due to missing elements: " + missingElementIds.join(', '));
+                 };
+            }
+            return; // Stop further initialization of this UI component
+        }
+
+        // If all elements are found, then add event listeners
         this.basketIconElement.addEventListener('click', () => this.openBasketModal());
         this.closeButtonElement.addEventListener('click', () => this.closeBasketModal());
         this.modalElement.addEventListener('click', (event) => {
