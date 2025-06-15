@@ -183,34 +183,18 @@
     padding: 8px 15px;
 }
 
-/* DIAGNOSTIC CSS FOR MODAL AND CONTENT VISIBILITY - REMOVE LATER */
-#fishing-basket-modal.fishing-game-modal-overlay {
-    background-color: rgba(0, 0, 255, 0.3) !important; /* Semi-transparent BLUE overlay */
-    /* Ensure it's not positioned off-screen and takes full space */
-    display: flex !important; /* Already set by JS, but reinforce for diagnosis */
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    z-index: 99998 !important; /* Slightly lower than content, but still very high */
-    visibility: visible !important;
-    opacity: 1 !important;
-    overflow: hidden !important; /* Prevent scrollbars on overlay itself */
-}
-
-#fishing-basket-modal.fishing-game-modal-overlay .custom-modal-content.fishing-basket-modal-content {
-    background-color: lime !important; /* LIME content background */
-    border: 3px dashed fuchsia !important; /* FUCHSIA dashed border for content */
+/* DIAGNOSTIC CSS FOR MODAL CONTENT VIA JS CLASS - REMOVE LATER */
+#fishing-basket-modal.force-visible-test-xyz123 .custom-modal-content.fishing-basket-modal-content {
+    background-color: fuchsia !important; /* FUCHSIA content background */
+    border: 5px solid yellow !important; /* YELLOW dashed border for content */
     color: black !important; /* Ensure text content is visible if any */
-    min-height: 200px !important; /* Ensure it has some size */
-    min-width: 200px !important;
+    min-height: 150px !important; /* Ensure it has some size */
+    min-width: 150px !important;
     opacity: 1 !important;
     visibility: visible !important;
-    padding: 20px !important;
-    z-index: 99999 !important; /* Higher than its parent overlay */
-    /* Add some content for absolute certainty if it's empty */
-    /* content: "MODAL CONTENT AREA VISIBLE"; remove this line if it breaks things */
-    display: block !important; /* Ensure content area itself is block or flex */
+    padding: 15px !important;
+    z-index: 99991 !important; /* Ensure content is above its overlay (JS sets overlay to 99990) */
     position: relative !important; /* Ensure it's not positioned off-screen by other relative/absolute rules */
+    margin: auto !important; /* Try to center it within the flex container (the overlay) */
+    display: block !important; /* Or flex, depending on what fishing-basket-modal-content usually is */
 }
