@@ -324,19 +324,44 @@ function getRockDataForSave() {
 function loadRockData(data) {
     if (data && data.rockSlots) {
         rockSlots = data.rockSlots.map(slotData => {
-            if (slotData && slotData.rarity && rockDefinitions[slotData.rarity]) {
-                return {
-                    ...slotData,
-                    definition: rockDefinitions[slotData.rarity]
-                };
-            } else if (slotData && slotData.isRespawning) {
+            // Explicitly check for slots that were saved as "active" rocks
+            if (slotData && slotData.rarity && rockDefinitions[slotData.rarity] && slotData.isRespawning === false) {
+                // This slot was saved as an active rock. Now check its HP.
+                if (slotData.hp <= 0) {
+                    // FAULTY STATE: Active rock with 0 or less HP. Convert to a respawning state.
+                    console.warn(`[RockLoadFix] Rock (rarity: ${slotData.rarity}, id: ${slotData.id || 'N/A'}) loaded with hp <= 0 and isRespawning=false. Converting to respawning state.`);
+                    return {
+                        isRespawning: true,
+                        respawnTimer: BASE_ROCK_RESPAWN_TIME + (Math.random() * 5000 - 2500)
+                    };
+                } else {
+                    // VALID ACTIVE ROCK: HP > 0. Load as before, attaching full definition.
+                    return {
+                        ...slotData,
+                        definition: rockDefinitions[slotData.rarity]
+                    };
+                }
+            } else if (slotData && slotData.isRespawning === true) {
+                // VALID RESPAWNING ROCK: Already marked as respawning. Load as is.
+                if (typeof slotData.respawnTimer !== 'number' || slotData.respawnTimer < 0) {
+                    console.warn(`[RockLoadFix] Respawning rock (id: ${slotData.id || 'N/A'}) loaded with invalid or missing respawnTimer. Resetting timer.`);
+                    slotData.respawnTimer = BASE_ROCK_RESPAWN_TIME + (Math.random() * 5000 - 2500);
+                }
                 return slotData;
+            }
+
+            if (slotData) {
+                console.warn(`[RockLoadFix] Invalid or unrecognized rock slot data during load: ${JSON.stringify(slotData)}. Treating as empty slot.`);
             }
             return null;
         });
+
         for(let i=0; i < MAX_ROCKS; i++) {
             if(!rockSlots[i]) {
-                rockSlots[i] = { isRespawning: true, respawnTimer: BASE_ROCK_RESPAWN_TIME * Math.random() };
+                rockSlots[i] = {
+                    isRespawning: true,
+                    respawnTimer: BASE_ROCK_RESPAWN_TIME * Math.random()
+                };
             }
         }
     } else {
@@ -347,7 +372,6 @@ function loadRockData(data) {
     if (typeof fishingRocksUi !== 'undefined' && typeof fishingRocksUi.renderRocks === 'function') {
         fishingRocksUi.renderRocks(getRockSlotsData());
     }
-    // console.log("Rock data loaded."); // Aggressively removed
 }
 
 // Make initializeRocks globally accessible

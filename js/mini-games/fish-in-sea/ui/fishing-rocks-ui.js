@@ -47,60 +47,67 @@ window.fishingRocksUi = {
      * @param {Array<object|null>} rockSlotsData - Array of rock data.
      */
     renderRocks: function(rockSlotsData) {
-        if (!this.rocksContainerElement) {
-            return; // Container not available
-        }
-        this.rocksContainerElement.innerHTML = '';
+    if (!this.rocksContainerElement) {
+        return;
+    }
+    this.rocksContainerElement.innerHTML = '';
 
-        const numSlots = typeof MAX_ROCKS !== 'undefined' ? MAX_ROCKS : 3;
-        if (!rockSlotsData || !Array.isArray(rockSlotsData) || rockSlotsData.length !== numSlots) {
-            console.warn("Invalid or incomplete rockSlotsData for renderRocks. Rendering default empty slots.", rockSlotsData);
-            rockSlotsData = new Array(numSlots).fill(null);
-        }
+    const numSlots = typeof MAX_ROCKS !== 'undefined' ? MAX_ROCKS : 3;
+    if (!rockSlotsData || !Array.isArray(rockSlotsData) || rockSlotsData.length !== numSlots) {
+        console.warn("Invalid or incomplete rockSlotsData for renderRocks. Rendering default empty slots.", rockSlotsData);
+        rockSlotsData = new Array(numSlots).fill(null);
+    }
 
-        rockSlotsData.forEach((rockData, index) => {
-            const rockDiv = document.createElement('div');
-            rockDiv.classList.add('rock-instance');
-            rockDiv.dataset.slotIndex = index;
+    rockSlotsData.forEach((rockData, index) => {
+        const rockDiv = document.createElement('div');
+        rockDiv.classList.add('rock-instance');
+        rockDiv.dataset.slotIndex = index;
 
-            // Create and append hover pickaxe icon (initially hidden)
-            const hoverIcon = document.createElement('div');
-            hoverIcon.className = 'rock-hover-pickaxe';
-            // hoverIcon.textContent = '⛏️'; // Emoji can be set here or via CSS content
-            rockDiv.appendChild(hoverIcon); // Append to rockDiv so it's part of it
+        const hoverIcon = document.createElement('div');
+        hoverIcon.className = 'rock-hover-pickaxe';
+        rockDiv.appendChild(hoverIcon);
+        rockDiv.onmouseenter = () => { hoverIcon.style.display = 'flex'; };
+        rockDiv.onmouseleave = () => { hoverIcon.style.display = 'none'; };
 
-            rockDiv.onmouseenter = () => { hoverIcon.style.display = 'flex'; };
-            rockDiv.onmouseleave = () => { hoverIcon.style.display = 'none'; };
+        if (rockData && !rockData.isRespawning) {
+            const definition = rockData.definition || (typeof rockDefinitions !== 'undefined' ? rockDefinitions[rockData.rarity] : null);
+            if (!definition) {
+                console.error(`Rock definition missing for rarity: ${rockData.rarity} in slot ${index}.`);
+                rockDiv.classList.add('rock-error');
+                rockDiv.dataset.rockType = 'Error';
+                this.rocksContainerElement.appendChild(rockDiv);
+                return; // continue to next rock
+            }
 
-            if (rockData && !rockData.isRespawning) {
+            if (rockData.hp <= 0) {
+                // STATE: HP is 0 or less, but not 'isRespawning'
+                rockDiv.classList.add('rock-destroyed');
                 rockDiv.classList.add(`rock-rarity-${rockData.rarity || 'common'}`);
-                rockDiv.dataset.rockType = `${rockData.rarity || 'common'} Rock`; // For CSS ::before content
+                rockDiv.dataset.rockType = `${rockData.rarity || 'common'} Rock (Destroyed)`;
 
-                const definition = rockData.definition || rockDefinitions[rockData.rarity];
-                if (!definition) {
-                    console.error(`Rock definition missing for rarity: ${rockData.rarity}`);
-                    rockDiv.classList.add('rock-error');
-                    // rockDiv.textContent = 'Error'; // Text content now handled by ::before
-                    rockDiv.dataset.rockType = 'Error';
-                    this.rocksContainerElement.appendChild(rockDiv);
-                    return; // continue to next rock
-                }
+                // Set base image, CSS class '.rock-destroyed' should visually alter it
+                rockDiv.style.backgroundImage = `url('gui/fishing_game/${definition.image || 'rock_common.png'}')`;
 
-                let rockImage = `gui/fishing_game/${definition.image || 'rock_common.png'}`; // Base image
-                // If damaged (hp < maxHp) but not destroyed (hp > 0), and crack images are available, use the first one.
-                if (rockData.hp < rockData.maxHp && rockData.hp > 0) {
+                const hpDisplay = document.createElement('div');
+                hpDisplay.classList.add('rock-hp-display');
+                hpDisplay.textContent = `0/${rockData.maxHp}`;
+                rockDiv.appendChild(hpDisplay);
+                // No onclick handler for destroyed rocks
+            } else {
+                // STATE: HP > 0, normal active rock
+                rockDiv.classList.add(`rock-rarity-${rockData.rarity || 'common'}`);
+                rockDiv.dataset.rockType = `${rockData.rarity || 'common'} Rock`;
+
+                let rockImageSrc = `gui/fishing_game/${definition.image || 'rock_common.png'}`;
+                // rockData.hp > 0 is true here.
+                if (rockData.hp < rockData.maxHp) {
                     if (definition.crackImages && definition.crackImages.length > 0) {
-                        rockImage = `gui/fishing_game/${definition.crackImages[0]}`; // Always use the first crack image
+                        // Use the first crack image for any damage level for simplicity,
+                        // or implement more stages if definition.crackImages has multiple and logic is added
+                        rockImageSrc = `gui/fishing_game/${definition.crackImages[0]}`;
                     }
-                    // Optional: else if no definition.crackImages, use a generic crack image if one existed.
-                    // else { rockImage = `gui/fishing_game/rock_generic_crack.png`; }
-                    // If neither specific nor generic crack image, it will show the base image.
                 }
-                // If hp <= 0 (destroyed), it will be handled by the 'rock-respawning' or 'rock-empty-slot' logic later,
-                // so no explicit image change here for the destroyed state before it becomes 'respawning'.
-                // The base image is already set if not damaged or if no crack image applies.
-
-                rockDiv.style.backgroundImage = `url('${rockImage}')`;
+                rockDiv.style.backgroundImage = `url('${rockImageSrc}')`;
 
                 const hpDisplay = document.createElement('div');
                 hpDisplay.classList.add('rock-hp-display');
@@ -114,20 +121,23 @@ window.fishingRocksUi = {
                         console.error('hitRock function not found.');
                     }
                 };
-            } else if (rockData && rockData.isRespawning) {
-                rockDiv.classList.add('rock-respawning');
-                const respawnTime = (rockData.definition && rockData.definition.respawnTime) || BASE_ROCK_RESPAWN_TIME;
-                const timerPercentage = Math.max(0, 100 - (rockData.respawnTimer / respawnTime) * 100);
-                rockDiv.innerHTML = `<div class="rock-respawn-timer-text">Respawning</div>
-                                     <div class="rock-respawn-bar-container">
-                                         <div class="rock-respawn-bar" style="width:${timerPercentage}%"></div>
-                                     </div>`;
-            } else {
-                rockDiv.classList.add('rock-empty-slot');
             }
-            this.rocksContainerElement.appendChild(rockDiv);
-        });
-    },
+        } else if (rockData && rockData.isRespawning) {
+            rockDiv.classList.add('rock-respawning');
+            // Ensure BASE_ROCK_RESPAWN_TIME is accessible or use a default
+            const baseRespawnTime = (typeof BASE_ROCK_RESPAWN_TIME !== 'undefined') ? BASE_ROCK_RESPAWN_TIME : 20000;
+            const respawnTime = (rockData.definition && rockData.definition.respawnTime) || baseRespawnTime;
+            const timerPercentage = Math.max(0, 100 - (rockData.respawnTimer / respawnTime) * 100);
+            rockDiv.innerHTML = `<div class="rock-respawn-timer-text">Respawning</div>
+                                 <div class="rock-respawn-bar-container">
+                                     <div class="rock-respawn-bar" style="width:${timerPercentage}%"></div>
+                                 </div>`;
+        } else {
+            rockDiv.classList.add('rock-empty-slot');
+        }
+        this.rocksContainerElement.appendChild(rockDiv);
+    });
+},
 
     /**
      * Updates the main game cursor and pickaxe icon style.
