@@ -49,6 +49,56 @@ const SUMMON_OUTCOME_RATES = {
     }
 };
 
+const summonTicketDefinitions = {
+    "rare_ticket": {
+        "id": "rare_ticket",
+        "name": "Rare Summon Ticket",
+        "rarityKey": "rare",
+        "description": "A ticket that summons a Rare item or better."
+    },
+    "foil_ticket": {
+        "id": "foil_ticket",
+        "name": "Foil Summon Ticket",
+        "rarityKey": "foil",
+        "description": "A ticket that summons a Foil item or better."
+    },
+    "holo_ticket": {
+        "id": "holo_ticket",
+        "name": "Holo Summon Ticket",
+        "rarityKey": "holo",
+        "description": "A ticket that summons a Holo item or better."
+    },
+    "star_ticket": {
+        "id": "star_ticket",
+        "name": "Star Summon Ticket",
+        "rarityKey": "star",
+        "description": "A ticket that summons a Star item or better."
+    },
+    "rainy_ticket": {
+        "id": "rainy_ticket",
+        "name": "Rainy Summon Ticket",
+        "rarityKey": "rainy",
+        "description": "A ticket that summons a Rainy item or better."
+    },
+    "gold_ticket": {
+        "id": "gold_ticket",
+        "name": "Gold Summon Ticket",
+        "rarityKey": "gold",
+        "description": "A ticket that summons a Gold item or better."
+    },
+    "shiny_ticket": {
+        "id": "shiny_ticket",
+        "name": "Shiny Summon Ticket",
+        "rarityKey": "shiny",
+        "description": "A ticket that summons a Shiny item or better, with a higher chance for top rarities."
+    }
+};
+
+// Make it globally accessible if not using modules
+if (typeof window !== 'undefined') {
+    window.summonTicketDefinitions = summonTicketDefinitions;
+}
+
 // Ensure all defined summonTicketRarities have an entry in SUMMON_OUTCOME_RATES
 // and that probabilities sum to 1.0 for each.
 (function validateSummonOutcomeRates() {

@@ -90,10 +90,21 @@ function addSummonTickets(rarityKey, amount) {
     }
 }
 
+function getSummonTicketImagePath(rarityKey) {
+    if (!rarityKey) {
+        console.warn("getSummonTicketImagePath: rarityKey is undefined or null. Returning placeholder.");
+        return 'gui/items/placeholder_icon.png'; // Or a specific placeholder for tickets
+    }
+    // Assuming a naming convention for ticket images: gui/items/summon_ticket_RAREKEY.png
+    // Example: gui/items/summon_ticket_rare.png, gui/items/summon_ticket_foil.png
+    return `gui/summon_tickets/ticket_${rarityKey.toLowerCase()}.png`;
+}
+
 // Expose functions to global scope if they are intended to be used by other modules directly
 window.addSummonTickets = addSummonTickets;
 window.initializeSummonTickets = initializeSummonTickets;
 window.getSummonTicketBalance = getSummonTicketBalance;
 window.updateSummonTicketBalance = updateSummonTicketBalance;
+window.getSummonTicketImagePath = getSummonTicketImagePath;
 
 console.log("summon-ticket-manager.js loaded with robust add/update functions.");
