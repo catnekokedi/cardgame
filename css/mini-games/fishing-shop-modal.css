@@ -177,70 +177,43 @@
     }
 }
 
-/* Styles for the tab-specific exchange progress area - REPURPOSED FOR FILTERS */
-/* This area is now #fishing-basket-new-filters-container */
-#fishing-basket-new-filters-container { /* Updated ID */
-    display: flex;
-    gap: 10px; /* Space between filter dropdowns */
+/* Styles for the tab-specific exchange progress area */
+.fishing-shop-current-tab-exchange-info-area {
     padding: 10px 15px;
-    margin-bottom: 10px; /* Space before the tabs */
-    border-bottom: 1px solid #ddd;
-    background-color: #f9f9f9;
+    margin-bottom: 15px; /* Space before the items grid */
+    border-bottom: 1px solid #ddd; /* Separator line */
+    background-color: #f9f9f9; /* Slightly different background */
     border-radius: 4px;
-    align-items: center; /* Vertically align items if they have different heights */
-}
-
-/* Styling for the select elements themselves */
-#fishing-basket-new-filters-container select {
-    padding: 8px 12px;
-    background-color: #fff; /* Match game-button or input field style */
-    color: #333;
-    border-radius: 4px;
-    border: 1px solid #ced4da; /* Standard border */
     font-size: 0.9em;
-    font-family: inherit; /* Use defined font for buttons/inputs */
-    flex-grow: 1; /* Allow filters to share space */
-    min-width: 150px; /* Minimum width to prevent them from becoming too small */
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.075); /* Subtle inner shadow */
-    transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+    max-height: 150px; /* Max height for this area if many rules exist */
+    overflow-y: auto;   /* Scroll if content exceeds max-height */
+    text-align: left; /* Ensure items align to the left if container was centered */
 }
 
-#fishing-basket-new-filters-container select:focus {
-    border-color: #007bff; /* Highlight focus, match theme */
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); /* Focus ring, match theme */
-}
-
-
-/* Styling for each line of exchange progress - No longer applicable for filters */
-/*
+/* Styling for each line of exchange progress */
 .fishing-shop-current-tab-exchange-info-area .exchange-progress-entry {
-    display: inline-block;
-    margin: 5px 0;
-    margin-right: 15px;
+    display: inline-block; /* Allow items to sit side-by-side */
+    margin: 5px 0; /* Vertical margin */
+    margin-right: 15px; /* Horizontal margin for spacing between items */
     color: #333;
-    vertical-align: top;
+    vertical-align: top; /* Align items from their top edge */
 }
 
 .fishing-shop-current-tab-exchange-info-area .exchange-progress-entry strong {
     color: #000;
     font-weight: 600;
 }
-*/
 
-/* Styling for messages like 'Select a specific category...' or 'No exchange options...' - No longer applicable for filters */
-/*
+/* Styling for messages like 'Select a specific category...' or 'No exchange options...' */
 .fishing-shop-current-tab-exchange-info-area .text-center.text-sm.text-gray-500,
-.fishing-shop-current-tab-exchange-info-area > .fishing-shop-item-group > p:only-child {
+.fishing-shop-current-tab-exchange-info-area > .fishing-shop-item-group > p:only-child { /* Targets the 'No exchange options' message if it's the only child */
     font-style: italic;
     color: #777;
     padding: 10px 0;
     text-align: center;
 }
-*/
 
-/* Minor adjustment if a title (h4) was used inside fishing-shop-item-group - No longer applicable for filters */
-/*
+/* Minor adjustment if a title (h4) was used inside fishing-shop-item-group */
 .fishing-shop-current-tab-exchange-info-area .fishing-shop-item-group h4 {
     margin-top: 0;
     margin-bottom: 8px;
@@ -249,6 +222,3 @@
     border-bottom: 1px solid #eee;
     padding-bottom: 5px;
 }
-*/
-
-[end of css/mini-games/fishing-shop-modal.css]

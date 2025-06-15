@@ -1,103 +1,25 @@
 // js/mini-games/fish-in-sea/ui/fishing-shop-modal.js
 
-const ITEMS_PER_PAGE_SHOP = 64; // Renamed to avoid conflict if ITEMS_PER_PAGE is global
-
-// Function to populate the new rarity filter
-function populateNewRarityFilter() {
-    const rarityFilterElement = fishingGameState.ui.basketRarityFilter;
-    if (!rarityFilterElement) {
-        console.error("New Rarity filter element not found in fishingGameState.ui");
-        return;
-    }
-
-    rarityFilterElement.innerHTML = '';
-
-    const allRaritiesOption = document.createElement('option');
-    allRaritiesOption.value = 'all';
-    allRaritiesOption.textContent = 'All Rarities';
-    allRaritiesOption.selected = true;
-    rarityFilterElement.appendChild(allRaritiesOption);
-
-    if (typeof RARITY_PACK_PULL_DISTRIBUTION !== 'undefined' && Array.isArray(RARITY_PACK_PULL_DISTRIBUTION)) {
-        RARITY_PACK_PULL_DISTRIBUTION.forEach(rarityTier => {
-            const option = document.createElement('option');
-            option.value = rarityTier.key;
-            option.textContent = rarityTier.name;
-            rarityFilterElement.appendChild(option);
-        });
-    } else {
-        console.warn("RARITY_PACK_PULL_DISTRIBUTION is not defined. Rarity filter for basket will be incomplete.");
-    }
-}
-
+const ITEMS_PER_PAGE_SHOP = 64;
 
 function setupFishingShopModal() {
     const shopModal = fishingGameState.ui.shopModal;
     if (!shopModal) return;
 
-    populateNewRarityFilter();
-
-    // Event listeners for filters
-    if (fishingGameState.ui.basketRarityFilter) {
-        fishingGameState.ui.basketRarityFilter.addEventListener('change', () => {
-            const currentTabType = shopModal.querySelector('.fishing-shop-tabs button.active')?.dataset.tabType || 'all';
-            renderFishingShopItems(currentTabType, 1);
-        });
-    }
-    if (fishingGameState.ui.basketSortFilter) {
-        fishingGameState.ui.basketSortFilter.addEventListener('change', () => {
-            const currentTabType = shopModal.querySelector('.fishing-shop-tabs button.active')?.dataset.tabType || 'all';
-            renderFishingShopItems(currentTabType, 1);
-        });
-    }
-
-    // New button event listeners
-    const sellAllBtn = fishingGameState.ui.newBasketSellAllBtn;
-    const collectAllBtn = fishingGameState.ui.newBasketCollectAllBtn;
-
-    if (sellAllBtn) {
-        // Remove old listener if any (important if setupFishingShopModal can be called multiple times)
-        // However, with current structure, listeners are added once in fishing-ui.js's addEventListeners
-        // This setup function might be better placed within fishing-ui.js or be very careful about re-adding.
-        // For now, assuming this setup is called once per modal instance effectively.
-        sellAllBtn.onclick = null; // Clear previous listener before adding new one
-        sellAllBtn.addEventListener('click', () => {
-            if (typeof fishingBasket !== 'undefined' && typeof fishingBasket.sellAllUnlockedCards === 'function') {
-                showConfirmationModal("Are you sure you want to sell ALL unlocked items in your basket?", () => {
-                    fishingBasket.sellAllUnlockedCards();
-                    const currentTab = shopModal.querySelector('.fishing-shop-tabs button.active')?.dataset.tabType || 'all';
-                    renderFishingShopItems(currentTab, 1); // Refresh view
-                    playSound('sfx_button_click.mp3');
-                });
-            } else {
-                console.error("fishingBasket.sellAllUnlockedCards function not found!");
-            }
-        });
-    }
-
-    if (collectAllBtn) {
-        collectAllBtn.onclick = null; // Clear previous listener
-        collectAllBtn.addEventListener('click', () => {
-            if (typeof fishingBasket !== 'undefined' && typeof fishingBasket.collectAllUnlockedCards === 'function') {
-                showConfirmationModal("Are you sure you want to collect ALL unlocked items to your main collection?", () => {
-                    fishingBasket.collectAllUnlockedCards();
-                    const currentTab = shopModal.querySelector('.fishing-shop-tabs button.active')?.dataset.tabType || 'all';
-                    renderFishingShopItems(currentTab, 1); // Refresh view
-                    playSound('sfx_button_click.mp3');
-                });
-            } else {
-                console.error("fishingBasket.collectAllUnlockedCards function not found!");
-            }
-        });
-    }
-
-    renderFishingShopItems('all', 1);
+    renderFishingShopTicketBalances(); // Restored call
+    renderFishingShopItems('all', 1); // Initial render
 
     const firstTab = shopModal.querySelector('.fishing-shop-tabs button[data-tab-type="all"]');
     if (firstTab) {
         shopModal.querySelectorAll('.fishing-shop-tabs button').forEach(btn => btn.classList.remove('active'));
         firstTab.classList.add('active');
     }
+
+    // Remove event listeners for new basket buttons (if they were added here - they are in fishing-ui.js)
+    // Ensure event listener for the original exchange button is correctly set up if it's managed here.
+    // Based on previous steps, this listener is in fishing-ui.js's addEventListeners.
+    // If fishingGameState.ui.shopSellAllBtn is populated by fishing-ui.js, that listener will handle it.
+    // No direct listener addition/removal for the main action button here, assuming it's handled by fishing-ui.js.
 }
 
 function toggleFishingShopModal(show) {
@@ -114,57 +36,100 @@ function toggleFishingShopModal(show) {
     }
 }
 
-/* // renderFishingShopTicketBalances function removed */
+// Restored function
+function renderFishingShopTicketBalances() {
+    const balancesArea = fishingGameState.ui.shopTicketBalances; // Relies on fishingGameState.ui
+    if (!balancesArea) {
+        // console.warn("Ticket balances area not found in fishingGameState.ui for shop modal.");
+        return;
+    }
+    balancesArea.innerHTML = 'Your Tickets: ';
+    let balancesHTML = "";
+    // Assuming summonTicketRarities is globally available or defined in fishingGameState or FISHING_CONFIG
+    const ticketRarities = (typeof summonTicketRarities !== 'undefined') ? summonTicketRarities :
+                           (FISHING_CONFIG && FISHING_CONFIG.SUMMON_TICKET_RARITIES ? FISHING_CONFIG.SUMMON_TICKET_RARITIES : []);
+
+    ticketRarities.forEach(rarityKey => {
+        const count = typeof getSummonTicketBalance === 'function' ? getSummonTicketBalance(rarityKey) : 0;
+        if (count > 0) {
+            const rarityInfo = typeof getRarityTierInfo === 'function' ? getRarityTierInfo(rarityKey) : { name: rarityKey };
+            balancesHTML += `<span class="rarity-text-${rarityKey}">${rarityInfo ? rarityInfo.name : rarityKey}: ${count}</span> `;
+        }
+    });
+    if (balancesHTML === "") balancesHTML = "None";
+    balancesArea.innerHTML += balancesHTML.trim();
+}
+
 
 function renderFishingShopItems(tabType = 'all', currentPage = 1) {
     const itemsGrid = fishingGameState.ui.shopItemsGrid;
     fishingGameState.ui.shopPagination = fishingGameState.ui.shopPagination || document.getElementById('fishing-shop-pagination');
     const paginationContainer = fishingGameState.ui.shopPagination;
-    // const filtersContainer = fishingGameState.ui.shopCurrentTabExchangeInfo; // This is #fishing-basket-new-filters-container
+    const exchangeInfoArea = fishingGameState.ui.shopCurrentTabExchangeInfo; // This should point to #fishing-shop-current-tab-exchange-info
 
     if (!itemsGrid || !paginationContainer) {
         console.error("Shop items grid or pagination container not found.");
         return;
     }
 
+    if(exchangeInfoArea) exchangeInfoArea.innerHTML = ''; // Clear previous exchange info
     itemsGrid.innerHTML = '';
     if(paginationContainer) paginationContainer.innerHTML = '';
 
-    const rarityFilterValue = fishingGameState.ui.basketRarityFilter ? fishingGameState.ui.basketRarityFilter.value : 'all';
-    const sortFilterValue = fishingGameState.ui.basketSortFilter ? fishingGameState.ui.basketSortFilter.value : 'default';
+    // Restore Exchange Rate/Progress Display Logic
+    if (exchangeInfoArea) {
+        if (tabType === 'all') {
+            exchangeInfoArea.innerHTML = '<p class="text-center text-sm text-gray-500" style="padding: 10px 0;">Select a specific category tab to see detailed exchange progress.</p>';
+        } else {
+            let exchangeRatesConfig;
+            // itemCategoryTitle is not used in the provided old structure, so removed.
+            switch (tabType) {
+                case 'fruit_card': exchangeRatesConfig = FISHING_CONFIG.FRUIT_EXCHANGE_RATES || {}; break;
+                case 'mineral_card': exchangeRatesConfig = FISHING_CONFIG.MINERAL_EXCHANGE_RATES || {}; break;
+                case 'bird_reward_card': exchangeRatesConfig = FISHING_CONFIG.BIRD_REWARD_EXCHANGE_RATES || FISHING_CONFIG.CARD_EXCHANGE_RATES || {}; break;
+                case 'fish_card': default: exchangeRatesConfig = FISHING_CONFIG.CARD_EXCHANGE_RATES || {}; break;
+            }
 
-    let itemsToDisplay = (typeof fishingBasket !== 'undefined' && Array.isArray(fishingBasket.basketContents)) ? [...fishingBasket.basketContents] : [];
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'fishing-shop-item-group'; // Or other appropriate class
+            let hasProgressToShow = false;
+            const categoryProgress = fishingGameState.shopProgress[tabType] || {};
 
-    if (tabType !== 'all') {
-        itemsToDisplay = itemsToDisplay.filter(item => item && item.cardData && item.cardData.type === tabType);
-    }
+            Object.keys(exchangeRatesConfig).forEach(itemRarityKey => {
+                if (!exchangeRatesConfig[itemRarityKey]) return;
+                Object.keys(exchangeRatesConfig[itemRarityKey]).forEach(ticketRarityKey => {
+                    const progressKey = `${itemRarityKey}_for_${ticketRarityKey}`;
+                    const currentProgress = categoryProgress[progressKey] || 0;
+                    const rate = exchangeRatesConfig[itemRarityKey][ticketRarityKey];
+                    const itemRarityInfo = typeof getRarityTierInfo === 'function' ? getRarityTierInfo(itemRarityKey) : { name: itemRarityKey };
+                    const ticketRarityInfo = typeof getRarityTierInfo === 'function' ? getRarityTierInfo(ticketRarityKey.replace('_ticket','')) : { name: ticketRarityKey.replace('_ticket','') };
 
-    if (rarityFilterValue !== 'all') {
-        itemsToDisplay = itemsToDisplay.filter(item => item && item.cardData && (item.cardData.rarity === rarityFilterValue || item.cardData.rarityKey === rarityFilterValue));
-    }
-
-    if (sortFilterValue && sortFilterValue !== 'default') {
-        switch (sortFilterValue) {
-            case 'name_asc':
-                itemsToDisplay.sort((a, b) => (a.cardData.name || '').localeCompare(b.cardData.name || ''));
-                break;
-            case 'name_desc':
-                itemsToDisplay.sort((a, b) => (b.cardData.name || '').localeCompare(a.cardData.name || ''));
-                break;
-            case 'quantity_asc':
-                itemsToDisplay.sort((a, b) => a.quantity - b.quantity);
-                break;
-            case 'quantity_desc':
-                itemsToDisplay.sort((a, b) => b.quantity - a.quantity);
-                break;
-            case 'value_asc':
-                itemsToDisplay.sort((a, b) => (a.cardData.price || 0) - (b.cardData.price || 0));
-                break;
-            case 'value_desc':
-                itemsToDisplay.sort((a, b) => (b.cardData.price || 0) - (a.cardData.price || 0));
-                break;
+                    const progressP = document.createElement('p');
+                    progressP.className = 'exchange-progress-entry'; // Class for styling
+                    progressP.innerHTML = `For <span class="rarity-text-${ticketRarityKey.replace('_ticket','')}">${ticketRarityInfo ? ticketRarityInfo.name : ticketRarityKey} Ticket</span> (from ${itemRarityInfo ? itemRarityInfo.name : itemRarityKey} items): <strong>${currentProgress}/${rate}</strong>`;
+                    progressDiv.appendChild(progressP);
+                    hasProgressToShow = true;
+                });
+            });
+            if (!hasProgressToShow) {
+                const noProgressP = document.createElement('p');
+                noProgressP.textContent = "No exchange options defined for this category yet.";
+                progressDiv.appendChild(noProgressP);
+            }
+            exchangeInfoArea.appendChild(progressDiv);
         }
     }
+
+    // Item display logic (filtering for exchange, no sorting, no card detail click)
+    let itemsToDisplay = (typeof fishingBasket !== 'undefined' && Array.isArray(fishingBasket.basketContents)) ? [...fishingBasket.basketContents] : [];
+    const validExchangeTypes = ['fish_card', 'fruit_card', 'mineral_card', 'bird_reward_card']; // Original valid types for exchange
+
+    if (tabType === 'all') {
+        itemsToDisplay = itemsToDisplay.filter(item => item && item.cardData && validExchangeTypes.includes(item.cardData.type) && !item.isLocked);
+    } else {
+        itemsToDisplay = itemsToDisplay.filter(item => item && item.cardData && item.cardData.type === tabType && !item.isLocked);
+    }
+    // No rarity or sort filtering here for the original shop
 
     const totalPages = Math.ceil(itemsToDisplay.length / ITEMS_PER_PAGE_SHOP);
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE_SHOP;
@@ -172,61 +137,50 @@ function renderFishingShopItems(tabType = 'all', currentPage = 1) {
     const paginatedItems = itemsToDisplay.slice(startIndex, endIndex);
 
     if (paginatedItems.length === 0) {
-        let message = "Your basket is empty or no items match the current filters.";
-         itemsGrid.innerHTML = `<p class="text-center text-xs text-gray-500" style="grid-column: 1 / -1;">${message}</p>`;
+        let message = "No items of this type in your basket for exchange.";
+        if (tabType === 'all' && fishingBasket.basketContents.length > 0 && itemsToDisplay.length === 0) {
+             message = "No items eligible for exchange in your basket (Fish, Fruit, Rock, Bird types, unlocked).";
+        } else if (tabType !== 'all' && fishingBasket.basketContents.filter(i => i.cardData.type === tabType).length > 0 && itemsToDisplay.length === 0) {
+             message = `All ${tabType.replace('_card','')} items are locked. Unlock them in the basket to exchange.`;
+        }
+        itemsGrid.innerHTML = `<p class="text-center text-xs text-gray-500" style="grid-column: 1 / -1;">${message}</p>`;
     } else {
         paginatedItems.forEach(item => {
             const card = item.cardData;
             if (!card) return;
 
-            const cardWrapper = document.createElement('div');
-            cardWrapper.className = 'text-center basket-item-wrapper';
-
-            const cardElement = document.createElement('div');
-            const rarityKey = (card.rarityKey || card.rarity || 'unknown_rarity').toLowerCase().replace(/\s+/g, '_');
-            cardElement.className = `card ${rarityKey}`;
-             if (item.isLocked) {
-                cardElement.classList.add('locked-item-visual');
-            }
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'basket-card-item';
+            const rarityInfo = typeof getRarityTierInfo === 'function' ? getRarityTierInfo(card.rarityKey || card.rarity) : null;
+            const rarityClass = rarityInfo ? `rarity-bg-${rarityInfo.key}` : 'rarity-bg-common';
+            cardDiv.classList.add(rarityClass);
+            // No .locked-item-visual needed as locked items are filtered out for exchange view
 
             const imgElement = document.createElement('img');
-            let cardImageSrc = getCardImagePath(card.set, card.id, card);
-            if (card.type === 'summon_ticket' && card.rarityKey && typeof getSummonTicketImagePath === 'function') {
-                 cardImageSrc = getSummonTicketImagePath(card.rarityKey);
-            }
-            imgElement.src = cardImageSrc;
+            imgElement.src = getCardImagePath(card.set, card.id, card);
             imgElement.alt = card.name || 'Unknown Item';
-            imgElement.className = 'basket-grid-card-image';
+            imgElement.className = 'basket-card-image';
             imgElement.onerror = function() { this.src = 'gui/images/card_back_tree.png'; this.onerror = null; };
 
-            cardElement.appendChild(imgElement);
-
-            const cardDetailsDiv = document.createElement('div');
-            cardDetailsDiv.className = 'basket-card-details';
+            cardDiv.appendChild(imgElement);
 
             const nameDiv = document.createElement('div');
             nameDiv.className = 'basket-card-name';
-            nameDiv.textContent = card.name || 'Unknown Item';
-            cardDetailsDiv.appendChild(nameDiv);
+            nameDiv.textContent = card.name || `${card.set || 'N/A'}C${card.id || 'N/A'}`;
+            cardDiv.appendChild(nameDiv);
 
             const quantityDiv = document.createElement('div');
             quantityDiv.className = 'basket-card-quantity';
-            quantityDiv.textContent = `x ${item.quantity}`;
-            cardDetailsDiv.appendChild(quantityDiv);
+            quantityDiv.textContent = `Qty: ${item.quantity}`;
+            cardDiv.appendChild(quantityDiv);
 
-            cardWrapper.dataset.instanceId = item.instanceId;
-            cardWrapper.addEventListener('click', () => {
-                // Prefer calling the new basket UI's detail modal if it exists
-                if (typeof fishingBasketUi !== 'undefined' && typeof fishingBasketUi.showCardDetailForBasketItem === 'function') {
-                    fishingBasketUi.showCardDetailForBasketItem(item);
-                } else if (typeof showCardDetail === 'function' && item.cardData) {
-                     showCardDetail(item.cardData.set, item.cardData.id, item.cardData.rarity, 'fishingbasket', item.instanceId, null, { currentQuantity: item.quantity, isLocked: item.isLocked, basePrice: item.cardData.price, cardData: item.cardData});
-                }
-            });
+            const rarityTextDiv = document.createElement('div');
+            rarityTextDiv.className = 'basket-card-rarity';
+            rarityTextDiv.textContent = rarityInfo ? rarityInfo.name : (card.rarityKey || card.rarity || 'N/A');
+            cardDiv.appendChild(rarityTextDiv);
 
-            cardWrapper.appendChild(cardElement);
-            cardWrapper.appendChild(cardDetailsDiv);
-            itemsGrid.appendChild(cardWrapper);
+            // No click listener for card detail modal
+            itemsGrid.appendChild(cardDiv);
         });
     }
 
@@ -271,9 +225,93 @@ function renderShopPaginationControls(currentPage, totalPages, tabType) {
     paginationContainer.appendChild(nextButton);
 }
 
-/* // handleFishingShopExchangeAll function removed */
+// Restored function
+function handleFishingShopExchangeAll() {
+    const activeTabButton = fishingGameState.ui.shopModal.querySelector('.fishing-shop-tabs button.active');
+    const activeTabType = activeTabButton ? activeTabButton.dataset.tabType : 'all';
+
+    if (activeTabType === 'all') {
+        showCustomAlert("Please select a specific category (Fish, Fruit, Rock, Bird) to use the 'Exchange All in Tab' feature.", "info", 3000);
+        return;
+    }
+
+    let exchangeRatesConfig;
+    let itemFilterType = activeTabType;
+
+    switch (activeTabType) {
+        case 'fruit_card': exchangeRatesConfig = FISHING_CONFIG.FRUIT_EXCHANGE_RATES; break;
+        case 'mineral_card': exchangeRatesConfig = FISHING_CONFIG.MINERAL_EXCHANGE_RATES; break;
+        case 'bird_reward_card': exchangeRatesConfig = FISHING_CONFIG.BIRD_REWARD_EXCHANGE_RATES || FISHING_CONFIG.CARD_EXCHANGE_RATES; break;
+        case 'fish_card': default: exchangeRatesConfig = FISHING_CONFIG.CARD_EXCHANGE_RATES; itemFilterType = 'fish_card'; break;
+    }
+     if (!exchangeRatesConfig) {
+        showCustomAlert(`Exchange rates for ${activeTabType.replace('_card','')} are not configured.`, "error", 3000);
+        return;
+    }
+
+    let itemsExchangedCountOverall = 0;
+    const ticketsAwardedSummary = {};
+
+    // Iterate through each rarity defined in the exchange config for the current tab type
+    Object.keys(exchangeRatesConfig).forEach(itemRarityKey => {
+        // For each item rarity, iterate through the ticket types it can be exchanged for
+        Object.keys(exchangeRatesConfig[itemRarityKey]).forEach(targetTicketRarityKey => {
+            const itemsAvailableForThisSpecificExchange = fishingBasket.basketContents.filter(
+                item => item.cardData.type === itemFilterType &&
+                        item.cardData.rarity === itemRarityKey &&
+                        !item.isLocked
+            );
+
+            if (itemsAvailableForThisSpecificExchange.length > 0) {
+                 // Call processShopExchange for this specific item type, item rarity, and target ticket type
+                const { ticketType, count, itemsConsumedCount } = fishingMechanics.processShopExchange(
+                    itemFilterType,
+                    itemRarityKey,
+                    itemsAvailableForThisSpecificExchange, // Pass only items matching this rule
+                    exchangeRatesConfig, // Pass the full config for lookup
+                    targetTicketRarityKey // Specify which ticket we are aiming for
+                );
+
+                if (count > 0) {
+                    ticketsAwardedSummary[ticketType] = (ticketsAwardedSummary[ticketType] || 0) + count;
+                }
+                itemsExchangedCountOverall += itemsConsumedCount;
+            }
+        });
+    });
+
+
+    if (itemsExchangedCountOverall > 0 || Object.keys(ticketsAwardedSummary).length > 0) {
+        let summaryMessage = "Exchange successful! ";
+        if (Object.keys(ticketsAwardedSummary).length > 0) {
+            summaryMessage += "You received: ";
+            Object.entries(ticketsAwardedSummary).forEach(([ticketRarity, count]) => {
+                const ticketRarityInfo = getRarityTierInfo(ticketRarity.replace('_ticket', ''));
+                summaryMessage += `${count} ${ticketRarityInfo ? ticketRarityInfo.name : ticketRarity} Ticket(s), `;
+            });
+            summaryMessage = summaryMessage.slice(0, -2) + ". ";
+        }
+        if (itemsExchangedCountOverall > 0 && Object.keys(ticketsAwardedSummary).length === 0) {
+             summaryMessage = "Some items contributed to exchange progress, but no tickets awarded yet.";
+        }
+        showCustomAlert(summaryMessage, null, 3500);
+        playSound('sfx_toki_gain.mp3'); // Or a more appropriate sound
+        if (typeof saveGame === 'function') saveGame();
+    } else {
+        showCustomAlert("No eligible items found for exchange in this tab, or items did not meet exchange criteria.", "info", 3000);
+    }
+
+    renderFishingShopTicketBalances(); // Refresh ticket display
+    renderFishingShopItems(activeTabType, 1); // Refresh current tab
+    // If fishingBasketUi is the main basket display, refresh it too
+    if (typeof fishingBasketUi !== 'undefined' && typeof fishingBasketUi.updateBasketFilters === 'function') {
+        fishingBasketUi.updateBasketFilters();
+    }
+}
+
 
 // Global function to open the (now repurposed) fishing basket modal.
+// This should ideally be renamed if this file is solely for the shop modal again.
 function openNewFishingBasketModal() {
-    toggleFishingShopModal(true); // true to show
+    toggleFishingShopModal(true);
 }
