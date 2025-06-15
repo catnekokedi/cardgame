@@ -46,7 +46,10 @@
 
 
 /* Basket Modal uses .custom-modal-overlay, .custom-modal-content from style.css */
-#fishing-basket-modal .custom-modal-content {
+/* Note: #fishing-basket-modal itself might need specific styling if it's not using a global modal class like .custom-modal-overlay */
+/* As of a previous change, it should be using .fishing-game-modal-overlay */
+
+#fishing-basket-modal .custom-modal-content.fishing-basket-modal-content { /* Made selector more specific */
     max-width: 700px; /* Wider for card grid */
     max-height: 80vh;
     /* background-color: #f0eada;  Slightly earthy tone */
@@ -79,13 +82,13 @@
     min-width: 150px; /* Minimum width for select elements */
 }
 
-/* Ensure custom select for type filter aligns well */
+/* Ensure custom select for type filter aligns well - This is for the old custom select, might be obsolete */
 #fishing-basket-type-filter-container.custom-select-container {
     flex-grow: 1; /* Allow to grow */
     min-width: 150px; /* Minimum width */
 }
 
-/* Adjust display button of custom select to match height of standard selects */
+/* Adjust display button of custom select to match height of standard selects - This is for the old custom select, might be obsolete */
 #fishing-basket-type-filter-container .custom-select-display {
     padding: 8px 12px;
     background-color: #f8f9fa;
@@ -111,59 +114,54 @@
     min-height: 200px; /* Ensure it has some height even if empty */
 }
 
-.basket-card-item {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    padding: 8px;
-    text-align: center;
-    cursor: pointer;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
-    position: relative; /* For lock icon */
+/* Styling for the new gallery-like cards in the basket */
+.basket-item-wrapper { /* This is the new outer div per renderBasket */
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-.basket-card-item:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    transform: translateY(-2px);
-}
-.basket-card-item.locked {
-    border-left: 4px solid #c0392b; /* Red accent for locked items */
+    text-align: center;
+    cursor: pointer;
+    padding: 5px; /* Small padding around the card and its details */
 }
 
-.basket-card-image {
-    width: 80px; /* Adjust as needed */
-    height: 110px; /* Adjust as needed */
-    object-fit: contain; /* Or cover, depending on image aspect ratios */
-    margin-bottom: 8px;
-    border: 1px solid #eee;
-    border-radius: 4px;
+.basket-item-wrapper .card { /* This is the card element itself */
+    width: 100px; /* Fixed width for the card */
+    height: 140px; /* Fixed height for the card */
+    margin-bottom: 5px; /* Space between card and details */
+    background-size: cover;
+    background-position: center;
+    border-radius: 6px; /* Consistent with other cards */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.basket-card-name {
-    font-size: 0.9em;
-    font-weight: bold;
-    margin-bottom: 4px;
+.basket-item-wrapper:hover .card {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+.basket-item-wrapper .card.locked-item-visual { /* For visual indication of lock, if needed on card directly */
+    border: 2px solid #c0392b; /* Example: red border for locked */
+}
+
+.basket-item-wrapper .basket-grid-card-image { /* If img is used directly instead of background for .card */
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Or contain, depending on image assets */
+    border-radius: 4px; /* Slightly smaller radius if image is inside a padded card div */
+}
+
+.basket-card-details {
+    font-size: 0.85em;
     color: #333;
 }
+.basket-card-name {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
 .basket-card-quantity {
-    font-size: 0.8em;
+    font-size: 0.9em; /* Slightly smaller than name */
     color: #555;
-    margin-bottom: 4px;
 }
-.basket-card-rarity {
-    font-size: 0.75em;
-    color: #777;
-    text-transform: capitalize;
-}
-.basket-card-lock-icon {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    font-size: 1.2em; /* Larger lock icon */
-    color: #c0392b;
-}
+
 
 .basket-empty-message {
     width: 100%;
@@ -183,4 +181,26 @@
 }
 .fishing-basket-bulk-actions .game-button {
     padding: 8px 15px;
+}
+
+/* FORCING STYLES FOR DIAGNOSIS - REMOVE LATER */
+#fishing-basket-modal.fishing-game-modal-overlay {
+    display: flex !important;
+    position: fixed !important;
+    top: 10% !important;
+    left: 10% !important;
+    width: 80% !important;
+    height: 80% !important;
+    background-color: rgba(255, 0, 0, 0.7) !important; /* Bright red, semi-transparent */
+    border: 5px solid blue !important; /* Bright blue border */
+    z-index: 99999 !important; /* Extremely high z-index */
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow: auto !important; /* To see content if it's there */
+}
+
+#fishing-basket-modal.fishing-game-modal-overlay .custom-modal-content.fishing-basket-modal-content {
+   background-color: white !important; /* Ensure content area is visible */
+   padding: 20px !important;
+   border: 2px dashed green !important; /* Green dashed border for content */
 }
