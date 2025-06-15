@@ -120,10 +120,15 @@ const fishingUi = {
             fishingGameState.ui.shopCloseBtn = fishingGameState.ui.shopModal.querySelector('#fishing-shop-close-btn');
             fishingGameState.ui.shopTabs = fishingGameState.ui.shopModal.querySelectorAll('.fishing-shop-tabs button');
             fishingGameState.ui.shopItemsGrid = fishingGameState.ui.shopModal.querySelector('#fishing-shop-items-grid');
-            fishingGameState.ui.shopSellAllBtn = fishingGameState.ui.shopModal.querySelector('#fishing-shop-sell-all-btn');
-            // fishingGameState.ui.shopExchangeInfo = fishingGameState.ui.shopModal.querySelector('#fishing-shop-exchange-info'); // This line might be obsolete or needs to point to the new div if it's a general info area.
-            fishingGameState.ui.shopTicketBalances = fishingGameState.ui.shopModal.querySelector('#fishing-shop-ticket-balances');
-            fishingGameState.ui.shopCurrentTabExchangeInfo = fishingGameState.ui.shopModal.querySelector('#fishing-shop-current-tab-exchange-info'); // Cache the new element
+            // fishingGameState.ui.shopSellAllBtn = fishingGameState.ui.shopModal.querySelector('#fishing-shop-sell-all-btn'); // Old button reference removed
+            fishingGameState.ui.newBasketSellAllBtn = fishingGameState.ui.shopModal.querySelector('#fishing-basket-sell-all-items-btn');
+            fishingGameState.ui.newBasketCollectAllBtn = fishingGameState.ui.shopModal.querySelector('#fishing-basket-collect-all-items-btn');
+
+            fishingGameState.ui.shopCurrentTabExchangeInfo = fishingGameState.ui.shopModal.querySelector('#fishing-basket-new-filters-container'); // Repurposed for filters container
+
+            // Add references for the new filters within the shopModal (now basketModal) context
+            fishingGameState.ui.basketRarityFilter = fishingGameState.ui.shopModal.querySelector('#fishing-basket-rarity-filter');
+            fishingGameState.ui.basketSortFilter = fishingGameState.ui.shopModal.querySelector('#fishing-basket-sort-filter');
         }
         if (fishingGameState.ui.cardDetailFishingBasketModal) {
              fishingGameState.ui.cardDetailFishingBasketCloseBtn = fishingGameState.ui.cardDetailFishingBasketModal.querySelector('.fishing-basket-detail-close-button');
@@ -342,10 +347,25 @@ const fishingUi = {
              <div id="fishing-shop-modal" class="fishing-game-modal-overlay" style="display: none;">
                 <div class="fishing-game-modal-content fishing-shop-modal-content">
                     <div class="fishing-game-modal-header">
-                        <h3>Exchange Shop</h3>
+                        <h3>Fishing Basket</h3>
                         <button id="fishing-shop-close-btn" class="game-button">&times;</button>
                     </div>
-                    <div id="fishing-shop-ticket-balances" class="fishing-shop-ticket-balances-area"></div>
+                    <!-- <div id="fishing-shop-ticket-balances" class="fishing-shop-ticket-balances-area"></div> -->
+                    <div id="fishing-basket-new-filters-container"> <!-- Renamed/New container for filters -->
+                        <select id="fishing-basket-rarity-filter"> <!-- Consistent ID with previous attempts -->
+                            <option value="all">All Rarities</option>
+                            <!-- Options will be populated by JS -->
+                        </select>
+                        <select id="fishing-basket-sort-filter"> <!-- Consistent ID -->
+                            <option value="default">Sort: Default</option>
+                            <option value="name_asc">Name (A-Z)</option>
+                            <option value="name_desc">Name (Z-A)</option>
+                            <option value="quantity_desc">Qty (High-Low)</option>
+                            <option value="quantity_asc">Qty (Low-High)</option>
+                            <option value="value_desc">Value (High-Low)</option>
+                            <option value="value_asc">Value (Low-High)</option>
+                        </select>
+                    </div>
                     <div class="fishing-shop-tabs">
                         <button class="game-button active" data-tab-type="all">All</button>
                         <button class="game-button" data-tab-type="fish_card">Fish</button>
@@ -359,7 +379,8 @@ const fishingUi = {
                         <div id="fishing-shop-pagination" class="pagination-controls"></div>
                     </div>
                     <div class="fishing-game-modal-actions">
-                        <button id="fishing-shop-sell-all-btn" class="game-button game-button-variant">Exchange All Eligible in Tab</button>
+                        <button id="fishing-basket-sell-all-items-btn" class="game-button game-button-danger">Sell All Unlocked</button>
+                        <button id="fishing-basket-collect-all-items-btn" class="game-button">Collect All Unlocked</button>
                     </div>
                 </div>
             </div>
@@ -475,7 +496,10 @@ const fishingUi = {
                 tab.addEventListener('click', () => {
                     ui.shopTabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
-                    renderFishingShopItems(tab.dataset.tabType, 1);
+                    // Get current values from the new rarity and sort filters
+                    const rarityFilterValue = fishingGameState.ui.basketRarityFilter ? fishingGameState.ui.basketRarityFilter.value : 'all';
+                    const sortFilterValue = fishingGameState.ui.basketSortFilter ? fishingGameState.ui.basketSortFilter.value : 'default';
+                    renderFishingShopItems(tab.dataset.tabType, 1, rarityFilterValue, sortFilterValue);
                     playSound('sfx_button_click_subtle.mp3');
                 });
             });
