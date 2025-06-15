@@ -691,3 +691,48 @@
     margin-top: 10px; /* Ensure there's a margin if not overridden by inline */
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* Add a little shadow for better readability */
 }
+
+/* === Styles for "Bite!" Message on Bobber === */
+#fishing-bobber.bobber-bite .exclamation-mark {
+    font-size: 1.1em; /* Slightly larger */
+    color: yellow;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px black, 0 0 5px yellow; /* More prominent shadow */
+    animation: pulseBiteText 0.5s infinite alternate;
+    white-space: nowrap; /* Prevent "Bite!" from wrapping */
+}
+
+@keyframes pulseBiteText {
+    0% { transform: scale(1); opacity: 0.9; }
+    100% { transform: scale(1.15); opacity: 1; }
+}
+
+/* Existing .bobber-bite animation for movement is fine */
+/* Existing #fishing-result-message styling seems okay for "Fish Escaped!" */
+
+
+/* === Cat Animation State Placeholders === */
+/* These classes are added to #fishing-cat-svg-container */
+/* Actual complex animations might need JS interaction with SVG parts or more detailed SVG CSS */
+
+.fishing-cat--alert {
+    /* Example: subtle visual cue for alert state */
+    /* outline: 2px solid red; */ /* For testing */
+    animation: catAlertAnimation 0.3s ease-in-out;
+}
+@keyframes catAlertAnimation {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}
+
+
+.fishing-cat--waiting-bite {
+    /* Example: can be same as idle, or a slightly different, more focused pose */
+    /* outline: 2px solid blue; */ /* For testing */
+    /* Could have a very subtle bobbing animation or ear twitch if desired */
+}
+
+/* Ensure cat state animations on #fishing-rod-group still work as expected */
+/* The new states .fishing-cat--alert and .fishing-cat--waiting-bite are on the container, */
+/* while .cat-rod-idle, .cat-rod-casting, .cat-rod-reeling are on the #fishing-rod-group inside the SVG. */
+/* This should be fine, allowing container-level changes and inner group animations simultaneously. */

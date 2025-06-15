@@ -432,12 +432,16 @@ const fishingUi = {
         const catContainer = fishingGameState.ui.catContainer;
         if (!catContainer || !fishingGameState.ui.catSvg) return;
 
-        catContainer.classList.remove('fishing-cat--idle', 'fishing-cat--casting', 'fishing-cat--reeling');
+        catContainer.classList.remove('fishing-cat--idle', 'fishing-cat--casting', 'fishing-cat--reeling', 'fishing-cat--alert', 'fishing-cat--waiting-bite');
         if (state === 'casting') {
             catContainer.classList.add('fishing-cat--casting');
         } else if (state === 'reeling') {
             catContainer.classList.add('fishing-cat--reeling');
-        } else {
+        } else if (state === 'alert') { // For when a bite occurs
+            catContainer.classList.add('fishing-cat--alert');
+        } else if (state === 'waiting_bite') { // Rod cast, waiting for bite
+            catContainer.classList.add('fishing-cat--waiting-bite');
+        } else { // Default to idle
             catContainer.classList.add('fishing-cat--idle');
         }
     },
@@ -567,16 +571,24 @@ const fishingUi = {
     showExclamationOnBobber(show) { if (fishingGameState.ui.exclamation) fishingGameState.ui.exclamation.style.display = show ? 'block' : 'none'; },
     
     animateBobberBite() {
-        if (fishingGameState.ui.bobber) {
+        if (fishingGameState.ui.bobber && fishingGameState.ui.exclamation) {
             fishingGameState.ui.bobber.classList.add('bobber-bite');
+            fishingGameState.ui.exclamation.textContent = 'Bite!'; // Change text to Bite!
+            fishingGameState.ui.exclamation.style.display = 'block'; // Make sure it's visible
+            // CSS for .bobber-bite should handle the animation (e.g., shaking)
+            // CSS for .exclamation-mark within .bobber-bite can style the "Bite!" text
         }
     },
     resetBobberAnimation() {
-        if (fishingGameState.ui.bobber) {
+        if (fishingGameState.ui.bobber && fishingGameState.ui.exclamation) {
             fishingGameState.ui.bobber.classList.remove('bobber-bite');
-             fishingGameState.ui.bobber.style.transform = 'translateY(0)'; 
+            fishingGameState.ui.exclamation.style.display = 'none'; // Hide exclamation/bite text
+            fishingGameState.ui.exclamation.textContent = '❗'; // Reset text if needed
+            fishingGameState.ui.bobber.style.transform = 'translateY(0)';
         }
     },
+    // displayCenteredCaughtItem function removed as it's superseded by global window.showTemporaryCollectedItem
+
     showTemporaryResultMessage(message) { 
         const msgEl = fishingGameState.ui.resultMsg;
         if (msgEl) {

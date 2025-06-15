@@ -19,7 +19,9 @@ const fishingMechanicsInstance = { // Changed to const instance
         fishingGameState.isReeling = false;
         fishingGameState.bitingFishId = null;
         fishingGameState.hasHookedFish = false; // New state for when fish is on the hook but not yet reeled
-        fishingGameState.biteTimer = 0;
+        fishingGameState.biteTimer = 0; // Will be used for the time to react to a bite
+        fishingGameState.biteTimeoutId = null; // Timer for when the bite will occur
+        fishingGameState.biteReactionTimeoutId = null; // Timer for player to react to the bite
 
         // if (typeof fishingGameUi !== 'undefined' && typeof fishingGameUi.renderFish === 'function') {
         //     fishingGameUi.renderFish(this.activeFish);
@@ -58,95 +60,57 @@ const fishingMechanicsInstance = { // Changed to const instance
 
     updateFishMovement(deltaTime) { // deltaTime in seconds
         if (!fishingGameState.isGameActive) return;
-        let fishChanged = false;
+        // let fishChanged = false; // fishChanged can be removed if renderFish is not called here
+
         this.activeFish.forEach(fish => {
-            if (fish.id === fishingGameState.bitingFishId && fishingGameState.hasHookedFish) {
-                // Fish is hooked, it shouldn't move on its own.
-                // Its position might follow the hook/float if that moves.
-                fish.x = this.hookPosition.x; // Stay at hook
+            // If a specific fish is hooked, make it stick to the hook visually.
+            if (fishingGameState.hasHookedFish && fish.id === fishingGameState.bitingFishId) {
+                fish.x = this.hookPosition.x;
                 fish.y = this.hookPosition.y;
-                fishChanged = true;
-                return;
+                // fishChanged = true;
+                return; // No other movement logic for this hooked fish
             }
 
+            // Normal movement logic
             const dx = fish.targetX - fish.x;
             const dy = fish.targetY - fish.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
+            const distanceToTarget = Math.sqrt(dx * dx + dy * dy);
 
-            if (distance < 5) { // Reached target
-                if (fishingGameState.isRodCast && !fishingGameState.hasHookedFish && fish.id !== fishingGameState.bitingFishId) {
-                    // If rod is cast and this fish isn't already the one biting/hooked, it targets the hook
-                    fish.targetX = this.hookPosition.x + (Math.random() - 0.5) * 15; // Target hook, with slight jitter
-                    fish.targetY = this.hookPosition.y + (Math.random() - 0.5) * 15;
-                    // console.log(`Fish ${fish.id} is now targeting the hook area.`);
+            if (distanceToTarget < 5) { // Reached current target
+                // If rod is cast (but no specific fish hooked yet), fish might target the hook area visually.
+                if (fishingGameState.isRodCast && !fishingGameState.hasHookedFish) {
+                    // Fish swim towards the hook area, but not directly onto it, just nearby.
+                    fish.targetX = this.hookPosition.x + (Math.random() - 0.5) * 50; // Target area around hook
+                    fish.targetY = this.hookPosition.y + (Math.random() - 0.5) * 50;
                 } else {
-                    // Original random target logic if rod not cast or fish is already hooked
+                    // Default random movement if rod is not cast or if a fish is already hooked (but not this one)
                     fish.targetX = this.seaBoundaries.minX + Math.random() * (this.seaBoundaries.maxX - this.seaBoundaries.minX);
                     fish.targetY = this.seaBoundaries.minY + Math.random() * (this.seaBoundaries.maxY - this.seaBoundaries.minY);
                 }
-                // Update speed as well for variety
-                fish.speedX = (Math.random() - 0.5) * 20 + (dx / distance * 10); // Add some momentum bias
-                fish.speedY = (Math.random() - 0.5) * 20 + (dy / distance * 10);
+                // Adjust speed for variety when choosing a new target
+                fish.speedX = (Math.random() - 0.5) * 20 + (dx / distanceToTarget * 10 || 0);
+                fish.speedY = (Math.random() - 0.5) * 20 + (dy / distanceToTarget * 10 || 0);
             } else {
+                // Move towards target
                 fish.x += (fish.speedX * deltaTime);
                 fish.y += (fish.speedY * deltaTime);
             }
 
-            // Boundary checks
+            // Boundary checks to keep fish within the sea
             fish.x = Math.max(this.seaBoundaries.minX, Math.min(this.seaBoundaries.maxX, fish.x));
             fish.y = Math.max(this.seaBoundaries.minY, Math.min(this.seaBoundaries.maxY, fish.y));
-            fishChanged = true;
+            // fishChanged = true;
         });
 
+        // The direct call to renderFish from here is removed as per previous tasks.
+        // The game loop or UI layer should handle rendering based on the updated activeFish array.
         // if (fishChanged && typeof fishingGameUi !== 'undefined' && typeof fishingGameUi.renderFish === 'function') {
         //     fishingGameUi.renderFish(this.activeFish);
-        // } // Removed as per task
+        // }
     },
 
-    castRod() {
-        // console.log("[Mechanics] castRod: Called. Current state: isRodCast=" + fishingGameState.isRodCast + ", isReeling=" + fishingGameState.isReeling + ", hasHookedFish=" + fishingGameState.hasHookedFish); // REMOVE
-        if (fishingGameState.isRodCast || fishingGameState.isReeling || fishingGameState.hasHookedFish) {
-            // console.log("[Mechanics] castRod: Conditions not met, returning."); // REMOVE
-            return;
-        }
-
-        // For now, hook position is fixed or uses the default this.hookPosition
-        // Later, this could be player controlled.
-        // this.hookPosition = { x: ..., y: ... };
-
-        if (typeof playSound === 'function') playSound('sfx_fishing_cast.mp3');
-        if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.setCatState === 'function') {
-            window.fishingUi.setCatState('casting');
-        }
-
-        fishingGameState.isRodCast = true;
-        fishingGameState.isReeling = false;
-        fishingGameState.bitingFishId = null;
-        fishingGameState.hasHookedFish = false;
-        // console.log("[Mechanics] castRod: State updated: isRodCast=true, hasHookedFish=false"); // REMOVE
-        // Note: fishingGameState.bobberPosition is not strictly needed by fishingGameUi if hookPosition is passed directly
-
-        if (typeof window.fishingUi !== 'undefined') {
-            if (window.fishingUi.showBobber) window.fishingUi.showBobber(); // showBobber now handles its own position
-            if (window.fishingUi.drawRodLine) window.fishingUi.drawRodLine();
-            if (window.fishingUi.resetBobberAnimation) window.fishingUi.resetBobberAnimation(); // Ensure not biting
-        } else {
-            console.warn("window.fishingUi not available for castRod visuals."); // Keep warn
-        }
-        // Replace fishingUi.updateStatusText and fishingUi.hideCatchPreview if those are to be self-contained
-        if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateStatusText === 'function') fishingUi.updateStatusText("Waiting for a bite...");
-        if (typeof fishingUi !== 'undefined' && typeof fishingUi.hideCatchPreview === 'function') fishingUi.hideCatchPreview();
-
-
-        setTimeout(() => {
-            if (fishingGameState.isRodCast && !fishingGameState.isReeling && !fishingGameState.hasHookedFish) {
-                if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.setCatState === 'function') {
-                    window.fishingUi.setCatState('idle');
-                }
-            }
-        }, 700); // Assuming cat animation duration
-        // console.log("Rod cast at", this.hookPosition); // REMOVE
-    },
+    // Old castRod() is removed as its functionality is now in castRodAndWaitForBite()
+    // castRod() { ... }
 
     // NOTE: The empty object '},' was likely a typo in the original file or a merge artifact.
     // It should be removed if it's not part of a valid structure.
@@ -157,237 +121,259 @@ const fishingMechanicsInstance = { // Changed to const instance
     // The diff will show if it's a simple comma or an actual empty object.
     // It was just an extra comma.
 
-    checkForBite(deltaTime) { // deltaTime in seconds
-        // Minimal entry log (if desired, ensure it's not flooding)
-        // console.log(`[Mechanics] checkForBite - RodCast: ${fishingGameState.isRodCast}, Reeling: ${fishingGameState.isReeling}, Hooked: ${fishingGameState.hasHookedFish}`);
-
-        if (!fishingGameState.isRodCast || fishingGameState.isReeling || fishingGameState.hasHookedFish) {
-            if (fishingGameState.hasHookedFish && fishingGameState.biteTimer > 0) {
-                fishingGameState.biteTimer -= (deltaTime * 1000);
-                if (fishingGameState.biteTimer <= 0) {
-                    this.handleFishEscape();
-                }
-            }
+    castRodAndWaitForBite() {
+        if (fishingGameState.isRodCast || fishingGameState.isReeling || fishingGameState.hasHookedFish) {
             return;
         }
 
-        // Log hook position once if it's useful and not logged elsewhere frequently
-        // console.log(`[Mechanics] Hook position: X=${this.hookPosition.x}, Y=${this.hookPosition.y}`);
+        // Assuming this.hookPosition is set and valid (e.g. center of water)
+        // As per issue: "Kedi oltasını suda hep aynı yere attığı için, fiziksel olarak hesaplamalara gerek yok"
+        // this.hookPosition = { x: calculatedCenterX, y: calculatedCenterY }; // Update if dynamic calculation needed
 
-        let loggedThisCall = false; // Flag to ensure we only log one fish's details per call
+        fishingGameState.isRodCast = true;
+        fishingGameState.isReeling = false;
+        fishingGameState.bitingFishId = null;
+        fishingGameState.hasHookedFish = false;
 
-        this.activeFish.forEach((fish, fishIndex) => {
-            if (fishingGameState.hasHookedFish) return; // Already a fish on the hook (or processing one)
+        if (typeof playSound === 'function') playSound('sfx_fishing_cast.mp3');
+        if (typeof window.fishingUi !== 'undefined') {
+            window.fishingUi.setCatState('casting');
+            window.fishingUi.showBobber(); // showBobber should use this.hookPosition or receive it
+            window.fishingUi.drawRodLine(); // drawRodLine should use this.hookPosition or receive it
+            if (window.fishingUi.resetBobberAnimation) window.fishingUi.resetBobberAnimation();
+            if (window.fishingUi.updateStatusText) window.fishingUi.updateStatusText("Waiting for a bite...");
+            if (window.fishingUi.hideCatchPreview) window.fishingUi.hideCatchPreview();
+        }
 
-            const dx = fish.x - this.hookPosition.x;
-            const dy = fish.y - this.hookPosition.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            // Log details for the first fish only in this iteration of activeFish
-            if (!loggedThisCall && fishIndex === 0 && this.activeFish.length > 0) {
-                // console.log(`[FishCheck] Fish 0: Pos(${fish.x.toFixed(1)}, ${fish.y.toFixed(1)}), Hook(${this.hookPosition.x.toFixed(1)}, ${this.hookPosition.y.toFixed(1)}), Dist: ${distance.toFixed(1)}, BiteDist: ${this.biteDistance}`); // DEBUG - Potentially spammy
-                loggedThisCall = true;
-            }
-
-            if (distance < this.biteDistance) {
-                // This console log should be very specific to when a fish is actually close enough
-                // console.log(`[FishCheck] Fish ${fish.id} is CLOSE. Dist: ${distance.toFixed(1)}`); // DEBUG - Potentially spammy
-                if (Math.random() < (this.biteChancePerSecond * deltaTime)) {
-                    // This log is critical for when a bite actually occurs
-                    console.log(`%c[FishCheck] Fish ${fish.id} is BITING! Setting hasHookedFish.`, 'color: green; font-weight: bold;');
-                    fishingGameState.bitingFishId = fish.id;
-                    fishingGameState.hasHookedFish = true;
-                    fishingGameState.isRodCast = false; // Rod is no longer just "cast"
-                    fishingGameState.biteTimer = this.biteTimerDuration;
-
-                    if (typeof playSound === 'function') playSound('sfx_fishing_bite.mp3');
-                    if (typeof window.fishingUi !== 'undefined') {
-                        if (window.fishingUi.setCatState) window.fishingUi.setCatState('idle'); // Cat is alert
-                        if (window.fishingUi.animateBobberBite) window.fishingUi.animateBobberBite();
-                    } else {
-                        console.warn("window.fishingUi not available for bite indication."); // Keep warn
-                    }
-                     // Replace fishingUi.updateStatusText if that is to be self-contained
-                    if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateStatusText === 'function') fishingUi.updateStatusText("BITE! Reel it in!");
-                    // console.log(`Fish ${fish.id} is biting!`); // REMOVE - Aggressive cleanup (already have the styled Biting log)
-
-                    // Auto-catch logic from old system (optional)
-                    // if (fishingGameState.currentRod && fishingGameState.currentRod.autoCatch) { ... }
-                    return; // Stop checking other fish
+        setTimeout(() => {
+            // Check if still in casting state, not reeled in or bite occurred prematurely
+            if (fishingGameState.isRodCast && !fishingGameState.isReeling && !fishingGameState.hasHookedFish) {
+                if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.setCatState === 'function') {
+                    window.fishingUi.setCatState('idle'); // Or 'waiting'
                 }
             }
-        });
+        }, 700); // Duration of casting animation
 
-        // If a fish is hooked (hasHookedFish became true in the loop above), manage the bite timer.
-        // This block is actually redundant because the initial 'if' condition at the start of the function
-        // now handles the bite timer management if hasHookedFish is true upon entry.
-        // If a fish gets hooked within the forEach loop, the biteTimer is initialized,
-        // and its countdown will be handled in subsequent calls to checkForBite by the logic in the initial 'if'.
+        // Initiate waiting logic
+        // Random delay for bite, influenced by rod and bait
+        const baseBiteTime = FISHING_CONFIG?.BASE_BITE_TIME_MS || 5000; // e.g., 5 seconds base
+        const catchSpeedFactor = fishingGameState.currentRod?.catchSpeedFactor || 1.0;
+        const biteBoost = fishingGameState.currentBait?.biteBoost || 1.0; // Assuming biteBoost is a multiplier like 1.1 for 10% faster
 
-        // Original bite timer management (now effectively handled by the top 'if' block):
-        /*
-        if (fishingGameState.hasHookedFish && fishingGameState.biteTimer > 0) {
-            // This specific log might be noisy if placed here, better handled by the top block's logic.
-            // console.log(`%c[Mechanics] checkForBite: (Post-loop) Fish hooked. biteTimer remaining: ${fishingGameState.biteTimer}`, 'color: purple;');
-            fishingGameState.biteTimer -= (deltaTime * 1000);
-            if (fishingGameState.biteTimer <= 0) {
-                console.log("%c[Mechanics] checkForBite: (Post-loop) Bite timer expired. Escaping.", 'color: red; font-weight: bold;');
-                this.handleFishEscape();
-            }
+        // Higher factor/boost means shorter time
+        let waitDuration = baseBiteTime / (catchSpeedFactor * biteBoost);
+        // Add some randomness: e.g., +/- 20% of the calculated duration
+        waitDuration = waitDuration * (0.8 + Math.random() * 0.4);
+        waitDuration = Math.max(500, waitDuration); // Minimum wait time
+
+        if (fishingGameState.biteTimeoutId) {
+            clearTimeout(fishingGameState.biteTimeoutId);
         }
-        */
+        fishingGameState.biteTimeoutId = setTimeout(() => {
+            this.triggerBiteDisplay();
+        }, waitDuration);
     },
 
-    handleFishEscape() {
+    triggerBiteDisplay() {
+        // Check if rod is still cast and no fish hooked (player might have reeled in early)
+        if (!fishingGameState.isRodCast || fishingGameState.hasHookedFish || fishingGameState.isReeling) {
+            return;
+        }
+
+        // Determine which fish is biting (can be random or the closest one if fish visuals are implemented)
+        // For now, let's assume any fish can "bite" conceptually, and we pick one if needed for visuals.
+        if (this.activeFish.length > 0) {
+            fishingGameState.bitingFishId = this.activeFish[Math.floor(Math.random() * this.activeFish.length)].id;
+        } else {
+            // No visual fish available, but bite can still occur
+            fishingGameState.bitingFishId = null;
+        }
+
+        fishingGameState.hasHookedFish = true;
+        fishingGameState.isRodCast = false; // Now in "hooked" phase
+        fishingGameState.biteTimer = FISHING_CONFIG?.BITE_TIMER_DURATION_MS || 3000; // Resetting the definition of biteTimer to mean reaction time
+
+        if (typeof playSound === 'function') playSound('sfx_fishing_bite.mp3');
+        if (typeof window.fishingUi !== 'undefined') {
+            if (window.fishingUi.setCatState) window.fishingUi.setCatState('alert'); // Or 'bite'
+            if (window.fishingUi.animateBobberBite) window.fishingUi.animateBobberBite(); // Shows "Bite!" on bobber
+            if (window.fishingUi.updateStatusText) window.fishingUi.updateStatusText("BITE! Reel it in!");
+        }
+
+        // Start timer for player to react
+        if (fishingGameState.biteReactionTimeoutId) {
+            clearTimeout(fishingGameState.biteReactionTimeoutId);
+        }
+        fishingGameState.biteReactionTimeoutId = setTimeout(() => {
+            this.handleFishEscape("Too slow!"); // Pass reason for escape
+        }, fishingGameState.biteTimer); // Use the biteTimer value for the countdown
+    },
+
+    // Old checkForBite is to be deprecated/removed.
+    // Its logic for detecting bite is now in castRodAndWaitForBite -> triggerBiteDisplay.
+    // The part of checkForBite that managed the biteTimer countdown after a bite is now implicitly
+    // handled by the biteReactionTimeoutId set in triggerBiteDisplay.
+
+    // Old checkForBite() is removed. Its bite detection logic is replaced by the new timer-based system.
+    // checkForBite(deltaTime) { ... }
+
+
+    handleFishEscape(reason = "The fish got away!") { // Added reason parameter
         // console.log("[Mechanics] handleFishEscape: Called. Biting fish ID: " + fishingGameState.bitingFishId); // REMOVE
-        if (typeof fishingUi !== 'undefined') fishingUi.showTemporaryResultMessage("Too slow! The fish got away.");
+        if (typeof fishingUi !== 'undefined' && typeof fishingUi.showTemporaryResultMessage === 'function') {
+            // The issue mentioned "balık kaçtı yazacak oltanın ucunda"
+            // This might require a new UI function like fishingUi.showBobberMessage("Fish escaped!")
+            // For now, using existing temporary message.
+            fishingUi.showTemporaryResultMessage(reason);
+        }
         if (typeof playSound === 'function') playSound('sfx_fishing_lose.mp3');
 
-        const escapedFish = this.activeFish.find(f => f.id === fishingGameState.bitingFishId);
-        if(escapedFish) {
-            // Make the fish dart away quickly
-            escapedFish.targetX = Math.random() < 0.5 ? this.seaBoundaries.minX - 50 : this.seaBoundaries.maxX + 50;
-            escapedFish.targetY = Math.random() < 0.5 ? this.seaBoundaries.minY - 50 : this.seaBoundaries.maxY + 50;
-            escapedFish.speedX *= 3; // Increase speed
-            escapedFish.speedY *= 3;
+        const escapedFishId = fishingGameState.bitingFishId; // Store before resetting
+        if(escapedFishId) {
+            const escapedFishInstance = this.activeFish.find(f => f.id === escapedFishId);
+            if(escapedFishInstance) {
+                // Make the fish dart away quickly
+                escapedFishInstance.targetX = Math.random() < 0.5 ? this.seaBoundaries.minX - 50 : this.seaBoundaries.maxX + 50;
+                escapedFishInstance.targetY = Math.random() < 0.5 ? this.seaBoundaries.minY - 50 : this.seaBoundaries.maxY + 50;
+                escapedFishInstance.speedX = (escapedFishInstance.speedX || 10) * 3; // Increase speed, ensure speedX is not 0
+                escapedFishInstance.speedY = (escapedFishInstance.speedY || 10) * 3;
+            }
+            // It's important that spawnFish is called with the ID of the fish to be replaced.
+            // If the fish instance itself was modified and then we call spawnFish without an ID,
+            // it would add a new fish instead of replacing.
+            this.spawnFish(escapedFishId); // Replace the escaped fish visually by its ID.
         }
-        this.spawnFish(fishingGameState.bitingFishId); // Replace the escaped fish
 
-        this.resetFishingState(); // Resets most states
-        // Specific UI updates for escape
+        this.resetFishingState(); // Resets most states including timers
+        // Specific UI updates for escape are handled by resetFishingState or directly by fishingUi.showTemporaryResultMessage
         if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.resetBobberAnimation === 'function') {
-            window.fishingUi.resetBobberAnimation();
+            window.fishingUi.resetBobberAnimation(); // Ensure "Bite!" animation stops
         }
-         // Replace fishingUi.showTemporaryResultMessage if that is to be self-contained
-        if (typeof fishingUi !== 'undefined' && typeof fishingUi.showTemporaryResultMessage === 'function') fishingUi.showTemporaryResultMessage("Too slow! The fish got away.");
     },
 
     reelRod() {
-        // console.log("[Mechanics] reelRod: Called. Current state: isReeling=" + fishingGameState.isReeling + ", hasHookedFish=" + fishingGameState.hasHookedFish + ", isRodCast=" + fishingGameState.isRodCast); // REMOVE
-        if (fishingGameState.isReeling || !fishingGameState.hasHookedFish) {
-            if (fishingGameState.isRodCast && !fishingGameState.hasHookedFish) {
-                 if (typeof playSound === 'function') playSound('sfx_fishing_reel_empty.mp3');
-                 // console.log("[Mechanics] reelRod: Reeling empty hook."); // REMOVE
-                 this.resetFishingState();
-            } else {
-                // console.log("[Mechanics] reelRod: Conditions not met (already reeling or no hooked fish), returning."); // REMOVE
+        // Clear any active bite countdown timer
+        if (fishingGameState.biteReactionTimeoutId) {
+            clearTimeout(fishingGameState.biteReactionTimeoutId);
+            fishingGameState.biteReactionTimeoutId = null;
+        }
+
+        if (fishingGameState.isReeling) return; // Already reeling
+
+        if (fishingGameState.hasHookedFish) {
+            // Player is reeling in a hooked fish
+            fishingGameState.isReeling = true;
+            // fishingGameState.hasHookedFish remains true during the reel attempt
+            // fishingGameState.isRodCast remains false
+
+            if (typeof window.fishingUi !== 'undefined') {
+                if (window.fishingUi.setCatState) window.fishingUi.setCatState('reeling');
+                if (window.fishingUi.updateStatusText) window.fishingUi.updateStatusText("Reeling it in...");
+                if (window.fishingUi.resetBobberAnimation) window.fishingUi.resetBobberAnimation(); // Clear "Bite!"
             }
-            return;
-        }
+            if (typeof playSound === 'function') playSound('sfx_fishing_reel.mp3');
 
-        // console.log("[Mechanics] reelRod: Proceeding with reeling hooked fish."); // REMOVE
-        fishingGameState.isReeling = true;
+            setTimeout(() => {
+                const successChance = (fishingGameState.currentRod?.successRate || 0.7) + (fishingGameState.currentBait?.successBoost || 0);
+                const success = Math.random() < successChance;
 
-        if (typeof window.fishingUi !== 'undefined') {
-            if (window.fishingUi.resetBobberAnimation) window.fishingUi.resetBobberAnimation();
-            if (window.fishingUi.setCatState) window.fishingUi.setCatState('reeling');
-        } else {
-            console.warn("window.fishingUi not available for reelRod visuals."); // Keep warn
-        }
-         // Replace fishingUi.updateStatusText if that is to be self-contained
-        if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateStatusText === 'function') fishingUi.updateStatusText("Reeling it in...");
-        if (typeof playSound === 'function') playSound('sfx_fishing_reel.mp3');
+                if (success) {
+                    const caughtItem = this.determineCatch(fishingGameState.bitingFishId); // bitingFishId should still be set
+                    let itemForDisplay; // This will hold the object for showTemporaryCollectedItem
 
-        setTimeout(() => {
-            const success = Math.random() < (fishingGameState.currentRod?.successRate || 0.7);
-            if (success) {
-                const caughtItem = this.determineCatch(fishingGameState.bitingFishId);
-
-                if (caughtItem.type === 'card') {
-                    // Prepare for pack opening screen
-                    const isNew = !collection[caughtItem.details.set]?.[caughtItem.details.cardId] || collection[caughtItem.details.set][caughtItem.details.cardId].count === 0;
-                    const formattedCard = {
-                        set: caughtItem.details.set,
-                        cardId: caughtItem.details.cardId,
-                        rarityKey: caughtItem.details.rarityKey,
-                        grade: caughtItem.details.grade,
-                        price: caughtItem.details.price,
-                        revealed: false, // Pack opening screen will handle reveal
-                        isNew: isNew,
-                        packIndex: 0 // Single card pack
-                    };
-
-                    // Reinstate direct basket addition and temporary display for cards
-                    const cardDef = (typeof cardData !== 'undefined' && cardData[caughtItem.details.set] && cardData[caughtItem.details.set][caughtItem.details.cardId])
-                                        ? cardData[caughtItem.details.set][caughtItem.details.cardId]
-                                        : null;
-                    const cardName = cardDef ? cardDef.name : `${caughtItem.details.set} Card #${caughtItem.details.cardId}`;
-
-                    const cardDataForBasket = {
-                        id: caughtItem.details.cardId,
-                        set: caughtItem.details.set,
-                        name: cardName, // Use fetched name
-                        rarity: caughtItem.details.rarityKey, // Using 'rarity' as some basket functions might expect this key
-                        rarityKey: caughtItem.details.rarityKey, // Also include rarityKey for consistency
-                        price: caughtItem.details.price,
-                        grade: caughtItem.details.grade,
-                        imagePath: getCardImagePath(caughtItem.details.set, caughtItem.details.cardId), // Ensure getCardImagePath is available
-                        type: 'fish_card', // Standardized type
-                        source: 'fishing'
-                    };
-                    // console.log(`[FishMechanics] Item for basket from fishing: Name=${cardDataForBasket.name}, Type=${cardDataForBasket.type}, Source=${cardDataForBasket.source}`); // REMOVE
-
-                    if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
-                        window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
-                    } else {
-                        console.error("fishingBasket.addCardToBasket function is undefined!");
+                    if (caughtItem.type === 'card') {
+                        const cardDef = (typeof cardData !== 'undefined' && cardData[caughtItem.details.set] && cardData[caughtItem.details.set][caughtItem.details.cardId])
+                                            ? cardData[caughtItem.details.set][caughtItem.details.cardId]
+                                            : null;
+                        const cardName = cardDef ? cardDef.name : `${caughtItem.details.set} Card #${caughtItem.details.cardId}`;
+                        const cardDataForBasket = { // This object is suitable for display and basket
+                            id: caughtItem.details.cardId,
+                            set: caughtItem.details.set,
+                            name: cardName,
+                            rarityKey: caughtItem.details.rarityKey,
+                            price: caughtItem.details.price,
+                            grade: caughtItem.details.grade,
+                            imagePath: typeof getCardImagePath === 'function' ? getCardImagePath(caughtItem.details.set, caughtItem.details.cardId) : `gui/cards/${caughtItem.details.set}/${caughtItem.details.cardId}.png`,
+                            type: 'fish_card', // Specific type for fishing context if needed by basket
+                            source: 'fishing'
+                        };
+                        if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
+                            window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
+                        }
+                        itemForDisplay = cardDataForBasket;
+                    } else if (caughtItem.type === 'ticket') {
+                        // Tickets are added in determineCatch. Prepare data for display.
+                        const ticketDataForDisplay = {
+                            name: caughtItem.details.name, // Should be like "Rare Ticket"
+                            imagePath: typeof getSummonTicketImagePath === 'function' ? getSummonTicketImagePath(caughtItem.details.rarityKey) : `gui/summon_tickets/ticket_${caughtItem.details.rarityKey}.png`,
+                            id: caughtItem.details.rarityKey, // Use rarityKey as a form of ID for tickets
+                            set: 'Summon Tickets', // Generic set name for tickets
+                            rarityKey: caughtItem.details.rarityKey, // Include rarity for potential display styling
+                            type: 'ticket',
+                            source: 'fishing'
+                        };
+                        itemForDisplay = ticketDataForDisplay;
+                         if (typeof addSummonTickets !== 'function') {
+                            console.warn("addSummonTickets function not found during reelRod success for ticket.");
+                         }
                     }
 
-                    // Standardized display call
-                    if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
-                        if (caughtItem.type === 'card') {
-                            const previewDetails = {
-                                set: cardDataForBasket.set, // Use data from cardDataForBasket which has resolved name
-                                cardId: cardDataForBasket.id,
-                                rarityKey: cardDataForBasket.rarityKey,
-                                grade: cardDataForBasket.grade,
-                                name: cardDataForBasket.name,
-                                imagePath: cardDataForBasket.imagePath
+                    // New unified display logic
+                    if (itemForDisplay) {
+                        if (typeof window.showTemporaryCollectedItem === 'function') {
+                            window.showTemporaryCollectedItem(itemForDisplay);
+                        } else if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+                            // Fallback to old preview if global function isn't implemented yet
+                            // showCatchPreview expects { type: 'card'/'ticket', details: {...} }
+                            const previewWrapper = {
+                                type: caughtItem.type, // 'card' or 'ticket'
+                                details: { ...itemForDisplay, cardId: itemForDisplay.id } // ensure cardId for card type if showCatchPreview expects it
                             };
-                            window.fishingUi.showCatchPreview({ type: 'card', details: previewDetails });
-                        } else if (caughtItem.type === 'ticket') {
-                            const ticketPreviewDetails = {
-                                ...caughtItem.details, // rarityKey, name
-                                source: 'fishing', // Add source for display consistency
-                                // imagePath will be derived by showCatchPreview or its fallback
-                            };
-                            window.fishingUi.showCatchPreview({ type: 'ticket', details: ticketPreviewDetails });
-                            // console.log(`[FishMechanics] Ticket from fishing for display: Name=${ticketPreviewDetails.name}, Type=ticket, Source=${ticketPreviewDetails.source}`); // REMOVE
+                            window.fishingUi.showCatchPreview(previewWrapper);
                         }
                     }
-                    // Fallback to showTemporaryCollectedItem removed.
-                } else { // Not a card or ticket, but determineCatch should always return one of these
-                    console.warn("[FishMechanics] determineCatch returned an unknown item type:", caughtItem); // Keep warn
-                }
-                // Common success sounds and spawning new fish
-                if (typeof playSound === 'function') playSound('sfx_fishing_win.mp3');
-                this.spawnFish(fishingGameState.bitingFishId);
 
-                // Handle bait consumption (from old system)
-                if (fishingGameState.currentBait && fishingGameState.currentBait.id !== "none") {
-                    fishingGameState.currentBaitUsesLeft--;
-                    if (fishingGameState.currentBaitUsesLeft <= 0) {
-                         // Replace fishingUi.showTemporaryResultMessage if that is to be self-contained
-                        if (typeof fishingUi !== 'undefined' && typeof fishingUi.showTemporaryResultMessage === 'function') fishingUi.showTemporaryResultMessage(`Your ${fishingGameState.currentBait.name} ran out!`);
-                        fishingGameState.currentBaitId = "none";
-                        fishingGameState.currentBait = FISHING_CONFIG.BAIT_TYPES.find(b => b.id === "none");
-                        fishingGameState.currentBaitUsesLeft = Infinity;
-                        if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateRodAndBaitDisplay === 'function') fishingUi.updateRodAndBaitDisplay();
+                    if (typeof playSound === 'function') playSound('sfx_fishing_win.mp3');
+                    if (fishingGameState.bitingFishId) { // If a visual fish was hooked
+                        this.spawnFish(fishingGameState.bitingFishId); // Replace the caught fish
                     }
+
+                    // Handle bait consumption
+                    if (fishingGameState.currentBait && fishingGameState.currentBait.id !== "none") {
+                        fishingGameState.currentBaitUsesLeft--;
+                        if (fishingGameState.currentBaitUsesLeft <= 0) {
+                            if (typeof fishingUi !== 'undefined' && typeof fishingUi.showTemporaryResultMessage === 'function') {
+                                fishingUi.showTemporaryResultMessage(`Your ${fishingGameState.currentBait.name} ran out!`);
+                            }
+                            fishingGameState.currentBaitId = "none";
+                            fishingGameState.currentBait = FISHING_CONFIG.BAIT_TYPES.find(b => b.id === "none");
+                            fishingGameState.currentBaitUsesLeft = Infinity; // Or specific uses for "none" if any
+                            if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateRodAndBaitDisplay === 'function') {
+                                fishingUi.updateRodAndBaitDisplay();
+                            }
+                        }
+                    }
+                    if (typeof saveGame === 'function') saveGame();
+
+                } else {
+                    // Failed to reel in
+                    this.handleFishEscape("The fish got away!"); // Call with specific message
                 }
-                if (typeof saveGame === 'function') saveGame();
-            } else {
-                // Replace fishingUi.showTemporaryResultMessage if that is to be self-contained
-                if (typeof fishingUi !== 'undefined' && typeof fishingUi.showTemporaryResultMessage === 'function') fishingUi.showTemporaryResultMessage("Aww, it got away!");
-                if (typeof playSound === 'function') playSound('sfx_fishing_lose.mp3');
-                 const escapedFish = this.activeFish.find(f => f.id === fishingGameState.bitingFishId);
-                 if(escapedFish) this.spawnFish(escapedFish.id);
+                this.resetFishingState(); // This will set isReeling to false among other things.
+            }, (FISHING_CONFIG?.REEL_TIME_BASE_MS || 1000) + Math.random() * (FISHING_CONFIG?.REEL_TIME_RANDOM_MS || 500));
+
+        } else if (fishingGameState.isRodCast && !fishingGameState.hasHookedFish) {
+            // Player reeled in before a bite
+            if (typeof playSound === 'function') playSound('sfx_fishing_reel_empty.mp3');
+            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.updateStatusText === 'function') {
+                fishingUi.updateStatusText("Reeled in too early!");
             }
             this.resetFishingState();
-        }, (FISHING_CONFIG?.REEL_TIME_BASE_MS || 1000) + Math.random() * (FISHING_CONFIG?.REEL_TIME_RANDOM_MS || 500));
+        }
+        // If neither rod cast nor fish hooked, reelRod does nothing.
     },
 
-    determineCatch(caughtFishId) {
+    determineCatch(caughtFishId) { // caughtFishId might be null if no visual fish was assigned
         // const fishData = this.activeFish.find(f => f.id === caughtFishId);
         // For now, use existing determineCatch logic which doesn't depend on specific fish from sea
         const rod = fishingGameState.currentRod;
@@ -397,13 +383,33 @@ const fishingMechanicsInstance = { // Changed to const instance
         const isTicket = Math.random() < ticketChance;
 
         if (isTicket) {
-            // ... (existing ticket logic remains the same)
-            const ticketRarities = ['rare', 'foil', 'holo']; // Example, use FISHING_CONFIG if defined
-            const randomTicketRarityKey = ticketRarities[Math.floor(Math.random() * ticketRarities.length)];
-            const ticketRarityInfo = typeof getRarityTierInfo !== 'undefined' ? getRarityTierInfo(randomTicketRarityKey) : {name: randomTicketRarityKey};
-            if (typeof addSummonTickets === 'function') addSummonTickets(randomTicketRarityKey, 1);
+            let chosenTicketRarityKey = 'rare'; // Default
+            const ticketDistribution = FISHING_CONFIG?.SUMMON_TICKET_RARITY_DISTRIBUTION;
+
+            if (ticketDistribution && ticketDistribution.length > 0) {
+                let randomTicketProb = Math.random();
+                let cumulativeTicketProb = 0;
+                for (const tier of ticketDistribution) {
+                    cumulativeTicketProb += tier.packProb;
+                    if (randomTicketProb < cumulativeTicketProb) {
+                        chosenTicketRarityKey = tier.key;
+                        break;
+                    }
+                }
+                // Fallback if probabilities don't sum to 1 or other issues
+                if (randomTicketProb >= cumulativeTicketProb && ticketDistribution.length > 0) {
+                     chosenTicketRarityKey = ticketDistribution[0].key;
+                }
+            } else {
+                // Fallback to original random selection if no distribution in config
+                const ticketRarities = ['rare', 'foil', 'holo'];
+                chosenTicketRarityKey = ticketRarities[Math.floor(Math.random() * ticketRarities.length)];
+            }
+
+            const ticketRarityInfo = typeof getRarityTierInfo !== 'undefined' ? getRarityTierInfo(chosenTicketRarityKey) : {name: chosenTicketRarityKey};
+            if (typeof addSummonTickets === 'function') addSummonTickets(chosenTicketRarityKey, 1);
             else console.warn("addSummonTickets function not found.");
-            return { type: 'ticket', details: { rarityKey: randomTicketRarityKey, name: `${ticketRarityInfo.name} Ticket`, source: 'fishing' }};
+            return { type: 'ticket', details: { rarityKey: chosenTicketRarityKey, name: `${ticketRarityInfo.name} Ticket`, source: 'fishing' }};
         } else {
             // ... (existing card logic remains the same)
             // The card object returned by determineCatch will have type: 'card'
@@ -461,23 +467,29 @@ const fishingMechanicsInstance = { // Changed to const instance
         fishingGameState.isReeling = false;
         fishingGameState.bitingFishId = null;
         fishingGameState.hasHookedFish = false;
-        fishingGameState.biteTimer = 0;
+        fishingGameState.biteTimer = 0; // This was reaction time, reset it.
+
+        // Clear all fishing related timers
+        if (fishingGameState.biteTimeoutId) { // Timer for bite to occur
+            clearTimeout(fishingGameState.biteTimeoutId);
+            fishingGameState.biteTimeoutId = null;
+        }
+        if (fishingGameState.biteReactionTimeoutId) { // Timer for player to react
+            clearTimeout(fishingGameState.biteReactionTimeoutId);
+            fishingGameState.biteReactionTimeoutId = null;
+        }
 
         if (typeof window.fishingUi !== 'undefined') {
             if (window.fishingUi.hideBobber) window.fishingUi.hideBobber();
             if (window.fishingUi.hideRodLine) window.fishingUi.hideRodLine();
-            if (window.fishingUi.resetBobberAnimation) window.fishingUi.resetBobberAnimation();
+            if (window.fishingUi.resetBobberAnimation) window.fishingUi.resetBobberAnimation(); // Hides "Bite!"
             if (window.fishingUi.setCatState) window.fishingUi.setCatState('idle');
+            if (window.fishingUi.updateStatusText) window.fishingUi.updateStatusText(); // Reset to default like "Press Space to Cast"
+            // Hide any "Fish escaped!" or caught item messages - this might need specific UI calls
+            // e.g., fishingUi.hideTemporaryResultMessage(), fishingUi.hideCaughtItemDisplay()
+            if (window.fishingUi.hideCatchPreview) window.fishingUi.hideCatchPreview(); // Assuming this hides any displayed item
         } else {
             console.warn("window.fishingUi not available for resetFishingState visuals."); // Keep warn
-        }
-         // Replace fishingUi.updateStatusText if that is to be self-contained
-        if (typeof fishingUi !== 'undefined' && typeof fishingUi.updateStatusText === 'function') fishingUi.updateStatusText();
-
-        // Clear any old system bite timeout if it exists
-        if (fishingGameState.biteTimeoutId) {
-            clearTimeout(fishingGameState.biteTimeoutId);
-            fishingGameState.biteTimeoutId = null;
         }
     },
 
