@@ -64,7 +64,10 @@ window.fishingBasketUi = {
             return;
         }
 
-        this.basketIconElement.addEventListener('click', () => this.openBasketModal());
+        this.basketIconElement.addEventListener('click', () => {
+            console.log('Basket icon clicked! Icon element:', this.basketIconElement, '`this` context:', this);
+            this.openBasketModal();
+        });
         this.closeButtonElement.addEventListener('click', () => this.closeBasketModal());
         this.modalElement.addEventListener('click', (event) => {
             if (event.target === this.modalElement) {
@@ -152,6 +155,7 @@ window.fishingBasketUi = {
     },
 
     openBasketModal: function() {
+        console.log('openBasketModal called. Modal element:', this.modalElement, '`this` context:', this);
         if (!this.modalElement) return;
         this.modalElement.style.display = 'flex';
         this.updateBasketFilters();
