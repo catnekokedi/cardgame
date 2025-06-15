@@ -101,17 +101,10 @@ const fishingUi = {
         fishingGameState.ui.shopModal = document.getElementById('fishing-shop-modal');
         fishingGameState.ui.cardDetailFishingBasketModal = document.getElementById('card-detail-fishingbasket-modal');
 
-        if (fishingGameState.ui.basketModal) {
-            fishingGameState.ui.basketGrid = fishingGameState.ui.basketModal.querySelector('#fishing-basket-grid');
-            fishingGameState.ui.basketRarityFilter = fishingGameState.ui.basketModal.querySelector('#fishing-basket-rarity-filter');
-            fishingGameState.ui.basketSortFilter = fishingGameState.ui.basketModal.querySelector('#fishing-basket-sort-filter');
-            fishingGameState.ui.basketSearchInput = fishingGameState.ui.basketModal.querySelector('#fishing-basket-search');
-            fishingGameState.ui.basketCloseBtn = fishingGameState.ui.basketModal.querySelector('#fishing-basket-close-btn');
-            fishingGameState.ui.basketAddAllBtn = fishingGameState.ui.basketModal.querySelector('#fishing-basket-add-all-btn');
-            fishingGameState.ui.basketSellAllBtn = fishingGameState.ui.basketModal.querySelector('#fishing-basket-sell-all-btn');
-            fishingGameState.ui.basketTabs = fishingGameState.ui.basketModal.querySelectorAll('.fishing-basket-tabs button');
-            fishingGameState.ui.basketLockModeCheckbox = fishingGameState.ui.basketModal.querySelector('#fishing-basket-lock-mode');
-        }
+        // The following block that populates fishingGameState.ui with basket internal elements is removed.
+        // fishing-basket-ui.js will handle its own internal elements.
+        // The main fishingGameState.ui.basketModal reference (to the modal shell) is kept if needed by fishing-ui.js
+        // for basic visibility toggling, but fishing-basket-ui.js will likely handle this too.
 
         if (fishingGameState.ui.rodUpgradeModal) {
             fishingGameState.ui.rodUpgradeContent = fishingGameState.ui.rodUpgradeModal.querySelector('#fishing-rod-upgrade-content');
@@ -292,6 +285,7 @@ const fishingUi = {
 
     getModalHTML() {
         return `
+            <!--
             <div id="fishing-basket-modal" class="fishing-game-modal-overlay" style="display:none;">
                 <div class="fishing-game-modal-content fishing-basket-content">
                     <div class="fishing-game-modal-header">
@@ -326,6 +320,7 @@ const fishingUi = {
                     </div>
                 </div>
             </div>
+            -->
             <div id="fishing-rod-upgrade-modal" class="fishing-game-modal-overlay" style="display:none;">
                 <div class="fishing-game-modal-content fishing-upgrade-content">
                      <div class="fishing-game-modal-header">
@@ -458,41 +453,11 @@ const fishingUi = {
             });
         }
 
-        if (ui.basketIcon) ui.basketIcon.addEventListener('click', () => { toggleFishingBasketModal(true); playSound('sfx_modal_open.mp3'); });
-        if (ui.basketCloseBtn) ui.basketCloseBtn.addEventListener('click', () => { toggleFishingBasketModal(false); playSound('sfx_modal_close.mp3'); });
-        if (ui.basketModal) ui.basketModal.addEventListener('click', (event) => { if (event.target === ui.basketModal) toggleFishingBasketModal(false); });
-        
-        if(ui.basketAddAllBtn) ui.basketAddAllBtn.addEventListener('click', () => { 
-            if (typeof collectAllFishingBasketItems === 'function') collectAllFishingBasketItems(); else console.error("collectAllFishingBasketItems is not defined");
-            playSound('sfx_button_click.mp3'); 
-        });
-        if(ui.basketSellAllBtn) ui.basketSellAllBtn.addEventListener('click', () => { 
-            if (typeof sellAllUnlockedFishingBasketItems === 'function') sellAllUnlockedFishingBasketItems(); else console.error("sellAllUnlockedFishingBasketItems is not defined");
-            playSound('sfx_button_click.mp3'); 
-        });  
-
-        if (ui.basketRarityFilter) ui.basketRarityFilter.addEventListener('change', renderFishingBasket);
-        if (ui.basketSortFilter) ui.basketSortFilter.addEventListener('change', renderFishingBasket);
-        if (ui.basketSearchInput) ui.basketSearchInput.addEventListener('input', renderFishingBasket);
-        if (ui.basketTabs) {
-            ui.basketTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    ui.basketTabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    fishingGameState.selectedItemInBasket = null; 
-                    renderFishingBasket();
-                    playSound('sfx_button_click_subtle.mp3');
-                });
-            });
-        }
-        if (ui.basketLockModeCheckbox) { 
-            ui.basketLockModeCheckbox.addEventListener('change', () => {
-                fishingGameState.isBasketLockModeActive = ui.basketLockModeCheckbox.checked;
-                playSound('sfx_button_click_subtle.mp3');
-                renderFishingBasket(); 
-            });
-        }
-
+        // Event listeners for the fishing basket modal and its internal components
+        // have been removed from here. They are now handled by fishing-basket-ui.js.
+        // Note: ui.basketIcon and ui.basketModal might still be referenced if
+        // fishing-ui.js has other reasons to interact with the modal shell,
+        // but their click listeners for opening/closing are now managed by fishing-basket-ui.js.
 
         if (ui.rodUpgradeIcon) ui.rodUpgradeIcon.addEventListener('click', () => { toggleFishingRodUpgradeModal(true); playSound('sfx_modal_open.mp3'); });
         if (ui.rodUpgradeCloseBtn) ui.rodUpgradeCloseBtn.addEventListener('click', () => { toggleFishingRodUpgradeModal(false); playSound('sfx_modal_close.mp3'); });
