@@ -691,3 +691,122 @@
     margin-top: 10px; /* Ensure there's a margin if not overridden by inline */
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* Add a little shadow for better readability */
 }
+
+
+/* === Styles for Centered Caught Item Display === */
+.fishing-centered-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2050; /* Higher than other modals */
+    opacity: 0;
+    animation: fadeInOverlay 0.3s ease-out forwards;
+}
+
+@keyframes fadeInOverlay {
+    to { opacity: 1; }
+}
+
+.fishing-centered-content {
+    background-color: #f0f4f8;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    text-align: center;
+    animation: scaleInContent 0.3s ease-out forwards;
+    transform: scale(0.8);
+    max-width: 250px;
+}
+
+@keyframes scaleInContent {
+    to { transform: scale(1); }
+}
+
+.fishing-centered-content img {
+    display: block;
+    margin: 0 auto 15px auto; /* Centered image */
+    max-width: 180px; /* Increased max-width */
+    max-height: 250px; /* Increased max-height */
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.fishing-centered-content p {
+    margin: 5px 0;
+    font-family: var(--button-font);
+    color: #333;
+}
+
+.fishing-centered-content .item-name {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.fishing-centered-content .item-rarity {
+    font-size: 0.9em;
+    font-style: italic;
+}
+
+/* Rarity specific colors - example, actual colors should come from a central theme or variables */
+.rarity-base { color: #607d8b; } /* Slate Grey */
+.rarity-common { color: #607d8b; } /* Slate Grey */
+.rarity-rare { color: #2196f3; } /* Blue */
+.rarity-foil { color: #9c27b0; } /* Purple */
+.rarity-holo { color: #ff9800; } /* Orange */
+.rarity-star { color: #ffeb3b; } /* Yellow */
+.rarity-rainy { color: #00bcd4; } /* Cyan */
+.rarity-gold { color: #ffd700; } /* Gold */
+.rarity-shiny { color: #e91e63; } /* Pink */
+
+
+/* === Styles for "Bite!" Message on Bobber === */
+#fishing-bobber.bobber-bite .exclamation-mark {
+    font-size: 1.1em; /* Slightly larger */
+    color: yellow;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px black, 0 0 5px yellow; /* More prominent shadow */
+    animation: pulseBiteText 0.5s infinite alternate;
+    white-space: nowrap; /* Prevent "Bite!" from wrapping */
+}
+
+@keyframes pulseBiteText {
+    0% { transform: scale(1); opacity: 0.9; }
+    100% { transform: scale(1.15); opacity: 1; }
+}
+
+/* Existing .bobber-bite animation for movement is fine */
+/* Existing #fishing-result-message styling seems okay for "Fish Escaped!" */
+
+
+/* === Cat Animation State Placeholders === */
+/* These classes are added to #fishing-cat-svg-container */
+/* Actual complex animations might need JS interaction with SVG parts or more detailed SVG CSS */
+
+.fishing-cat--alert {
+    /* Example: subtle visual cue for alert state */
+    /* outline: 2px solid red; */ /* For testing */
+    animation: catAlertAnimation 0.3s ease-in-out;
+}
+@keyframes catAlertAnimation {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}
+
+
+.fishing-cat--waiting-bite {
+    /* Example: can be same as idle, or a slightly different, more focused pose */
+    /* outline: 2px solid blue; */ /* For testing */
+    /* Could have a very subtle bobbing animation or ear twitch if desired */
+}
+
+/* Ensure cat state animations on #fishing-rod-group still work as expected */
+/* The new states .fishing-cat--alert and .fishing-cat--waiting-bite are on the container, */
+/* while .cat-rod-idle, .cat-rod-casting, .cat-rod-reeling are on the #fishing-rod-group inside the SVG. */
+/* This should be fine, allowing container-level changes and inner group animations simultaneously. */

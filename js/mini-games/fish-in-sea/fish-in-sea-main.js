@@ -181,10 +181,8 @@ function updateFishingGameLoop() {
             // This is when the bite timer should be active and counting down inside checkForBite
             // console.log("[MainLoop] Fish is hooked. checkForBite will manage biteTimer.");
         // }
-        // Always call checkForBite if mechanics are available, it has internal checks.
-        if (typeof window.fishingMechanics.checkForBite === 'function') {
-            window.fishingMechanics.checkForBite(deltaTimeInSeconds);
-        }
+        // The checkForBite call has been removed as bite detection is now timer-based
+        // in fishingMechanics.castRodAndWaitForBite and fishingMechanics.triggerBiteDisplay.
     }
 
     if (typeof updateTreeFruitGrowth === 'function') updateTreeFruitGrowth(deltaTimeMs);
@@ -229,15 +227,21 @@ function handleFishingKeyPress(event) {
 
     if (event.code === 'Space') {
         event.preventDefault();
-        if (fishingGameState.isReeling) return;
+        if (fishingGameState.isReeling) return; // Existing condition: if reeling, do nothing.
 
+        // New logic:
         if (fishingGameState.hasHookedFish) {
-            if (typeof window.fishingMechanics !== 'undefined' && typeof window.fishingMechanics.reelRod === 'function') window.fishingMechanics.reelRod();
-        } else if (fishingGameState.isRodCast) {
-            if (typeof window.fishingMechanics !== 'undefined' && typeof window.fishingMechanics.reelRod === 'function') window.fishingMechanics.reelRod();
-        } else {
-            if (typeof window.fishingMechanics !== 'undefined' && typeof window.fishingMechanics.castRod === 'function') window.fishingMechanics.castRod();
+            // If a fish is hooked (i.e., "Bite!" is displayed), reel it in.
+            if (typeof window.fishingMechanics !== 'undefined' && typeof window.fishingMechanics.reelRod === 'function') {
+                window.fishingMechanics.reelRod();
+            }
+        } else if (!fishingGameState.isRodCast) {
+            // If the rod is not cast and no fish is hooked, cast the rod and wait for a bite.
+            if (typeof window.fishingMechanics !== 'undefined' && typeof window.fishingMechanics.castRodAndWaitForBite === 'function') {
+                window.fishingMechanics.castRodAndWaitForBite();
+            }
         }
+        // If the rod is cast but no fish is hooked yet (fishingGameState.isRodCast && !fishingGameState.hasHookedFish), do nothing.
     }
 }
 

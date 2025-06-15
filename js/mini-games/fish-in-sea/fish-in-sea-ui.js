@@ -432,12 +432,16 @@ const fishingUi = {
         const catContainer = fishingGameState.ui.catContainer;
         if (!catContainer || !fishingGameState.ui.catSvg) return;
 
-        catContainer.classList.remove('fishing-cat--idle', 'fishing-cat--casting', 'fishing-cat--reeling');
+        catContainer.classList.remove('fishing-cat--idle', 'fishing-cat--casting', 'fishing-cat--reeling', 'fishing-cat--alert', 'fishing-cat--waiting-bite');
         if (state === 'casting') {
             catContainer.classList.add('fishing-cat--casting');
         } else if (state === 'reeling') {
             catContainer.classList.add('fishing-cat--reeling');
-        } else {
+        } else if (state === 'alert') { // For when a bite occurs
+            catContainer.classList.add('fishing-cat--alert');
+        } else if (state === 'waiting_bite') { // Rod cast, waiting for bite
+            catContainer.classList.add('fishing-cat--waiting-bite');
+        } else { // Default to idle
             catContainer.classList.add('fishing-cat--idle');
         }
     },
@@ -567,16 +571,78 @@ const fishingUi = {
     showExclamationOnBobber(show) { if (fishingGameState.ui.exclamation) fishingGameState.ui.exclamation.style.display = show ? 'block' : 'none'; },
     
     animateBobberBite() {
-        if (fishingGameState.ui.bobber) {
+        if (fishingGameState.ui.bobber && fishingGameState.ui.exclamation) {
             fishingGameState.ui.bobber.classList.add('bobber-bite');
+            fishingGameState.ui.exclamation.textContent = 'Bite!'; // Change text to Bite!
+            fishingGameState.ui.exclamation.style.display = 'block'; // Make sure it's visible
+            // CSS for .bobber-bite should handle the animation (e.g., shaking)
+            // CSS for .exclamation-mark within .bobber-bite can style the "Bite!" text
         }
     },
     resetBobberAnimation() {
-        if (fishingGameState.ui.bobber) {
+        if (fishingGameState.ui.bobber && fishingGameState.ui.exclamation) {
             fishingGameState.ui.bobber.classList.remove('bobber-bite');
-             fishingGameState.ui.bobber.style.transform = 'translateY(0)'; 
+            fishingGameState.ui.exclamation.style.display = 'none'; // Hide exclamation/bite text
+            fishingGameState.ui.exclamation.textContent = '❗'; // Reset text if needed
+            fishingGameState.ui.bobber.style.transform = 'translateY(0)';
         }
     },
+    // displayCenteredCaughtItem: New function to show caught item in the center.
+    // This replaces/augments showCatchPreview for the main catch event.
+    displayCenteredCaughtItem(item) {
+        let existingOverlay = document.getElementById('fishing-centered-catch-display');
+        if (existingOverlay) {
+            existingOverlay.remove(); // Remove if one is already there
+        }
+
+        const overlay = document.createElement('div');
+        overlay.id = 'fishing-centered-catch-display';
+        overlay.className = 'fishing-centered-overlay'; // For CSS styling
+
+        const content = document.createElement('div');
+        content.className = 'fishing-centered-content';
+
+        const imgEl = document.createElement('img');
+        const nameEl = document.createElement('p');
+        const rarityEl = document.createElement('p');
+
+        let itemName = "Unknown Item";
+        let itemRarity = "";
+        let itemImagePath = 'gui/items/placeholder_icon.png';
+
+        if (item && item.details) {
+            itemName = item.details.name || (item.type === 'card' ? `${item.details.set} Card #${item.details.cardId}` : "Item");
+            if (item.details.rarityKey) {
+                const rarityInfo = typeof getRarityTierInfo === 'function' ? getRarityTierInfo(item.details.rarityKey) : null;
+                itemRarity = rarityInfo ? rarityInfo.name : item.details.rarityKey;
+            }
+
+            if (item.type === 'card' || item.type === 'collectible_card' || item.type === 'fruit_card' || item.type === 'mineral_card' || item.type === 'fish_card') {
+                itemImagePath = item.details.imagePath || (typeof getCardImagePath === 'function' ? getCardImagePath(item.details.set, item.details.cardId) : 'gui/items/placeholder_icon.png');
+            } else if (item.type === 'ticket') {
+                itemImagePath = item.details.imagePath || (typeof getSummonTicketImagePath === 'function' ? getSummonTicketImagePath(item.details.rarityKey) : `gui/summon_tickets/ticket_${item.details.rarityKey}.png`);
+            }
+        }
+
+        imgEl.src = itemImagePath;
+        nameEl.textContent = itemName;
+        rarityEl.textContent = itemRarity;
+        rarityEl.className = `rarity-${item.details.rarityKey || 'common'}`; // For CSS styling based on rarity
+
+        content.appendChild(imgEl);
+        content.appendChild(nameEl);
+        if (itemRarity) {
+            content.appendChild(rarityEl);
+        }
+
+        overlay.appendChild(content);
+        document.body.appendChild(overlay);
+
+        setTimeout(() => {
+            overlay.remove();
+        }, 2500); // Display for 2.5 seconds
+    },
+
     showTemporaryResultMessage(message) { 
         const msgEl = fishingGameState.ui.resultMsg;
         if (msgEl) {

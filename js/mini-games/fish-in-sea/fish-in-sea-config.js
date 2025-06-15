@@ -1,10 +1,31 @@
 // js/mini-games/fishing-game/fishing-config.js
 
 const FISHING_CONFIG = {
-    BITE_WINDOW_MS: 4000,
-    BASE_TICKET_CHANCE: 0.10,
+    // Timers & Durations
+    BASE_BITE_TIME_MS: 5000,          // Base time in ms to wait for a bite, before rod/bait modifiers
+    BITE_TIME_RANDOM_FACTOR: 0.2,     // e.g., 0.2 means +/- 20% randomness on bite time.
+    BITE_TIMER_DURATION_MS: 3000,     // Player's reaction time window in ms to click after "Bite!"
     REEL_TIME_BASE_MS: 1200,
     REEL_TIME_RANDOM_MS: 800,
+
+    // Chances & Probabilities
+    BASE_TICKET_CHANCE: 0.10,         // Base chance of hooking a summon ticket instead of a card
+
+    RARITY_DISTRIBUTION: [            // For cards caught via fishing
+        { key: 'base', packProb: 0.60 }, // 60% chance for base
+        { key: 'rare', packProb: 0.25 }, // 25% chance for rare
+        { key: 'foil', packProb: 0.10 }, // 10% chance for foil
+        { key: 'holo', packProb: 0.05 }  // 5% chance for holo
+        // Ensure these sum to 1.0 if not dynamically normalized in code
+    ],
+
+    SUMMON_TICKET_RARITY_DISTRIBUTION: [ // Probabilities for ticket types IF a ticket is caught
+        { key: 'rare', prob: 0.6 },   // 60% for a rare ticket (e.g. 'rare_summonticket')
+        { key: 'foil', prob: 0.3 },   // 30% for a foil ticket
+        { key: 'holo', prob: 0.1 }    // 10% for a holo ticket
+        // Ensure these sum to 1.0. Used by determineCatch in mechanics.
+        // Note: mechanics 'addSummonTickets' function might expect keys like 'rare', 'foil', 'holo'.
+    ],
     SELL_ALL_VALUE_MULTIPLIER: 0.15,
 
     ROD_TYPES: [
@@ -16,12 +37,14 @@ const FISHING_CONFIG = {
     ],
 
     BAIT_TYPES: [
-        { id: "none", name: "None", cost: 0, uses: Infinity, rarityBoost: 0, ticketBoost: 0, description: "Just your charming personality." },
-        { id: "simple_lure", name: "Simple Lure", cost: 500, uses: 10, rarityBoost: 0.01, ticketBoost: 0.005, description: "A basic lure. Might attract slightly better fish." },
-        { id: "quality_bait", name: "Quality Bait", cost: 2000, uses: 8, rarityBoost: 0.03, ticketBoost: 0.01, description: "Good quality bait. Increases chances of rarer catches." },
-        { id: "shiny_bits", name: "Shiny Bits", cost: 10000, uses: 5, rarityBoost: 0.05, ticketBoost: 0.02, description: "Sparkly! Attracts rarer fish and more tickets." },
-        { id: "ticket_magnet", name: "Ticket Magnet", cost: 15000, uses: 5, rarityBoost: 0.01, ticketBoost: 0.15, description: "Strongly attracts summon tickets." }
+        { id: "none", name: "None", cost: 0, uses: Infinity, rarityBoost: 0, ticketBoost: 0, successBoost: 0, biteBoost: 1.0, description: "Just your charming personality." },
+        { id: "simple_lure", name: "Simple Lure", cost: 500, uses: 10, rarityBoost: 0.01, ticketBoost: 0.005, successBoost: 0.02, biteBoost: 1.05, description: "A basic lure. Might attract slightly better fish." },
+        { id: "quality_bait", name: "Quality Bait", cost: 2000, uses: 8, rarityBoost: 0.03, ticketBoost: 0.01, successBoost: 0.05, biteBoost: 1.1, description: "Good quality bait. Increases chances of rarer catches." },
+        { id: "shiny_bits", name: "Shiny Bits", cost: 10000, uses: 5, rarityBoost: 0.05, ticketBoost: 0.02, successBoost: 0.07, biteBoost: 1.15, description: "Sparkly! Attracts rarer fish and more tickets." },
+        { id: "ticket_magnet", name: "Ticket Magnet", cost: 15000, uses: 5, rarityBoost: 0.01, ticketBoost: 0.15, successBoost: 0.01, biteBoost: 1.0, description: "Strongly attracts summon tickets." }
     ],
+
+    SELL_ALL_VALUE_MULTIPLIER: 0.15, // For selling items from basket
 
     CAT_SPRITES: { // Kept for reference, but cat is now SVG
         idle: "gui/fishing_game/cat_fishing_idle.png",
