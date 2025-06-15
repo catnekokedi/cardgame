@@ -137,7 +137,7 @@ window.fishingRocksUi = {
         }
         this.rocksContainerElement.appendChild(rockDiv);
     });
-}
+},
 
     /**
      * Updates the main game cursor and pickaxe icon style.
