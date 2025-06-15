@@ -182,19 +182,3 @@
 .fishing-basket-bulk-actions .game-button {
     padding: 8px 15px;
 }
-
-/* DIAGNOSTIC CSS FOR MODAL CONTENT VIA JS CLASS - REMOVE LATER */
-#fishing-basket-modal.force-visible-test-xyz123 .custom-modal-content.fishing-basket-modal-content {
-    background-color: fuchsia !important; /* FUCHSIA content background */
-    border: 5px solid yellow !important; /* YELLOW dashed border for content */
-    color: black !important; /* Ensure text content is visible if any */
-    min-height: 150px !important; /* Ensure it has some size */
-    min-width: 150px !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    padding: 15px !important;
-    z-index: 99991 !important; /* Ensure content is above its overlay (JS sets overlay to 99990) */
-    position: relative !important; /* Ensure it's not positioned off-screen by other relative/absolute rules */
-    margin: auto !important; /* Try to center it within the flex container (the overlay) */
-    display: block !important; /* Or flex, depending on what fishing-basket-modal-content usually is */
-}

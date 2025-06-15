@@ -155,40 +155,18 @@ window.fishingBasketUi = {
     },
 
     openBasketModal: function() {
-        console.log('openBasketModal called. Modal element:', this.modalElement, '`this` context:', this);
-        if (this.modalElement) { // Ensure modalElement exists before trying to style it
-            console.log('MODAL DIAGNOSTIC: Initial style attribute of modal:', this.modalElement.getAttribute('style'));
-            this.modalElement.removeAttribute('style'); // Remove existing inline styles first
-
-            // Add a unique class for CSS to potentially target, and for easier identification in dev tools
-            this.modalElement.classList.remove('force-visible-test-old'); // Clean up old test class if any
-            this.modalElement.classList.add('force-visible-test-xyz123');
-
-            // Force styles via JavaScript's setProperty with !important
-            this.modalElement.style.setProperty('display', 'flex', 'important');
-            this.modalElement.style.setProperty('position', 'fixed', 'important');
-            this.modalElement.style.setProperty('top', '0px', 'important');
-            this.modalElement.style.setProperty('left', '0px', 'important');
-            this.modalElement.style.setProperty('width', '100vw', 'important'); // Use viewport width
-            this.modalElement.style.setProperty('height', '100vh', 'important'); // Use viewport height
-            this.modalElement.style.setProperty('background-color', 'rgba(0, 255, 0, 0.7)', 'important'); // LIME GREEN overlay
-            this.modalElement.style.setProperty('z-index', '99990', 'important'); // Very high z-index
-            this.modalElement.style.setProperty('visibility', 'visible', 'important');
-            this.modalElement.style.setProperty('opacity', '1', 'important');
-            this.modalElement.style.setProperty('border', '5px solid red', 'important'); // RED BORDER on overlay
-
-            console.log('MODAL DIAGNOSTIC: New style attribute of modal after JS manipulation:', this.modalElement.getAttribute('style'));
-            console.log('MODAL DIAGNOSTIC: Computed styles after JS manipulation (display, visibility, opacity, zIndex, backgroundColor):',
-                window.getComputedStyle(this.modalElement).display,
-                window.getComputedStyle(this.modalElement).visibility,
-                window.getComputedStyle(this.modalElement).opacity,
-                window.getComputedStyle(this.modalElement).zIndex,
-                window.getComputedStyle(this.modalElement).backgroundColor
-            );
+        console.log('openBasketModal called. Modal element:', this.modalElement, '`this` context:', this); // This diagnostic log can remain
+        if (this.modalElement) {
+            this.modalElement.style.display = 'flex';
+            // Also remove the test class if it was added
+            this.modalElement.classList.remove('force-visible-test-xyz123');
+            // Ensure any specific inline styles applied for diagnostics are cleared,
+            // relying on CSS classes for styling.
+             this.modalElement.removeAttribute('style'); // Clear all inline styles
+             this.modalElement.style.display = 'flex'; // Then re-apply the one needed
         } else {
-            console.error('MODAL DIAGNOSTIC: this.modalElement is null in openBasketModal. Cannot apply styles.');
+            console.error('MODAL DIAGNOSTIC: this.modalElement is null in openBasketModal. Cannot set display.');
         }
-        // The original line this.modalElement.style.display = 'flex'; is now handled by setProperty above.
         this.updateBasketFilters();
         if(typeof playSound === 'function') playSound('sfx_modal_open.mp3');
     },
