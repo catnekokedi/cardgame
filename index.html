@@ -502,8 +502,27 @@
                         <span class="custom-modal-close" id="close-fishing-basket-modal">&times;</span>
                     </div>
                     <div class="fishing-basket-controls">
-                        <label for="fishing-basket-rarity-filter">Filter by Rarity:</label>
-                        <select id="fishing-basket-rarity-filter">
+                        <div id="fishing-basket-type-filter-container" class="custom-select-container">
+                            <button class="custom-select-display" id="fishing-basket-type-filter-display" data-value="all_caught">All Types</button>
+                            <div class="custom-select-panel" id="fishing-basket-type-filter-panel" style="display: none;">
+                                <input type="text" class="custom-select-search" id="fishing-basket-type-filter-search" placeholder="Search types...">
+                                <ul class="custom-select-options" id="fishing-basket-type-filter-options">
+                                    <!-- Options will be populated by JS -->
+                                </ul>
+                            </div>
+                        </div>
+                        <select id="fishing-basket-rarity-filter-new" class="fishing-basket-filter">
+                            <option value="all">All Rarities</option>
+                            <!-- Options will be populated by JS -->
+                        </select>
+                        <select id="fishing-basket-sort-filter" class="fishing-basket-filter">
+                            <option value="default">Default</option>
+                            <option value="name_asc">Name (A-Z)</option>
+                            <option value="name_desc">Name (Z-A)</option>
+                            <option value="quantity_asc">Quantity (Low-High)</option>
+                            <option value="quantity_desc">Quantity (High-Low)</option>
+                            <option value="value_asc">Value (Low-High)</option>
+                            <option value="value_desc">Value (High-Low)</option>
                         </select>
                     </div>
                     <div id="basket-cards-container" class="fishing-basket-grid-container">
@@ -530,8 +549,7 @@
                     <div class="detail-info-panel-frameless" id="fishing-basket-detail-info-panel">
                         <p id="detail-info-fishingbasket"></p>
                         <div id="detail-owned-versions-fishingbasket" style="display:none;"></div>
-                        <button class="game-button fishing-basket-detail-collect-button">Collect This Item</button>
-                        <button class="game-button game-button-danger fishing-basket-detail-sell-button">Sell This Item</button>
+                        <!-- Buttons will be dynamically added by cardDetailModal.js -->
                     </div>
                 </div>
             </div>

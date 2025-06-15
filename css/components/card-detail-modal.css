@@ -171,3 +171,24 @@
         padding: 12px; 
     }
 }
+
+/* Styles for dynamically added action buttons in fishing basket modal */
+.fishing-basket-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Space between buttons */
+    margin-top: 15px; /* Space above the button group */
+    padding-top: 10px; /* Optional: add some space if there's no border from previous elements */
+    border-top: 1px solid var(--material-border-light); /* Optional: visual separator */
+}
+
+.fishing-basket-modal-actions .game-button.fishing-basket-action-button {
+    width: 100%; /* Make buttons full width of the panel */
+    box-sizing: border-box; /* Ensure padding/border doesn't make it overflow */
+}
+
+/* Ensure quantity and lock status paragraphs have consistent spacing */
+.detail-info-panel-frameless p.basket-quantity-display,
+.detail-info-panel-frameless p.basket-lock-status-display {
+    margin-bottom: 8px; /* Standardize margin for these dynamic paragraphs */
+}

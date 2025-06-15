@@ -290,45 +290,80 @@ function showCardDetail(setIdentifier, cardId, rarityKey, source, instanceId = n
         } else {
             console.error("Exhibit button (ID: exhibit-card-collection-button) not found within collection modal.");
         }
-    } else if (source === 'fishingBasket' && packCardDetails && packCardDetails.actions) {
-        const infoPanel = document.getElementById(`detail-info-panel-${source}`); // e.g., detail-info-panel-fishingBasket
+    } else if (source === 'fishingBasket' && packCardDetails && packCardDetails.actions) { // Note: The HTML uses 'fishingbasket' (lowercase) for IDs
+        const infoPanel = document.getElementById('fishing-basket-detail-info-panel');
         if (infoPanel) {
             // Clear previous custom buttons if any
-            const existingButtons = infoPanel.querySelectorAll('.fishing-basket-action-button');
-            existingButtons.forEach(btn => btn.remove());
+            // Check if actionsContainer already exists, if so, clear it. Otherwise, clear specific buttons.
+            let actionsContainer = infoPanel.querySelector('.fishing-basket-modal-actions');
+            if (actionsContainer) {
+                actionsContainer.innerHTML = ''; // Clear existing buttons if container is reused
+            } else {
+                // Fallback: remove buttons if container class was different or not used previously
+                const existingButtons = infoPanel.querySelectorAll('.fishing-basket-action-button');
+                existingButtons.forEach(btn => btn.remove());
+                // Also remove old container if it exists by its old class name
+                const oldContainer = infoPanel.querySelector('.fishing-basket-actions-container');
+                if (oldContainer) oldContainer.remove();
+            }
+
 
             // Add quantity and lock status to info if provided
+            // Ensure these are added before the actions container
+            // To avoid duplication, select existing or create new
+            let quantityP = infoPanel.querySelector('.basket-quantity-display');
             if (packCardDetails.currentQuantity !== undefined) {
-                const quantityP = document.createElement('p');
+                if (!quantityP) {
+                    quantityP = document.createElement('p');
+                    quantityP.className = 'basket-quantity-display'; // Add a class for potential styling/selection
+                    infoPanel.appendChild(quantityP); // Append early to maintain order
+                }
                 quantityP.innerHTML = `<strong>In Basket:</strong> ${packCardDetails.currentQuantity}`;
-                infoPanel.appendChild(quantityP);
+            } else if (quantityP) {
+                quantityP.remove(); // Remove if no quantity info
             }
+
+            let lockedP = infoPanel.querySelector('.basket-lock-status-display');
             if (packCardDetails.isLocked !== undefined) {
-                const lockedP = document.createElement('p');
+                if (!lockedP) {
+                    lockedP = document.createElement('p');
+                    lockedP.className = 'basket-lock-status-display'; // Add a class
+                    infoPanel.appendChild(lockedP); // Append early
+                }
                 lockedP.innerHTML = `<strong>Status:</strong> ${packCardDetails.isLocked ? 'Locked' : 'Unlocked'}`;
-                infoPanel.appendChild(lockedP);
+            } else if (lockedP) {
+                lockedP.remove(); // Remove if no lock info
             }
 
-
-            const actionsContainer = document.createElement('div');
-            actionsContainer.className = 'fishing-basket-actions-container';
+            // Create new actions container if it wasn't found and cleared
+            if (!actionsContainer) {
+                 actionsContainer = document.createElement('div');
+            }
+            actionsContainer.className = 'fishing-basket-modal-actions'; // Use new class name
 
             packCardDetails.actions.forEach(action => {
                 const button = document.createElement('button');
                 button.textContent = action.label;
-                button.className = 'game-button fishing-basket-action-button'; // Add a common class for styling
+                button.className = 'game-button fishing-basket-action-button';
                 if (action.disabled) {
                     button.disabled = true;
+                    button.title = action.title || "This action is currently unavailable."; // Add a title for disabled buttons
+                }
+                // Add danger class for sell buttons if desired, e.g. if (action.label.toLowerCase().includes('sell')) button.classList.add('game-button-danger');
+                if (action.style === 'danger') { // Example: pass style hint in action object
+                    button.classList.add('game-button-danger');
                 }
                 button.onclick = () => {
                     action.callback();
-                    // No automatic closeDetail(source) here, callback should handle it if needed
                 };
                 actionsContainer.appendChild(button);
             });
-            infoPanel.appendChild(actionsContainer);
+            // Append actionsContainer only if it's newly created or needs to be re-appended
+            if (!infoPanel.contains(actionsContainer)) {
+                infoPanel.appendChild(actionsContainer);
+            }
         } else {
-            console.error(`Info panel for fishingBasket (detail-info-panel-${source}) not found.`);
+            console.error(`Info panel for fishingBasket (ID: fishing-basket-detail-info-panel) not found.`);
         }
     }
 
@@ -337,9 +372,30 @@ function showCardDetail(setIdentifier, cardId, rarityKey, source, instanceId = n
 }
 
 function closeDetail(source) {
-    const modal = document.getElementById(`card-detail-${source}-modal`);
+    // For fishing basket, the modal ID is 'card-detail-fishingbasket-modal' (lowercase b)
+    const actualSourceId = source === 'fishingBasket' ? 'fishingbasket' : source;
+    const modal = document.getElementById(`card-detail-${actualSourceId}-modal`);
     if (modal) {
         modal.style.display = 'none';
         if (typeof playSound === 'function') playSound('sfx_modal_close.mp3');
+
+        // Clear dynamic content from fishing basket modal's info panel when closing
+        if (actualSourceId === 'fishingbasket') {
+            const infoPanel = document.getElementById('fishing-basket-detail-info-panel');
+            if (infoPanel) {
+                const actionsContainer = infoPanel.querySelector('.fishing-basket-modal-actions');
+                if (actionsContainer) actionsContainer.innerHTML = ''; // Clear buttons
+
+                const quantityP = infoPanel.querySelector('.basket-quantity-display');
+                if (quantityP) quantityP.innerHTML = ''; // Clear quantity
+
+                const lockedP = infoPanel.querySelector('.basket-lock-status-display');
+                if (lockedP) lockedP.innerHTML = ''; // Clear lock status
+
+                // Reset the main <p id="detail-info-fishingbasket"></p> to empty or a placeholder
+                const mainInfoP = document.getElementById('detail-info-fishingbasket');
+                if(mainInfoP) mainInfoP.innerHTML = '';
+            }
+        }
     }
 }

@@ -254,9 +254,39 @@ window.fishingBasket = { // Ensure it's explicitly on window
                 // console.log(`[FishingBasket] Filtering by rarity: ${filters.rarity}`); // REMOVE - Aggressive cleanup
                 displayData = displayData.filter(item => item && item.cardData && (item.cardData.rarity === filters.rarity || item.cardData.rarityKey === filters.rarity));
             }
-            // Add sorting if needed
+
+            // Sort the data
+            if (filters.sort) {
+                switch (filters.sort) {
+                    case 'name_asc':
+                        displayData.sort((a, b) => (a.cardData.name || '').localeCompare(b.cardData.name || ''));
+                        break;
+                    case 'name_desc':
+                        displayData.sort((a, b) => (b.cardData.name || '').localeCompare(a.cardData.name || ''));
+                        break;
+                    case 'quantity_asc':
+                        displayData.sort((a, b) => a.quantity - b.quantity);
+                        break;
+                    case 'quantity_desc':
+                        displayData.sort((a, b) => b.quantity - a.quantity);
+                        break;
+                    case 'value_asc':
+                        displayData.sort((a, b) => (a.cardData.price || 0) - (b.cardData.price || 0));
+                        break;
+                    case 'value_desc':
+                        displayData.sort((a, b) => (b.cardData.price || 0) - (a.cardData.price || 0));
+                        break;
+                    case 'default':
+                    default:
+                        // Default sort could be by instanceId (order added) or no specific sort beyond current
+                        // For now, if data is fetched fresh, it's likely already in order of addition.
+                        // If there's a specific default sort (e.g. by name then quantity), implement here.
+                        // For now, 'default' does nothing extra.
+                        break;
+                }
+            }
         }
-        // console.log(`[FishingBasket] Items after filtering for type '${filters.type || 'any'}' and rarity '${filters.rarity || 'any'}': ${displayData.length} items.`); // REMOVE - Aggressive cleanup
+        // console.log(`[FishingBasket] Items after filtering and sorting for type '${filters.type || 'any'}', rarity '${filters.rarity || 'any'}', sort '${filters.sort || 'default'}': ${displayData.length} items.`);
         return displayData;
     },
 
