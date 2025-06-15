@@ -126,8 +126,6 @@ window.fishingBasketUi = {
             let cardImageSrc = 'gui/fishing_game/tree-back.png'; // Default to placeholder
             const card = item.cardData;
 
-            const card = item.cardData;
-
             if (card) {
                 const errorItemTypes = ['error_card_generation', 'error_card_missing_data', 'error_card_save_load'];
                 if (card.id === 'error_card' || card.set === 'fish_in_sea_error' || errorItemTypes.includes(card.type)) {
