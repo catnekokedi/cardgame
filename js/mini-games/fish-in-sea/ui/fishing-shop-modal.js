@@ -52,17 +52,87 @@ function renderFishingShopItems(tabType = 'all', currentPage = 1) {
     // Ensure shopPagination is correctly assigned in fishingUi.init, similar to shopItemsGrid
     fishingGameState.ui.shopPagination = fishingGameState.ui.shopPagination || document.getElementById('fishing-shop-pagination');
     const paginationContainer = fishingGameState.ui.shopPagination;
+    const exchangeInfoArea = fishingGameState.ui.shopCurrentTabExchangeInfo;
 
     if (!itemsGrid || !paginationContainer) {
         console.error("Shop items grid or pagination container not found.");
         return;
     }
+    if (!exchangeInfoArea) {
+        console.error("Exchange info area (#fishing-shop-current-tab-exchange-info) not found in UI cache.");
+        // Decide if we should return or just not render this part
+    }
 
+
+    // Clear previous content for all areas managed by this function
+    if(exchangeInfoArea) exchangeInfoArea.innerHTML = '';
     itemsGrid.innerHTML = '';
-    paginationContainer.innerHTML = ''; // Clear existing pagination
+    paginationContainer.innerHTML = '';
 
+    // Display exchange progress information
+    if (tabType === 'all') {
+        if (exchangeInfoArea) {
+            exchangeInfoArea.innerHTML = '<p class="text-center text-sm text-gray-500" style="padding: 10px 0;">Select a specific category tab to see detailed exchange progress.</p>';
+        }
+    } else if (exchangeInfoArea) { // Only proceed if area exists and tab is not 'all'
+        let exchangeRatesConfig;
+        let itemCategoryTitle = ""; // For a potential title, if desired
+
+        switch (tabType) {
+            case 'fruit_card':
+                exchangeRatesConfig = FISHING_CONFIG.FRUIT_EXCHANGE_RATES || {};
+                itemCategoryTitle = "Fruit Exchange Progress";
+                break;
+            case 'mineral_card':
+                exchangeRatesConfig = FISHING_CONFIG.MINERAL_EXCHANGE_RATES || {};
+                itemCategoryTitle = "Rock Exchange Progress";
+                break;
+            case 'bird_reward_card':
+                exchangeRatesConfig = FISHING_CONFIG.BIRD_REWARD_EXCHANGE_RATES || FISHING_CONFIG.CARD_EXCHANGE_RATES || {};
+                itemCategoryTitle = "Bird Item Exchange Progress";
+                break;
+            case 'fish_card':
+            default:
+                exchangeRatesConfig = FISHING_CONFIG.CARD_EXCHANGE_RATES || {};
+                itemCategoryTitle = "Fish Exchange Progress";
+                break;
+        }
+
+        const progressDiv = document.createElement('div');
+        progressDiv.className = 'fishing-shop-item-group';
+
+        let hasProgressToShow = false;
+        const categoryProgress = fishingGameState.shopProgress[tabType] || {};
+
+        Object.keys(exchangeRatesConfig).forEach(itemRarityKey => {
+            if (!exchangeRatesConfig[itemRarityKey]) return;
+
+            Object.keys(exchangeRatesConfig[itemRarityKey]).forEach(ticketRarityKey => {
+                const progressKey = `${itemRarityKey}_for_${ticketRarityKey}`;
+                const currentProgress = categoryProgress[progressKey] || 0;
+                const rate = exchangeRatesConfig[itemRarityKey][ticketRarityKey];
+
+                const itemRarityInfo = getRarityTierInfo(itemRarityKey);
+                const ticketRarityInfo = getRarityTierInfo(ticketRarityKey.replace('_ticket',''));
+
+                const progressP = document.createElement('p');
+                progressP.className = 'exchange-progress-entry';
+                progressP.innerHTML = `For <span class="rarity-text-${ticketRarityKey.replace('_ticket','')}">${ticketRarityInfo ? ticketRarityInfo.name : ticketRarityKey} Ticket</span> (from ${itemRarityInfo ? itemRarityInfo.name : itemRarityKey} items): <strong>${currentProgress}/${rate}</strong>`;
+                progressDiv.appendChild(progressP);
+                hasProgressToShow = true;
+            });
+        });
+
+        if (!hasProgressToShow) {
+            const noProgressP = document.createElement('p');
+            noProgressP.textContent = "No exchange options defined for this category yet.";
+            progressDiv.appendChild(noProgressP);
+        }
+        exchangeInfoArea.appendChild(progressDiv);
+    }
+
+    // Item display logic (existing)
     const allBasketItems = (typeof fishingBasket !== 'undefined' && Array.isArray(fishingBasket.basketContents)) ? fishingBasket.basketContents : [];
-
     let itemsToDisplay;
     const validExchangeTypes = ['fish_card', 'fruit_card', 'mineral_card', 'bird_reward_card'];
 
