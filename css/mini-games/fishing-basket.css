@@ -182,25 +182,3 @@
 .fishing-basket-bulk-actions .game-button {
     padding: 8px 15px;
 }
-
-/* FORCING STYLES FOR DIAGNOSIS - REMOVE LATER */
-#fishing-basket-modal.fishing-game-modal-overlay {
-    display: flex !important;
-    position: fixed !important;
-    top: 10% !important;
-    left: 10% !important;
-    width: 80% !important;
-    height: 80% !important;
-    background-color: rgba(255, 0, 0, 0.7) !important; /* Bright red, semi-transparent */
-    border: 5px solid blue !important; /* Bright blue border */
-    z-index: 99999 !important; /* Extremely high z-index */
-    visibility: visible !important;
-    opacity: 1 !important;
-    overflow: auto !important; /* To see content if it's there */
-}
-
-#fishing-basket-modal.fishing-game-modal-overlay .custom-modal-content.fishing-basket-modal-content {
-   background-color: white !important; /* Ensure content area is visible */
-   padding: 20px !important;
-   border: 2px dashed green !important; /* Green dashed border for content */
-}
