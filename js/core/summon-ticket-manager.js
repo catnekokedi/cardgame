@@ -97,7 +97,7 @@ function getSummonTicketImagePath(rarityKey) {
     }
     // Assuming a naming convention for ticket images: gui/items/summon_ticket_RAREKEY.png
     // Example: gui/items/summon_ticket_rare.png, gui/items/summon_ticket_foil.png
-    return `gui/items/summon_ticket_${rarityKey.toLowerCase()}.png`;
+    return `gui/summon_tickets/ticket_${rarityKey.toLowerCase()}.png`;
 }
 
 // Expose functions to global scope if they are intended to be used by other modules directly
