@@ -279,42 +279,59 @@ const fishingMechanicsInstance = { // Changed to const instance
 
                 if (success) {
                     const caughtItem = this.determineCatch(fishingGameState.bitingFishId); // bitingFishId should still be set
-
-                    if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.displayCaughtItem === 'function') {
-                        // This new UI function should show the item in the center of the screen
-                        window.fishingUi.displayCaughtItem(caughtItem);
-                    } else if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
-                        // Fallback to old preview if displayCaughtItem isn't implemented yet
-                        window.fishingUi.showCatchPreview(caughtItem);
-                    }
-
+                    let itemForDisplay; // This will hold the object for showTemporaryCollectedItem
 
                     if (caughtItem.type === 'card') {
                         const cardDef = (typeof cardData !== 'undefined' && cardData[caughtItem.details.set] && cardData[caughtItem.details.set][caughtItem.details.cardId])
                                             ? cardData[caughtItem.details.set][caughtItem.details.cardId]
                                             : null;
                         const cardName = cardDef ? cardDef.name : `${caughtItem.details.set} Card #${caughtItem.details.cardId}`;
-                        const cardDataForBasket = {
+                        const cardDataForBasket = { // This object is suitable for display and basket
                             id: caughtItem.details.cardId,
                             set: caughtItem.details.set,
                             name: cardName,
                             rarityKey: caughtItem.details.rarityKey,
                             price: caughtItem.details.price,
                             grade: caughtItem.details.grade,
-                            imagePath: getCardImagePath(caughtItem.details.set, caughtItem.details.cardId),
-                            type: 'fish_card',
+                            imagePath: typeof getCardImagePath === 'function' ? getCardImagePath(caughtItem.details.set, caughtItem.details.cardId) : `gui/cards/${caughtItem.details.set}/${caughtItem.details.cardId}.png`,
+                            type: 'fish_card', // Specific type for fishing context if needed by basket
                             source: 'fishing'
                         };
                         if (typeof window.fishingBasket !== 'undefined' && typeof window.fishingBasket.addCardToBasket === 'function') {
                             window.fishingBasket.addCardToBasket(cardDataForBasket, 1);
                         }
+                        itemForDisplay = cardDataForBasket;
                     } else if (caughtItem.type === 'ticket') {
-                        // Tickets are added in determineCatch, but we can log or update UI here if needed
-                         if (typeof addSummonTickets === 'function') { // This is already called in determineCatch
-                            // addSummonTickets(caughtItem.details.rarityKey, 1);
-                         } else console.warn("addSummonTickets function not found during reelRod success for ticket.");
+                        // Tickets are added in determineCatch. Prepare data for display.
+                        const ticketDataForDisplay = {
+                            name: caughtItem.details.name, // Should be like "Rare Ticket"
+                            imagePath: typeof getSummonTicketImagePath === 'function' ? getSummonTicketImagePath(caughtItem.details.rarityKey) : `gui/summon_tickets/ticket_${caughtItem.details.rarityKey}.png`,
+                            id: caughtItem.details.rarityKey, // Use rarityKey as a form of ID for tickets
+                            set: 'Summon Tickets', // Generic set name for tickets
+                            rarityKey: caughtItem.details.rarityKey, // Include rarity for potential display styling
+                            type: 'ticket',
+                            source: 'fishing'
+                        };
+                        itemForDisplay = ticketDataForDisplay;
+                         if (typeof addSummonTickets !== 'function') {
+                            console.warn("addSummonTickets function not found during reelRod success for ticket.");
+                         }
                     }
 
+                    // New unified display logic
+                    if (itemForDisplay) {
+                        if (typeof window.showTemporaryCollectedItem === 'function') {
+                            window.showTemporaryCollectedItem(itemForDisplay);
+                        } else if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCatchPreview === 'function') {
+                            // Fallback to old preview if global function isn't implemented yet
+                            // showCatchPreview expects { type: 'card'/'ticket', details: {...} }
+                            const previewWrapper = {
+                                type: caughtItem.type, // 'card' or 'ticket'
+                                details: { ...itemForDisplay, cardId: itemForDisplay.id } // ensure cardId for card type if showCatchPreview expects it
+                            };
+                            window.fishingUi.showCatchPreview(previewWrapper);
+                        }
+                    }
 
                     if (typeof playSound === 'function') playSound('sfx_fishing_win.mp3');
                     if (fishingGameState.bitingFishId) { // If a visual fish was hooked

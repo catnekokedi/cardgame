@@ -129,14 +129,17 @@ const birdMechanics = {
                     console.warn("playSound function not found, cannot play bird collection sound.");
                 }
 
-                // Use fishingUi.showCaughtItemDisplay for consistency with rock mechanics
-                if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
+                // Use window.showTemporaryCollectedItem for consistency with other collection events
+                if (typeof window.showTemporaryCollectedItem === 'function') {
                     // basketItem is already prepared by this.formatRewardForBasket(reward)
                     // and used for window.fishingBasket.addCardToBasket
-                    window.fishingUi.showCaughtItemDisplay(this.formatRewardForBasket(reward)); // Pass basketItem equivalent
+                    window.showTemporaryCollectedItem(this.formatRewardForBasket(reward));
                 } else {
-                    console.warn("window.fishingUi.showCaughtItemDisplay function not found. Cannot display bird reward via fishingUi.");
-                    // Fallback or alternative display if necessary
+                    console.warn("window.showTemporaryCollectedItem function not found. Cannot display bird reward.");
+                    // Fallback or alternative display if necessary, e.g. using fishingUi as before
+                    if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
+                         window.fishingUi.showCaughtItemDisplay(this.formatRewardForBasket(reward));
+                    }
                 }
             } else {
                 // console.log("Bird dropped nothing."); // INFO - Event driven, okay

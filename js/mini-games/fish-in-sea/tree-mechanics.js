@@ -352,15 +352,16 @@ function collectCardFromTree(slotIndex) {
                 console.warn("playSound function not found, cannot play collection sound.");
             }
 
-            // Use fishingUi.showCaughtItemDisplay for consistency with rock mechanics
-            if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
+            // Use window.showTemporaryCollectedItem for consistency
+            if (typeof window.showTemporaryCollectedItem === 'function') {
                 // cardDataForBasket is already prepared and suitable
+                window.showTemporaryCollectedItem(cardDataForBasket);
+            } else if (typeof window.fishingUi !== 'undefined' && typeof window.fishingUi.showCaughtItemDisplay === 'function') {
+                // Fallback if global function is not available
+                console.warn("window.showTemporaryCollectedItem function not found. Falling back to fishingUi.showCaughtItemDisplay for tree reward.");
                 window.fishingUi.showCaughtItemDisplay(cardDataForBasket);
             } else {
-                console.warn("window.fishingUi.showCaughtItemDisplay function not found. Cannot display tree reward via fishingUi.");
-                // Fallback or alternative display if necessary - for now, just warn.
-                // If a fallback to showTemporaryCollectedItem is desired if showCaughtItemDisplay is missing, that could be added here.
-                // However, rock-mechanics.js implies showCaughtItemDisplay should exist.
+                console.warn("Neither showTemporaryCollectedItem nor fishingUi.showCaughtItemDisplay found. Cannot display tree reward.");
             }
             // Fallback to showTemporaryCollectedItem removed to ensure single display path.
             // If showCatchPreview is not available, nothing will be shown by this function,
