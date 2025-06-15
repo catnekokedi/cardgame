@@ -502,15 +502,9 @@
                         <span class="custom-modal-close" id="close-fishing-basket-modal">&times;</span>
                     </div>
                     <div class="fishing-basket-controls">
-                        <div id="fishing-basket-type-filter-container" class="custom-select-container">
-                            <button class="custom-select-display" id="fishing-basket-type-filter-display" data-value="all_caught">All Types</button>
-                            <div class="custom-select-panel" id="fishing-basket-type-filter-panel" style="display: none;">
-                                <input type="text" class="custom-select-search" id="fishing-basket-type-filter-search" placeholder="Search types...">
-                                <ul class="custom-select-options" id="fishing-basket-type-filter-options">
-                                    <!-- Options will be populated by JS -->
-                                </ul>
-                            </div>
-                        </div>
+                        <select id="fishing-basket-type-filter" class="fishing-basket-filter">
+                            <!-- Options will be populated by JS -->
+                        </select>
                         <select id="fishing-basket-rarity-filter-new" class="fishing-basket-filter">
                             <option value="all">All Rarities</option>
                             <!-- Options will be populated by JS -->

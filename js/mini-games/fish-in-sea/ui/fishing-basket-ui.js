@@ -5,17 +5,12 @@ window.fishingBasketUi = {
     basketIconElement: null,
     cardsContainerElement: null,
     closeButtonElement: null,
-    // Old rarity filter: rarityFilterElement: null,
     sellAllButtonElement: null,
     collectAllButtonElement: null,
 
-    // New filter elements
-    typeFilterContainerElement: null,
-    typeFilterDisplayElement: null,
-    typeFilterPanelElement: null,
-    typeFilterSearchElement: null,
-    typeFilterOptionsElement: null,
-    newRarityFilterElement: null, // Replaces old rarityFilterElement
+    // Filter elements
+    typeFilterElement: null, // Changed from custom select parts
+    newRarityFilterElement: null,
     sortFilterElement: null,
 
     currentFilters: { type: 'all_caught', rarity: 'all', sort: 'default' }, // Default filters
@@ -25,16 +20,12 @@ window.fishingBasketUi = {
      */
     initializeBasketUI: function() {
         this.modalElement = document.getElementById('fishing-basket-modal');
-        this.basketIconElement = document.getElementById('fishing-tool-basket'); // Corrected ID
+        this.basketIconElement = document.getElementById('fishing-tool-basket');
         this.cardsContainerElement = document.getElementById('basket-cards-container');
         this.closeButtonElement = document.getElementById('close-fishing-basket-modal');
 
-        // New selectors
-        this.typeFilterContainerElement = document.getElementById('fishing-basket-type-filter-container');
-        this.typeFilterDisplayElement = document.getElementById('fishing-basket-type-filter-display');
-        this.typeFilterPanelElement = document.getElementById('fishing-basket-type-filter-panel');
-        this.typeFilterSearchElement = document.getElementById('fishing-basket-type-filter-search');
-        this.typeFilterOptionsElement = document.getElementById('fishing-basket-type-filter-options');
+        // Standard select for type filter
+        this.typeFilterElement = document.getElementById('fishing-basket-type-filter');
         this.newRarityFilterElement = document.getElementById('fishing-basket-rarity-filter-new');
         this.sortFilterElement = document.getElementById('fishing-basket-sort-filter');
 
@@ -43,14 +34,10 @@ window.fishingBasketUi = {
 
         const elementsToCheck = {
             modalElement: 'fishing-basket-modal',
-            basketIconElement: 'fishing-tool-basket', // Corrected ID in map
+            basketIconElement: 'fishing-tool-basket',
             cardsContainerElement: 'basket-cards-container',
             closeButtonElement: 'close-fishing-basket-modal',
-            typeFilterContainerElement: 'fishing-basket-type-filter-container',
-            typeFilterDisplayElement: 'fishing-basket-type-filter-display',
-            typeFilterPanelElement: 'fishing-basket-type-filter-panel',
-            typeFilterSearchElement: 'fishing-basket-type-filter-search',
-            typeFilterOptionsElement: 'fishing-basket-type-filter-options',
+            typeFilterElement: 'fishing-basket-type-filter', // Updated
             newRarityFilterElement: 'fishing-basket-rarity-filter-new',
             sortFilterElement: 'fishing-basket-sort-filter',
             sellAllButtonElement: 'fishing-basket-sell-all',
@@ -66,23 +53,17 @@ window.fishingBasketUi = {
 
         if (missingElementIds.length > 0) {
             console.error("Fishing Basket UI Initialization Error: The following crucial DOM elements could not be found: " + missingElementIds.join(', ') + ". Please ensure index.html is up to date and these elements exist.");
-            // Optional: Display a user-facing message or disable functionality
-            if (this.basketIconElement) { // If at least the icon exists, maybe disable it
+            if (this.basketIconElement) {
                  this.basketIconElement.style.opacity = '0.5';
                  this.basketIconElement.title = 'Fishing basket is currently unavailable due to an error.';
-                 // Attempt to remove listener if it was already added, though in this flow it might not be.
-                 // However, this specific function is not passed to addEventListener directly so it cannot be removed this way.
-                 // this.basketIconElement.removeEventListener('click', () => this.openBasketModal());
-                 // Instead, make the basketIconElement click do nothing or show an error
                  this.basketIconElement.onclick = () => {
                     if(typeof showCustomModal === 'function') showCustomModal("Fishing basket is currently unavailable due to a setup error. Please check console (F12) for details.", "error");
                     console.error("Fishing basket icon clicked, but UI is not properly initialized due to missing elements: " + missingElementIds.join(', '));
                  };
             }
-            return; // Stop further initialization of this UI component
+            return;
         }
 
-        // If all elements are found, then add event listeners
         this.basketIconElement.addEventListener('click', () => this.openBasketModal());
         this.closeButtonElement.addEventListener('click', () => this.closeBasketModal());
         this.modalElement.addEventListener('click', (event) => {
@@ -92,9 +73,9 @@ window.fishingBasketUi = {
         });
 
         // Event listeners for new filters
+        this.typeFilterElement.addEventListener('change', () => this.updateBasketFilters()); // Added
         this.newRarityFilterElement.addEventListener('change', () => this.updateBasketFilters());
         this.sortFilterElement.addEventListener('change', () => this.updateBasketFilters());
-        // Custom type filter selection change is handled by its setup in populateTypeFilter
 
         this.sellAllButtonElement.addEventListener('click', () => {
             if (typeof fishingBasket !== 'undefined' && typeof fishingBasket.sellAllUnlockedCards === 'function') {
@@ -115,14 +96,10 @@ window.fishingBasketUi = {
         this.populateTypeFilter();
     },
 
-    /**
-     * Populates the new rarity filter dropdown.
-     * Uses RARITY_PACK_PULL_DISTRIBUTION for rarity definitions.
-     */
     populateRarityFilter: function() {
         if (!this.newRarityFilterElement) return;
 
-        this.newRarityFilterElement.innerHTML = ''; // Clear existing
+        this.newRarityFilterElement.innerHTML = '';
 
         const allRaritiesOption = document.createElement('option');
         allRaritiesOption.value = 'all';
@@ -132,25 +109,26 @@ window.fishingBasketUi = {
 
         if (typeof RARITY_PACK_PULL_DISTRIBUTION !== 'undefined' && Array.isArray(RARITY_PACK_PULL_DISTRIBUTION)) {
             RARITY_PACK_PULL_DISTRIBUTION.forEach(rarityTier => {
-                // It's possible that not all rarities in RARITY_PACK_PULL_DISTRIBUTION are relevant for fishing items.
-                // For now, include all. Could be refined later if needed.
                 const option = document.createElement('option');
-                option.value = rarityTier.key; // e.g., 'common', 'rare'
-                option.textContent = rarityTier.name; // e.g., 'Common', 'Rare'
+                option.value = rarityTier.key;
+                option.textContent = rarityTier.name;
                 this.newRarityFilterElement.appendChild(option);
             });
         } else {
             console.warn("RARITY_PACK_PULL_DISTRIBUTION is not defined or not an array. Rarity filter will be incomplete.");
-            // Fallback: could add a few common known rarities if absolutely necessary
-            // For now, it will just have "All Rarities" if the main definition is missing.
         }
     },
 
     /**
-     * Populates the custom type filter.
+     * Populates the type filter (standard select).
      */
     populateTypeFilter: function() {
-        if (!this.typeFilterOptionsElement || !this.typeFilterDisplayElement || !this.typeFilterPanelElement || !this.typeFilterSearchElement) return;
+        if (!this.typeFilterElement) { // Check the new element
+            console.error("Type filter element (fishing-basket-type-filter) not found for population.");
+            return;
+        }
+
+        this.typeFilterElement.innerHTML = ''; // Clear existing options
 
         const itemTypes = [
             { value: 'all_caught', text: 'All Types' },
@@ -160,44 +138,17 @@ window.fishingBasketUi = {
             { value: 'fruit_card', text: 'Fruit' },
             { value: 'bird_reward_card', text: 'Bird Rewards'},
             { value: 'summon_ticket', text: 'Summon Tickets'}
-            // Consider if 'material' or other specific card types used in fishing rewards need to be here.
-            // This depends on how `cardData.type` is set for items in fishingBasket.
         ];
 
-        if (typeof setupCustomSelect === 'function') {
-            setupCustomSelect(
-                this.typeFilterDisplayElement,
-                this.typeFilterPanelElement,
-                this.typeFilterSearchElement,
-                this.typeFilterOptionsElement,
-                itemTypes,
-                'all_caught', // Default value
-                (selectedValue) => { // onSelectCallback
-                    this.currentFilters.type = selectedValue;
-                    this.updateBasketFilters();
-                }
-            );
-        } else {
-            console.warn("setupCustomSelect function not found. Type filter will not be fully functional.");
-            // Basic population
-            this.typeFilterOptionsElement.innerHTML = '';
-            itemTypes.forEach(type => {
-                const li = document.createElement('li');
-                li.dataset.value = type.value;
-                li.textContent = type.text;
-                li.addEventListener('click', () => {
-                    this.typeFilterDisplayElement.textContent = type.text;
-                    this.typeFilterDisplayElement.dataset.value = type.value;
-                    this.currentFilters.type = type.value;
-                    this.typeFilterPanelElement.style.display = 'none';
-                    this.updateBasketFilters();
-                });
-                this.typeFilterOptionsElement.appendChild(li);
-            });
-            this.typeFilterDisplayElement.addEventListener('click', () => {
-                this.typeFilterPanelElement.style.display = this.typeFilterPanelElement.style.display === 'none' ? 'block' : 'none';
-            });
-        }
+        itemTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type.value;
+            option.textContent = type.text;
+            if (type.value === 'all_caught') {
+                option.selected = true;
+            }
+            this.typeFilterElement.appendChild(option);
+        });
     },
 
     openBasketModal: function() {
@@ -323,7 +274,8 @@ window.fishingBasketUi = {
     },
 
     updateBasketFilters: function() {
-        this.currentFilters.type = this.typeFilterDisplayElement.dataset.value || 'all_caught';
+        // Read values from all filter elements
+        this.currentFilters.type = this.typeFilterElement.value || 'all_caught'; // Changed
         this.currentFilters.rarity = this.newRarityFilterElement.value || 'all';
         this.currentFilters.sort = this.sortFilterElement.value || 'default';
 
