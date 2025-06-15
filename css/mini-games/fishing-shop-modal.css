@@ -187,12 +187,16 @@
     font-size: 0.9em;
     max-height: 150px; /* Max height for this area if many rules exist */
     overflow-y: auto;   /* Scroll if content exceeds max-height */
+    text-align: left; /* Ensure items align to the left if container was centered */
 }
 
 /* Styling for each line of exchange progress */
 .fishing-shop-current-tab-exchange-info-area .exchange-progress-entry {
-    margin: 5px 0;
+    display: inline-block; /* Allow items to sit side-by-side */
+    margin: 5px 0; /* Vertical margin */
+    margin-right: 15px; /* Horizontal margin for spacing between items */
     color: #333;
+    vertical-align: top; /* Align items from their top edge */
 }
 
 .fishing-shop-current-tab-exchange-info-area .exchange-progress-entry strong {
